@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b3a53">
+  <meta name="description" content="Dashboard kesiapan rangkaian kegiatan PI Group di PT Pupuk Iskandar Muda, 10–12 Agustus 2026.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <title>PI Group Event Readiness</title>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div>
+        <p class="eyebrow">PT Pupuk Iskandar Muda</p>
+        <h1 id="appTitle">PI Group Event Readiness</h1>
+        <p id="eventPeriod" class="subtle">10–12 Agustus 2026</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span id="syncBadge" class="sync-badge">Memuat data…</span>
+      <button id="refreshButton" class="button secondary" type="button">Refresh</button>
+      <button id="installButton" class="button" type="button" hidden>Install</button>
+      <a id="sheetButton" class="button" href="#" target="_blank" rel="noopener" hidden>Edit Google Sheet</a>
+    </div>
+  </header>
+
+  <nav class="top-nav" aria-label="Navigasi utama">
+    <button class="nav-button active" data-view="dashboard">Dashboard</button>
+    <button class="nav-button" data-view="checklist">Checklist</button>
+    <button class="nav-button" data-view="rundown">Rundown</button>
+    <button class="nav-button" data-view="accommodation">Akomodasi</button>
+    <button class="nav-button" data-view="venue">Venue</button>
+    <button class="nav-button" data-view="lo">LO</button>
+    <button class="nav-button" data-view="issues">Isu</button>
+    <button class="nav-button" data-view="documents">Dokumen</button>
+  </nav>
+
+  <main id="mainContent" class="main-content" aria-live="polite">
+    <section id="loadingState" class="state-card">
+      <div class="spinner" aria-hidden="true"></div>
+      <h2>Memuat dashboard</h2>
+      <p>Mengambil data kesiapan terbaru.</p>
+    </section>
+
+    <section id="errorState" class="state-card error" hidden>
+      <h2>Data belum dapat dimuat</h2>
+      <p id="errorMessage">Periksa URL Apps Script pada config.js.</p>
+      <button id="retryButton" class="button" type="button">Coba Lagi</button>
+    </section>
+
+    <div id="appViews" hidden>
+      <section class="view active" data-view-panel="dashboard">
+        <div class="hero-card">
+          <div>
+            <p class="eyebrow">Working scenario</p>
+            <h2 id="scenarioLabel">—</h2>
+            <p id="projectDescription" class="subtle">—</p>
+          </div>
+          <div class="countdown"><strong id="daysToEvent">—</strong><span>hari menuju acara</span></div>
+        </div>
+        <div id="kpiGrid" class="kpi-grid"></div>
+        <div class="section-heading"><div><p class="eyebrow">Kesiapan per kegiatan</p><h2>Event readiness</h2></div></div>
+        <div id="eventCards" class="event-grid"></div>
+        <div class="dashboard-grid">
+          <article class="panel"><div class="panel-heading"><h3>Prioritas Tindakan</h3><span class="pill critical">Critical</span></div><div id="priorityTasks"></div></article>
+          <article class="panel"><div class="panel-heading"><h3>Keputusan / Isu Terbuka</h3><span id="openIssueCount" class="pill">0</span></div><div id="dashboardIssues"></div></article>
+        </div>
+      </section>
+
+      <section class="view" data-view-panel="checklist">
+        <div class="section-heading"><div><p class="eyebrow">Master preparation tracker</p><h2>Checklist Kesiapan</h2></div><span id="taskResultCount" class="pill"></span></div>
+        <div class="filter-bar">
+          <input id="taskSearch" type="search" placeholder="Cari item, PIC, bidang, venue…" aria-label="Cari checklist">
+          <select id="eventFilter" aria-label="Filter event"><option value="">Semua event</option></select>
+          <select id="workstreamFilter" aria-label="Filter bidang"><option value="">Semua workstream</option></select>
+          <select id="statusFilter" aria-label="Filter status"><option value="">Semua status</option></select>
+          <select id="priorityFilter" aria-label="Filter prioritas"><option value="">Semua prioritas</option></select>
+        </div>
+        <div id="taskList" class="task-list"></div>
+      </section>
+
+      <section class="view" data-view-panel="rundown">
+        <div class="section-heading"><div><p class="eyebrow">Scenario <span id="rundownScenario">B</span></p><h2>Rundown</h2></div></div>
+        <div id="rundownList" class="timeline"></div>
+      </section>
+
+      <section class="view" data-view-panel="accommodation">
+        <div class="section-heading"><div><p class="eyebrow">Sanitized public view</p><h2>Akomodasi</h2></div></div>
+        <div id="accommodationKpis" class="kpi-grid compact"></div>
+        <div id="accommodationList" class="panel-list"></div>
+      </section>
+
+      <section class="view" data-view-panel="venue">
+        <div class="section-heading"><div><p class="eyebrow">Venue & facility readiness</p><h2>Kesiapan Venue</h2></div></div>
+        <div id="venueCards" class="event-grid"></div>
+      </section>
+
+      <section class="view" data-view-panel="lo">
+        <div class="section-heading"><div><p class="eyebrow">Liaison officer</p><h2>LO Assignment</h2></div><span id="loCount" class="pill"></span></div>
+        <div class="filter-bar"><input id="loSearch" type="search" placeholder="Cari perusahaan, kategori VIP, atau LO…" aria-label="Cari LO"></div>
+        <div id="loList" class="panel-list"></div>
+      </section>
+
+      <section class="view" data-view-panel="issues">
+        <div class="section-heading"><div><p class="eyebrow">Issue & decision register</p><h2>Isu dan Keputusan</h2></div></div>
+        <div id="issueList" class="panel-list"></div>
+      </section>
+
+      <section class="view" data-view-panel="documents">
+        <div class="section-heading"><div><p class="eyebrow">Approved public references</p><h2>Dokumen</h2></div></div>
+        <div id="documentList" class="panel-list"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <span id="footerVersion">Version —</span>
+    <span>Data publik disanitasi dari Google Sheets</span>
+  </footer>
+
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
