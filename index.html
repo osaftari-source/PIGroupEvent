@@ -64,7 +64,6 @@ aside{display:none}
   .snav button[aria-selected="true"] .badge{background:var(--amber);color:#3A2600;font-weight:600}
   .sfoot{border-top:1px solid #2C4A6C;padding-top:14px;margin-top:12px}
   main{margin-left:var(--side)}
-  nav.bottom{display:none}
   header.mob{display:none}
 }
 
@@ -100,6 +99,25 @@ nav.bottom .ndot{
   border-radius:50%;background:var(--st-block);
 }
 
+/* Desktop/tablet web layout — keep mobile navigation out of the web view. */
+@media(min-width:860px){
+  nav.bottom{display:none!important}
+  .panel{margin-bottom:14px}
+}
+
+/* A full three-column dashboard needs enough usable width after the sidebar. */
+@media(min-width:860px) and (max-width:1199px){
+  .g3{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  .g3>div:nth-child(3){
+    grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;
+  }
+  .g3>div:nth-child(3)>.panel{margin-bottom:0}
+  .g3>div:nth-child(3)>.panel:last-child{grid-column:1/-1}
+}
+@media(min-width:1200px){
+  .g3{grid-template-columns:1.15fr 1fr 1fr;align-items:start}
+}
+
 /* ============ SYNC PILL ============ */
 .sync{
   display:flex;align-items:center;gap:7px;font-size:11px;color:#93A6C4;
@@ -129,9 +147,7 @@ main{padding:16px 14px calc(78px + env(safe-area-inset-bottom))}
 }
 .grid{display:grid;gap:14px}
 @media(min-width:860px){
-  .g3{grid-template-columns:1.15fr 1fr 1fr;align-items:start}
   .g2{grid-template-columns:1fr 1fr;align-items:start}
-  .panel{margin-bottom:0}
   .grid>div>.panel{margin-bottom:14px}
 }
 
@@ -281,7 +297,7 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-10',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v5'
+  CACHE_KEY: 'pim-event-cache-v6'
 };
 
 /* ============================================================
