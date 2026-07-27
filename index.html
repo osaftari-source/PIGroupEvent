@@ -281,7 +281,7 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-10',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v4'
+  CACHE_KEY: 'pim-event-cache-v5'
 };
 
 /* ============================================================
@@ -304,12 +304,18 @@ function f(row,...names){
 const rows = t => (DATA?.tabs?.[t]) || [];
 const CH = () => rows('CHECKLIST').filter(r=>has(f(r,'ID')));
 const BD = () => rows('BIDANG').filter(r=>has(f(r,'Bidang')) && f(r,'Bidang').toUpperCase()!=='TOTAL');
+const RD = () => rows('RUNDOWN').filter(r=>/^RD-\d+$/i.test(f(r,'ID')));
 
 const ST={'not started':['st-none','Not Started'],'in progress':['st-prog','In Progress'],
   'done':['st-done','Done'],'blocked':['st-block','Blocked'],'n/a':['st-na','N/A']};
 const stTag = v => { const m=ST[String(v||'').trim().toLowerCase()]||['st-none',v||'Not Started'];
   return `<i class="tag st ${m[0]}">${esc(m[1])}</i>`; };
-const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d;};
+function eventClock(){
+  const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
+  const p=Object.fromEntries(parts.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
+  return {date:`${p.year}-${p.month}-${p.day}`,hm:`${p.hour}:${p.minute}`};
+}
+const today=()=>parseD(eventClock().date);
 function parseD(s){ if(!has(s)) return null;
   const m=String(s).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(m) return new Date(+m[1],+m[2]-1,+m[3]);
@@ -464,7 +470,7 @@ function viewHome(){
       <div class="bar2"><i style="width:${ww(dd)}%;background:var(--st-done)"></i>
         <i style="width:${ww(pp)}%;background:var(--st-prog)"></i>
         <i style="width:${ww(bb)}%;background:var(--st-block)"></i></div>
-      <div class="meta">${dd}/${dn} selesai${bb?' · '+bb+' blocked':''} · ${ket && !/^#/.test(ket)?esc(ket):'<span class="warn-t">ketua belum ditetapkan</span>'}${usul?' <span class="warn-t">· usulan</span>':''}</div>
+      <div class="meta">${dd}/${dn} selesai${bb?' · '+bb+' blocked':''} · ${ket && !/^#/.test(ket) && !/belum|tbc|ditetapkan/i.test(ket)?esc(ket):'<span class="warn-t">ketua belum ditetapkan</span>'}${usul?' <span class="warn-t">· usulan</span>':''}</div>
     </button>`;
   }).join('') || '<div class="empty">Belum ada bidang.</div>';
 
@@ -594,10 +600,10 @@ function drawChk(){
 
 /* ---------- Rundown ---------- */
 function viewRun(){
-  const rd=rows('RUNDOWN');
+  const rd=RD();
   const days=[...new Set(rd.map(r=>f(r,'Tanggal')).filter(has))].sort();
   const lanes=[...new Set(rd.map(r=>f(r,'Jalur')).filter(has))];
-  const tISO=new Date().toISOString().slice(0,10);
+  const tISO=eventClock().date;
   $('#v-run').innerHTML = ph('Rundown','Jadwal per hari dan per jalur, lengkap dengan lokasi kegiatan.') + demoNote() + `
     <div class="filters">
       <select id="rDay">${days.map(d=>{const o=rd.find(r=>f(r,'Tanggal')===d);
@@ -611,17 +617,17 @@ function viewRun(){
 }
 function drawRun(){
   const d=$('#rDay')?.value||'',ln=$('#rLane')?.value||'';
-  let list=rows('RUNDOWN').filter(r=>(!d||f(r,'Tanggal')===d)&&(!ln||f(r,'Jalur')===ln));
+  let list=RD().filter(r=>(!d||f(r,'Tanggal')===d)&&(!ln||f(r,'Jalur')===ln));
   list.sort((a,b)=>f(a,'Mulai').localeCompare(f(b,'Mulai')));
   if(!list.length){ $('#listRun').innerHTML='<div class="empty"><b>Belum ada kegiatan</b>Pilih hari lain.</div>'; return; }
-  const now=new Date(), nISO=now.toISOString().slice(0,10), hm=now.toTimeString().slice(0,5);
+  const clock=eventClock(), nISO=clock.date, nowHM=clock.hm;
   let h='',lane='';
   for(const r of list){
     const lj=f(r,'Jalur');
     if(!ln&&lj!==lane){lane=lj;h+=`<div class="grp">${esc(lj)}</div>`;}
-    const hm=t=>String(t||'').slice(0,5);
-    const s=hm(f(r,'Mulai')),e=hm(f(r,'Selesai')),v=f(r,'Venue');
-    const live=f(r,'Tanggal')===nISO && s<=hm && (!e||hm<e);
+    const fmtHM=t=>String(t||'').slice(0,5);
+    const s=fmtHM(f(r,'Mulai')),e=fmtHM(f(r,'Selesai')),v=f(r,'Venue');
+    const live=f(r,'Tanggal')===nISO && s<=nowHM && (!e||nowHM<e);
     h+=`<div class="rd${live?' now':''}">
       <div class="tm">${esc(s)}<small>${esc(e)}</small></div>
       <div style="flex:1;min-width:0">
@@ -629,7 +635,7 @@ function drawRun(){
         <div class="kg">${esc(f(r,'Kegiatan'))}</div>
         <div class="l2">
           ${v?`<i class="tag">${esc(v)}</i>`:'<i class="tag over">Lokasi belum diisi</i>'}
-          ${has(f(r,'Durasi'))?`<i class="tag">${esc(hm(f(r,'Durasi')))}</i>`:''}
+          ${has(f(r,'Durasi'))?`<i class="tag">${esc(fmtHM(f(r,'Durasi')))}</i>`:''}
           ${has(f(r,'PIC'))?`<i class="tag">${esc(f(r,'PIC'))}</i>`:''}
         </div></div></div>`;
   }
