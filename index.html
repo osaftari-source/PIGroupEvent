@@ -37,7 +37,7 @@ button,input,select{font:inherit}
 
 /* ============ SIDEBAR (desktop) ============ */
 aside{display:none}
-@media(min-width:1024px){
+@media(min-width:860px){
   aside{
     display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;width:var(--side);
     background:var(--ink);color:#fff;padding:22px 14px;z-index:50;
@@ -112,14 +112,14 @@ aside .sync{color:#93A6C4;padding:2px}
 
 /* ============ LAYOUT ============ */
 main{padding:16px 14px calc(78px + env(safe-area-inset-bottom))}
-@media(min-width:1024px){ main{padding:26px 30px 40px} }
+@media(min-width:860px){ main{padding:26px 30px 40px} }
 .wrap{max-width:1480px;margin:0 auto}
 .view{display:none} .view.on{display:block}
 
 .ph{margin:0 2px 14px}
 .ph h2{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;letter-spacing:.01em;margin:0;text-transform:uppercase}
 .ph p{margin:3px 0 0;font-size:13px;color:var(--ink-3)}
-@media(min-width:1024px){ .ph h2{font-size:30px} }
+@media(min-width:860px){ .ph h2{font-size:30px} }
 
 .panel{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
 .panel>h3{
@@ -128,7 +128,7 @@ main{padding:16px 14px calc(78px + env(safe-area-inset-bottom))}
   margin:0;padding:13px 16px;border-bottom:1px solid var(--rule-2);background:var(--panel-2);
 }
 .grid{display:grid;gap:14px}
-@media(min-width:1024px){
+@media(min-width:860px){
   .g3{grid-template-columns:1.15fr 1fr 1fr;align-items:start}
   .g2{grid-template-columns:1fr 1fr;align-items:start}
   .panel{margin-bottom:0}
@@ -223,7 +223,7 @@ main{padding:16px 14px calc(78px + env(safe-area-inset-bottom))}
   border-radius:var(--r-sm);padding:10px 11px;min-height:var(--tap);flex:1 1 140px;min-width:0;
 }
 .filters input{flex:1 1 100%}
-@media(min-width:1024px){ .filters input{flex:2 1 300px} }
+@media(min-width:860px){ .filters input{flex:2 1 300px} }
 .count{font-size:11.5px;color:var(--ink-3);margin:0 4px 9px}
 
 .empty{padding:36px 20px;text-align:center;color:var(--ink-3);font-size:14px}
@@ -281,7 +281,7 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-10',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v3'
+  CACHE_KEY: 'pim-event-cache-v4'
 };
 
 /* ============================================================
@@ -619,7 +619,8 @@ function drawRun(){
   for(const r of list){
     const lj=f(r,'Jalur');
     if(!ln&&lj!==lane){lane=lj;h+=`<div class="grp">${esc(lj)}</div>`;}
-    const s=f(r,'Mulai'),e=f(r,'Selesai'),v=f(r,'Venue');
+    const hm=t=>String(t||'').slice(0,5);
+    const s=hm(f(r,'Mulai')),e=hm(f(r,'Selesai')),v=f(r,'Venue');
     const live=f(r,'Tanggal')===nISO && s<=hm && (!e||hm<e);
     h+=`<div class="rd${live?' now':''}">
       <div class="tm">${esc(s)}<small>${esc(e)}</small></div>
@@ -628,7 +629,7 @@ function drawRun(){
         <div class="kg">${esc(f(r,'Kegiatan'))}</div>
         <div class="l2">
           ${v?`<i class="tag">${esc(v)}</i>`:'<i class="tag over">Lokasi belum diisi</i>'}
-          ${has(f(r,'Durasi'))?`<i class="tag">${esc(f(r,'Durasi'))}</i>`:''}
+          ${has(f(r,'Durasi'))?`<i class="tag">${esc(hm(f(r,'Durasi')))}</i>`:''}
           ${has(f(r,'PIC'))?`<i class="tag">${esc(f(r,'PIC'))}</i>`:''}
         </div></div></div>`;
   }
