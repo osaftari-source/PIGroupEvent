@@ -231,6 +231,8 @@ main{padding:16px 14px calc(78px + env(safe-area-inset-bottom))}
 .rd.now{background:#FFF9EA;box-shadow:inset 3px 0 0 var(--amber)}
 .rd.now .kg{font-weight:600}
 .lane{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+.rd-note{margin-top:8px;padding:7px 9px;border-left:3px solid var(--amber);background:#FFF9EA;border-radius:0 6px 6px 0;color:#6B4400;font-size:11.5px;line-height:1.45}
+.tag.lane-tag{background:#EAF3F8;border-color:#B8D6E6;color:#0B4D6B;font-weight:600}
 
 /* filters */
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
@@ -283,7 +285,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v7
   </footer>
 </div></main>
 
@@ -297,7 +299,7 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-10',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v6'
+  CACHE_KEY: 'pim-event-cache-v7'
 };
 
 /* ============================================================
@@ -318,6 +320,10 @@ function f(row,...names){
   return '';
 }
 const rows = t => (DATA?.tabs?.[t]) || [];
+const joinText = r => f(r,'Keikutsertaan').toUpperCase();
+const isVIP = r => joinText(r).includes('VIP') || (!joinText(r) && f(r,'Rombongan').toUpperCase().includes('VIP'));
+const isRaker = r => joinText(r).includes('RAKER');
+const isVIPRaker = r => isVIP(r) && isRaker(r);
 const CH = () => rows('CHECKLIST').filter(r=>has(f(r,'ID')));
 const BD = () => rows('BIDANG').filter(r=>has(f(r,'Bidang')) && f(r,'Bidang').toUpperCase()!=='TOTAL');
 const RD = () => rows('RUNDOWN').filter(r=>/^RD-\d+$/i.test(f(r,'ID')));
@@ -492,6 +498,9 @@ function viewHome(){
 
   const tamu=rows('TAMU');
   const p1=tamu.filter(r=>f(r,'Prioritas')==='P1').length;
+  const vip=tamu.filter(isVIP).length;
+  const raker=tamu.filter(isRaker).length;
+  const vipRaker=tamu.filter(isVIPRaker).length;
   const noRoom=tamu.filter(r=>!has(f(r,'Akomodasi'))).length;
   const ak=rows('AKOMODASI');
   const notReady=ak.filter(r=>/pengisian|belum/i.test(f(r,'Kesiapan'))).length;
@@ -546,8 +555,11 @@ function viewHome(){
     <div>
       <div class="panel"><h3>Venue</h3>${venue}</div>
       <div class="panel"><h3>Tamu &amp; Akomodasi</h3>
-        <div class="kv"><span>Tamu terdaftar</span><b>${tamu.length} orang, ${p1} di antaranya P1</b></div>
-        <div class="kv"><span>Belum ada kamar</span><b>${noRoom} tamu</b></div>
+        <div class="kv"><span>Roster unik</span><b>${tamu.length} slot</b></div>
+        <div class="kv"><span>Peserta VIP</span><b>${vip} peserta${vipRaker?` · ${vipRaker} juga mengikuti Raker`:''}</b></div>
+        <div class="kv"><span>Peserta Raker</span><b>${raker} peserta</b></div>
+        <div class="kv"><span>Prioritas P1</span><b>${p1} slot</b></div>
+        <div class="kv"><span>Akomodasi kosong</span><b>${noRoom} slot belum memiliki data akomodasi</b></div>
         <div class="kv"><span>Kamar terisi</span><b>${filled} dari ${ak.length}</b></div>
         <div class="kv"><span>Kamar disiapkan</span><b>${notReady?`<span class="warn-t">${notReady} masih pengisian furnitur</span>`:'semua siap'}</b></div>
       </div>
@@ -634,87 +646,104 @@ function viewRun(){
 function drawRun(){
   const d=$('#rDay')?.value||'',ln=$('#rLane')?.value||'';
   let list=RD().filter(r=>(!d||f(r,'Tanggal')===d)&&(!ln||f(r,'Jalur')===ln));
-  list.sort((a,b)=>f(a,'Mulai').localeCompare(f(b,'Mulai')));
+  list.sort((a,b)=>f(a,'Mulai').localeCompare(f(b,'Mulai'))||f(a,'Jalur').localeCompare(f(b,'Jalur'))||f(a,'ID').localeCompare(f(b,'ID')));
   if(!list.length){ $('#listRun').innerHTML='<div class="empty"><b>Belum ada kegiatan</b>Pilih hari lain.</div>'; return; }
   const clock=eventClock(), nISO=clock.date, nowHM=clock.hm;
-  let h='',lane='';
+  let h=ln?`<div class="grp">${esc(ln)}</div>`:'';
   for(const r of list){
     const lj=f(r,'Jalur');
-    if(!ln&&lj!==lane){lane=lj;h+=`<div class="grp">${esc(lj)}</div>`;}
     const fmtHM=t=>String(t||'').slice(0,5);
-    const s=fmtHM(f(r,'Mulai')),e=fmtHM(f(r,'Selesai')),v=f(r,'Venue');
+    const s=fmtHM(f(r,'Mulai')),e=fmtHM(f(r,'Selesai')),v=f(r,'Venue'),cat=f(r,'Catatan');
     const live=f(r,'Tanggal')===nISO && s<=nowHM && (!e||nowHM<e);
     h+=`<div class="rd${live?' now':''}">
       <div class="tm">${esc(s)}<small>${esc(e)}</small></div>
       <div style="flex:1;min-width:0">
-        ${ln?`<div class="lane">${esc(lj)}</div>`:''}
         <div class="kg">${esc(f(r,'Kegiatan'))}</div>
         <div class="l2">
+          ${!ln?`<i class="tag lane-tag">${esc(lj)}</i>`:''}
           ${v?`<i class="tag">${esc(v)}</i>`:'<i class="tag over">Lokasi belum diisi</i>'}
-          ${has(f(r,'Durasi'))?`<i class="tag">${esc(fmtHM(f(r,'Durasi')))}</i>`:''}
+          ${has(f(r,'Durasi'))?`<i class="tag">Durasi ${esc(fmtHM(f(r,'Durasi')))}</i>`:''}
           ${has(f(r,'PIC'))?`<i class="tag">${esc(f(r,'PIC'))}</i>`:''}
-        </div></div></div>`;
+        </div>
+        ${cat?`<div class="rd-note"><b>Catatan sumber:</b> ${esc(cat)}</div>`:''}
+      </div></div>`;
   }
   $('#listRun').innerHTML=h;
 }
 
 /* ---------- Tamu ---------- */
-const PRI={P1:['p1','VVIP negara & holding'],P2:['p2','Pimpinan puncak anper'],
-  P3:['p3','Direksi & komisaris anper'],P4:['p4','Pendamping']};
+const PRI={P1:['p1','Prioritas utama'],P2:['p2','Prioritas tinggi'],
+  P3:['p3','Prioritas menengah'],P4:['p4','Peserta umum / pendamping']};
 function viewTamu(){
   const tm=rows('TAMU');
   const comp=[...new Set(tm.map(r=>f(r,'Perusahaan')).filter(has))].sort();
   const romb=[...new Set(tm.map(r=>f(r,'Rombongan')).filter(has))];
-  $('#v-tamu').innerHTML = ph('Tamu','Referensi cepat LO: prioritas, jabatan, kamar, dan jadwal kedatangan.') + demoNote() + `
+  const source=[...new Set(tm.map(r=>f(r,'Kategori Sumber')).filter(has))].sort();
+  $('#v-tamu').innerHTML = ph('Tamu','Roster gabungan VIP dan Raker. Gunakan filter keikutsertaan untuk mengikuti angka ringkasan PI.') + demoNote() + `
     <div class="filters">
-      <input id="tCari" type="search" placeholder="Cari nama, jabatan, atau perusahaan…" autocomplete="off">
+      <input id="tCari" type="search" placeholder="Cari nama, jabatan, perusahaan, atau kategori…" autocomplete="off">
+      <select id="tJoin"><option value="">Semua keikutsertaan</option>
+        <option value="VIP">VIP</option><option value="RAKER">Raker</option>
+        <option value="BOTH">VIP &amp; Raker</option></select>
       <select id="tPri"><option value="">Semua prioritas</option>
-        <option value="P1">P1 — VVIP</option><option value="P2">P2</option>
-        <option value="P3">P3</option><option value="P4">P4</option></select>
+        <option value="P1">P1 — Prioritas utama</option><option value="P2">P2 — Prioritas tinggi</option>
+        <option value="P3">P3 — Prioritas menengah</option><option value="P4">P4 — Peserta umum</option></select>
+      <select id="tSource"><option value="">Semua kategori sumber</option>${source.map(r=>`<option>${esc(r)}</option>`).join('')}</select>
       <select id="tRomb"><option value="">Semua rombongan</option>${romb.map(r=>`<option>${esc(r)}</option>`).join('')}</select>
       <select id="tComp"><option value="">Semua perusahaan</option>${comp.map(c=>`<option>${esc(c)}</option>`).join('')}</select>
     </div>
     <div class="panel"><div class="legend">${Object.entries(PRI).map(([k,v])=>
-      `<div><i class="${v[0]}"></i><b>${k}</b>&nbsp;${esc(v[1])}</div>`).join('')}</div></div>
+      `<div><i class="${v[0]}"></i><b>${k}</b>&nbsp;${esc(v[1])}</div>`).join('')}</div>
+      <div class="sub" style="padding:0 16px 12px;margin-top:0">Klasifikasi prioritas merupakan kategori kerja pada workbook dan masih menunggu ratifikasi final.</div>
+    </div>
     <div class="count" id="cTamu"></div><div class="panel" id="listTamu"></div>`;
-  ['tCari','tPri','tRomb','tComp'].forEach(id=>
+  ['tCari','tJoin','tPri','tSource','tRomb','tComp'].forEach(id=>
     $('#'+id).addEventListener(id==='tCari'?'input':'change',drawTamu));
   drawTamu();
 }
 function drawTamu(){
   const q=($('#tCari')?.value||'').toLowerCase().trim();
-  const pr=$('#tPri')?.value||'',rb=$('#tRomb')?.value||'',cp=$('#tComp')?.value||'';
+  const join=$('#tJoin')?.value||'',pr=$('#tPri')?.value||'',src=$('#tSource')?.value||'';
+  const rb=$('#tRomb')?.value||'',cp=$('#tComp')?.value||'';
   const all=rows('TAMU');
   let list=all.filter(r=>{
+    if(join==='VIP'&&!isVIP(r)) return false;
+    if(join==='RAKER'&&!isRaker(r)) return false;
+    if(join==='BOTH'&&!isVIPRaker(r)) return false;
     if(pr&&f(r,'Prioritas')!==pr) return false;
+    if(src&&f(r,'Kategori Sumber')!==src) return false;
     if(rb&&f(r,'Rombongan')!==rb) return false;
     if(cp&&f(r,'Perusahaan')!==cp) return false;
-    if(q){ const h=[f(r,'Nama'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Akomodasi'),f(r,'LO'),f(r,'Rombongan')].join(' ').toLowerCase();
+    if(q){ const h=[f(r,'Nama'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Akomodasi'),f(r,'LO'),
+      f(r,'Rombongan'),f(r,'Keikutsertaan'),f(r,'Kategori Sumber')].join(' ').toLowerCase();
       if(!h.includes(q)) return false; }
     return true;
   });
   const ord={P1:0,P2:1,P3:2,P4:3};
   list.sort((a,b)=>(ord[f(a,'Prioritas')]??9)-(ord[f(b,'Prioritas')]??9)
     ||f(a,'Perusahaan').localeCompare(f(b,'Perusahaan'))||f(a,'Nama').localeCompare(f(b,'Nama')));
-  $('#cTamu').textContent=list.length+' dari '+all.length+' tamu';
-  if(!list.length){ $('#listTamu').innerHTML='<div class="empty"><b>Tamu tidak ditemukan</b>Coba nama, jabatan, atau perusahaan lain.</div>'; return; }
+  const vip=list.filter(isVIP).length,raker=list.filter(isRaker).length,both=list.filter(isVIPRaker).length;
+  $('#cTamu').textContent=`${list.length} dari ${all.length} slot roster · VIP ${vip} · Raker ${raker}${both?` · overlap ${both}`:''}`;
+  if(!list.length){ $('#listTamu').innerHTML='<div class="empty"><b>Tamu tidak ditemukan</b>Coba nama, kategori, atau filter lain.</div>'; return; }
   let h='',g='';
   for(const r of list){
     const p=f(r,'Prioritas')||'P4';
     if(!pr&&p!==g){g=p;h+=`<div class="grp">${esc(p)} &middot; ${esc((PRI[p]||['','Lainnya'])[1])}</div>`;}
     const nm=f(r,'Nama'),ak=f(r,'Akomodasi'),km=f(r,'No Kamar'),lo=f(r,'LO'),cat=f(r,'Catatan');
     const dtg=f(r,'Kedatangan'),fdt=f(r,'Flight Datang'),plg=f(r,'Kepulangan'),fpl=f(r,'Flight Pulang');
-    const rmb=f(r,'Rombongan');
-    const tbc=/menyusul|belum dikonfirmasi/i.test(nm+' '+cat);
+    const rmb=f(r,'Rombongan'),joinVal=f(r,'Keikutsertaan'),sourceVal=f(r,'Kategori Sumber');
+    const placeholder=/nama menyusul|belum dikonfirmasi/i.test(nm+' '+cat);
     h+=`<div class="item">
       <div class="l1"><span class="pri ${(PRI[p]||['p4'])[0]}">${esc(p)}</span>
         <span class="tx"><b>${esc(nm)}</b><span class="sub" style="margin-top:2px;display:block;color:var(--ink-2);font-size:13px">${esc(f(r,'Jabatan'))}</span></span></div>
       <div class="l2">
-        <i class="tag">${esc(f(r,'Perusahaan'))}</i>
+        ${has(f(r,'Perusahaan'))?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}
+        ${joinVal?`<i class="tag lane-tag">${esc(joinVal)}</i>`:''}
+        ${sourceVal?`<i class="tag">${esc(sourceVal)}</i>`:''}
         ${rmb?`<i class="tag">${esc(rmb)}</i>`:''}
-        ${ak?`<i class="tag">${esc(ak)}${km?' &middot; kamar '+esc(km):''}</i>`:'<i class="tag over">Kamar belum spesifik</i>'}
-        ${lo?`<i class="tag">LO: ${esc(lo)}</i>`:'<i class="tag over">LO belum ditetapkan</i>'}
-        ${tbc?'<i class="tag hi">Nama menyusul</i>':''}
+        ${placeholder?'<i class="tag hi">Nama menyusul</i>':
+          (ak?`<i class="tag">${esc(ak)}${km?' &middot; kamar '+esc(km):''}</i>`:'<i class="tag over">Data akomodasi belum diisi</i>')}
+        ${!placeholder?(lo?`<i class="tag">LO: ${esc(lo)}</i>`:'<i class="tag over">LO belum ditetapkan</i>'):''}
       </div>
       ${(dtg||plg)?`<div class="l2">
         ${dtg?`<i class="tag fly">↓ ${esc(dtg)}</i>`:''}
@@ -722,7 +751,7 @@ function drawTamu(){
         ${plg?`<i class="tag fly">↑ ${esc(plg)}</i>`:''}
         ${fpl?`<i class="tag fly">${esc(fpl)}</i>`:''}
       </div>`:''}
-      ${cat&&!tbc?`<div class="sub">${esc(cat)}</div>`:''}</div>`;
+      ${cat&&!placeholder?`<div class="sub">${esc(cat)}</div>`:''}</div>`;
   }
   $('#listTamu').innerHTML=h;
 }
