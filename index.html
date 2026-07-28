@@ -270,6 +270,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
 .visual-legend span{display:flex;align-items:center;gap:5px}.visual-legend i{width:9px;height:9px;border-radius:3px;display:block}
 .mini-bars{padding:11px 16px 14px}.mini-row{display:grid;grid-template-columns:minmax(88px,132px) 1fr auto;align-items:center;gap:9px;margin:8px 0;font-size:11.5px}
 .mini-row span{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mini-track{height:8px;border-radius:999px;background:var(--rule-2);overflow:hidden}.mini-track i{display:block;height:100%;background:var(--signal);border-radius:999px}.mini-row b{font-family:'IBM Plex Mono',monospace;font-size:11px}
+.vehicle-summary-grid{display:grid;grid-template-columns:1fr;gap:12px;padding:0 12px 12px}.vehicle-summary{border:1px solid var(--rule-2);border-radius:12px;background:var(--panel);overflow:hidden}.vehicle-summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--rule-2);background:var(--panel-2)}.vehicle-summary-head b{font-family:'Barlow Condensed',sans-serif;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}.vehicle-summary-head span{font-size:10.5px;color:var(--ink-3)}.vehicle-summary .mini-bars{padding:8px 12px 11px}.vehicle-summary.type .mini-row{grid-template-columns:minmax(120px,190px) 1fr auto}.vehicle-summary.company .mini-row{grid-template-columns:minmax(170px,270px) 1fr auto}@media(min-width:980px){.vehicle-summary-grid{grid-template-columns:.85fr 1.15fr}}@media(max-width:520px){.vehicle-summary.type .mini-row,.vehicle-summary.company .mini-row{grid-template-columns:minmax(110px,145px) 1fr auto}}
 .panel.fold>summary{list-style:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);padding:13px 16px;border-bottom:1px solid var(--rule-2);background:var(--panel-2);display:flex;align-items:center;justify-content:space-between;gap:10px}
 .panel.fold>summary::-webkit-details-marker{display:none}.panel.fold>summary:after{content:'−';font-family:'Inter',sans-serif;font-size:18px;line-height:1;color:var(--ink-3)}.panel.fold:not([open])>summary:after{content:'+'}.panel.fold:not([open])>summary{border-bottom:0}
 .show-more{display:block;width:calc(100% - 32px);margin:10px 16px 14px;border:1px solid var(--rule);background:var(--panel-2);color:var(--ink);border-radius:9px;min-height:40px;cursor:pointer;font-weight:600;font-size:12px}.show-more:hover{background:#eef3f8}
@@ -324,7 +325,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.2
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.3
   </footer>
 </div></main>
 
@@ -604,10 +605,16 @@ function viewHome(){
   const consTypes=['Snack','Sarapan','Makan Siang','Makan Malam'].map(t=>[t,cons.filter(r=>f(r,'Jenis Konsumsi')===t).reduce((a,r)=>a+num(f(r,'Jumlah Final')),0)]).filter(x=>x[1]);
   const consOpen=cons.filter(r=>!['done','n/a'].includes(f(r,'Status').toLowerCase())).length;
 
-  const veh=rows('KENDARAAN').filter(r=>has(f(r,'ID Tamu'))),need=veh.filter(r=>f(r,'Perlu Mobil?').toLowerCase()==='ya');
-  const assigned=need.filter(r=>{const j=f(r,'Jenis Mobil');return has(j)&&!/belum terdata/i.test(j);});
-  const units=assigned.reduce((a,r)=>a+Math.max(1,num(f(r,'Jumlah Unit'))),0),unassigned=Math.max(0,need.length-assigned.length);
-  const vehicleTypes=[...new Set(assigned.map(r=>f(r,'Jenis Mobil')).filter(has))].map(t=>[t,assigned.filter(r=>f(r,'Jenis Mobil')===t).reduce((a,r)=>a+Math.max(1,num(f(r,'Jumlah Unit'))),0)]).sort((a,b)=>b[1]-a[1]);
+  const veh=rows('KENDARAAN').filter(r=>has(f(r,'No'))||has(f(r,'Nama'))||has(f(r,'ID Tamu')));
+  const vehicleUnits=r=>{const total=num(f(r,'Jumlah Unit'));if(total>0)return total;const calc=num(f(r,'Jumlah Minimum PI'))+num(f(r,'Tambahan PIM'));return calc>0?calc:0;};
+  const need=veh.filter(r=>f(r,'Perlu Mobil?').toLowerCase()==='ya'&&vehicleUnits(r)>0);
+  const validVehicleType=r=>{const j=f(r,'Jenis Mobil');return has(j)&&!/belum terdata|tbc|belum diisi/i.test(j);};
+  const assigned=need.filter(validVehicleType),unassignedRows=need.filter(r=>!validVehicleType(r));
+  const units=need.reduce((a,r)=>a+vehicleUnits(r),0),assignedUnits=assigned.reduce((a,r)=>a+vehicleUnits(r),0),unassignedUnits=unassignedRows.reduce((a,r)=>a+vehicleUnits(r),0);
+  const minimumPI=need.reduce((a,r)=>a+num(f(r,'Jumlah Minimum PI')),0),tambahanPIM=need.reduce((a,r)=>a+num(f(r,'Tambahan PIM')),0);
+  const aggregateVehicles=key=>{const m=new Map();need.forEach(r=>{const label=f(r,key)||'Belum ditentukan';m.set(label,(m.get(label)||0)+vehicleUnits(r));});return[...m.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));};
+  const vehicleTypes=aggregateVehicles('Jenis Mobil').filter(([t])=>!/belum terdata|tbc|belum diisi/i.test(t));
+  const vehicleCompanies=aggregateVehicles('Perusahaan');
 
   const deadlineHtml=soon.length?soon.map((r,i)=>`<div class="item deadline-extra" ${i>=3?'hidden':''}><div class="l1"><span class="id">${fmtD(f(r,'Deadline'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2"><i class="tag">${esc(f(r,'Bidang'))}</i>${f(r,'Owner').toUpperCase().includes('TBC')?'<i class="tag tbc">TBC</i>':`<i class="tag">${esc(f(r,'Owner'))}</i>`}</div></div>`).join(''):'<div class="empty">Tidak ada deadline dalam 7 hari.</div>';
 
@@ -618,7 +625,7 @@ function viewHome(){
     <div class="metric-card"><b>${total}</b><span>Total Peserta</span><small>${vip} VIP · ${raker} Raker · ${overlap} overlap</small></div>
     <div class="metric-card good"><b>${akmFilled}/${akm.length}</b><span>Akomodasi Terisi</span><small>${messFilled}/${mess.length} mess · ${houseFilled}/${houses.length} rumah</small></div>
     <div class="metric-card warn"><b>${consTotal.toLocaleString('id-ID')}</b><span>Total Porsi</span><small>${cons.length} item konsumsi</small></div>
-    <div class="metric-card ${unassigned?'bad':'good'}"><b>${assigned.length}/${need.length}</b><span>Kendaraan Terdata</span><small>${unassigned} tamu masih belum terassign</small></div>
+    <div class="metric-card ${unassignedUnits?'bad':'good'}"><b>${units}</b><span>Kebutuhan Kendaraan</span><small>${minimumPI} minimum PI · ${tambahanPIM} tambahan PIM</small></div>
   </div></div>
 
   <div class="panel"><div class="section-head"><h3>Ringkasan Rundown</h3><small>kegiatan utama · 06:00–24:00</small></div>${rundownChart()}</div>
@@ -637,7 +644,7 @@ function viewHome(){
 
   <div class="grid g2" style="margin-top:14px">
     <div class="panel"><div class="section-head"><h3>Konsumsi</h3><small>${consOpen} item belum selesai</small></div><div class="metric-grid"><div class="metric-card warn"><b>${consTotal.toLocaleString('id-ID')}</b><span>Porsi Final</span><small>sudah termasuk buffer</small></div><div class="metric-card"><b>${cons.length}</b><span>Item Konsumsi</span><small>10–12 Agustus</small></div></div><div class="mini-bars">${miniRows(consTypes,Math.max(...consTypes.map(x=>x[1]),1))}</div></div>
-    <div class="panel"><div class="section-head"><h3>Kendaraan</h3><small>${need.length} tamu membutuhkan mobil</small></div><div class="metric-grid"><div class="metric-card ${unassigned?'bad':'good'}"><b>${assigned.length}</b><span>Terassign</span><small>${units} unit terdata</small></div><div class="metric-card ${unassigned?'warn':'good'}"><b>${unassigned}</b><span>Belum Terdata</span><small>jenis mobil belum diisi</small></div></div>${vehicleTypes.length?`<div class="mini-bars">${miniRows(vehicleTypes,Math.max(...vehicleTypes.map(x=>x[1]),1))}</div>`:'<div class="empty"><b>Jenis kendaraan belum diisi</b>Isi kolom Jenis Mobil pada sheet KENDARAAN.</div>'}</div>
+    <div class="panel"><div class="section-head"><h3>Kendaraan</h3><small>${need.length} baris kebutuhan · ${units} unit</small></div><div class="metric-grid"><div class="metric-card ${unassignedUnits?'warn':'good'}"><b>${units}</b><span>Total Unit</span><small>${assignedUnits} unit sudah memiliki tipe</small></div><div class="metric-card"><b>${minimumPI}</b><span>Minimum PI</span><small>kebutuhan minimum dari PI</small></div><div class="metric-card"><b>${tambahanPIM}</b><span>Tambahan PIM</span><small>hasil perhitungan internal</small></div><div class="metric-card ${unassignedUnits?'bad':'good'}"><b>${unassignedUnits}</b><span>Belum Terdata</span><small>${unassignedRows.length} baris belum memiliki tipe</small></div></div><div class="vehicle-summary-grid"><div class="vehicle-summary type"><div class="vehicle-summary-head"><b>Per Tipe Kendaraan</b><span>${vehicleTypes.length} tipe</span></div>${vehicleTypes.length?`<div class="mini-bars">${miniRows(vehicleTypes,Math.max(...vehicleTypes.map(x=>x[1]),1))}</div>`:'<div class="empty"><b>Jenis kendaraan belum diisi</b>Isi kolom Jenis Mobil pada sheet KENDARAAN.</div>'}</div><div class="vehicle-summary company"><div class="vehicle-summary-head"><b>Per Perusahaan</b><span>${vehicleCompanies.length} perusahaan/instansi</span></div>${vehicleCompanies.length?`<div class="mini-bars">${miniRows(vehicleCompanies,Math.max(...vehicleCompanies.map(x=>x[1]),1))}</div>`:'<div class="empty">Belum ada data perusahaan.</div>'}</div></div></div>
   </div>
 
   <div class="panel" style="margin-top:14px"><h3>Status Operasional</h3><div class="stats"><div class="stat"><b>${items.length}</b><span>Total Items</span></div><div class="stat ${over?'bad':''}"><b>${over}</b><span>Overdue</span></div><div class="stat ${blocked?'bad':''}"><b>${blocked}</b><span>Blocked</span></div><div class="stat ${hi.length?'warn':''}"><b>${hi.length}</b><span>Isu Prioritas</span></div></div><div class="kv"><span>Menunggu EO</span><b>${tbc} item bertanda TBC</b></div><div class="kv"><span>Isu terbuka</span><b>${iss.length} isu · ${hi.length} prioritas tinggi</b></div></div>`;
