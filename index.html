@@ -254,6 +254,42 @@ main{padding:16px 14px calc(78px + env(safe-area-inset-bottom))}
 .kv span{color:var(--ink-3);flex:none;width:118px;font-size:12px;padding-top:1px}
 .kv b{font-weight:500;flex:1;min-width:0}
 footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px;line-height:1.6}
+
+/* ============ QUICK DASHBOARD ============ */
+.metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px}
+@media(min-width:700px){.metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.metric-card{position:relative;overflow:hidden;background:linear-gradient(145deg,#fff,#f7f9fc);border:1px solid var(--rule-2);border-radius:12px;padding:13px 14px;min-height:92px}
+.metric-card:before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:var(--signal)}
+.metric-card.warn:before{background:var(--amber)}.metric-card.bad:before{background:var(--st-block)}.metric-card.good:before{background:var(--st-done)}
+.metric-card b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:32px;line-height:1;color:var(--ink)}
+.metric-card span{display:block;margin-top:5px;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.metric-card small{display:block;margin-top:5px;color:var(--ink-2);font-size:11px;line-height:1.35}
+.visual-bar{height:10px;background:var(--rule-2);border-radius:999px;overflow:hidden;display:flex;margin:12px 16px 8px}
+.visual-bar i{display:block;height:100%}
+.visual-legend{display:flex;flex-wrap:wrap;gap:8px 13px;padding:0 16px 13px;font-size:11px;color:var(--ink-2)}
+.visual-legend span{display:flex;align-items:center;gap:5px}.visual-legend i{width:9px;height:9px;border-radius:3px;display:block}
+.mini-bars{padding:11px 16px 14px}.mini-row{display:grid;grid-template-columns:minmax(88px,132px) 1fr auto;align-items:center;gap:9px;margin:8px 0;font-size:11.5px}
+.mini-row span{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mini-track{height:8px;border-radius:999px;background:var(--rule-2);overflow:hidden}.mini-track i{display:block;height:100%;background:var(--signal);border-radius:999px}.mini-row b{font-family:'IBM Plex Mono',monospace;font-size:11px}
+.panel.fold>summary{list-style:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);padding:13px 16px;border-bottom:1px solid var(--rule-2);background:var(--panel-2);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.panel.fold>summary::-webkit-details-marker{display:none}.panel.fold>summary:after{content:'−';font-family:'Inter',sans-serif;font-size:18px;line-height:1;color:var(--ink-3)}.panel.fold:not([open])>summary:after{content:'+'}.panel.fold:not([open])>summary{border-bottom:0}
+.show-more{display:block;width:calc(100% - 32px);margin:10px 16px 14px;border:1px solid var(--rule);background:var(--panel-2);color:var(--ink);border-radius:9px;min-height:40px;cursor:pointer;font-weight:600;font-size:12px}.show-more:hover{background:#eef3f8}
+.deadline-extra[hidden]{display:none}
+.timeline-wrap{overflow-x:auto;padding:12px 14px 16px}.timeline-chart{min-width:790px}
+.tl-axis{display:grid;grid-template-columns:152px 1fr;gap:10px;align-items:end;margin-bottom:7px}.tl-hours{display:grid;grid-template-columns:repeat(7,1fr);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-3)}.tl-hours span{text-align:left}
+.tl-day{margin-top:12px;border-top:1px solid var(--rule-2);padding-top:9px}.tl-day:first-child{margin-top:0;border-top:0;padding-top:0}.tl-day-title{display:flex;justify-content:space-between;gap:12px;margin:0 0 7px 162px;font-size:11px;color:var(--ink-3)}.tl-day-title b{font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.tl-row{display:grid;grid-template-columns:152px 1fr;gap:10px;align-items:center;min-height:29px;margin:3px 0}.tl-label{font-size:11px;line-height:1.25;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tl-track{height:24px;border-radius:6px;background:repeating-linear-gradient(90deg,#f4f6f9 0,#f4f6f9 calc(14.285% - 1px),#dfe5ed calc(14.285% - 1px),#dfe5ed 14.285%);position:relative;overflow:hidden}.tl-bar{position:absolute;top:3px;height:18px;border-radius:5px;background:var(--signal);color:#fff;font-size:9.5px;line-height:18px;padding:0 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:3px;box-shadow:0 1px 3px rgba(22,35,58,.18)}.tl-bar.vip{background:#9A3B35}.tl-bar.undangan{background:#2F6D89}.tl-bar.raker{background:#785A11}.tl-bar.konsultasi{background:#5C4A83}.tl-bar.olimpiade{background:#26735A}.tl-bar.dirut{background:#284C78}
+.quick-grid{display:grid;gap:14px}@media(min-width:1050px){.quick-grid{grid-template-columns:1.15fr .85fr}}
+.guest-grid,.room-grid{display:grid;grid-template-columns:1fr;gap:10px;background:transparent;border:0;box-shadow:none;overflow:visible}
+@media(min-width:760px){.guest-grid,.room-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1250px){.guest-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.guest-grid .grp,.room-grid .grp{grid-column:1/-1;border:1px solid var(--rule);border-radius:9px;padding:8px 12px;margin-top:4px}
+.guest-card,.room-card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:13px 14px;box-shadow:0 5px 18px rgba(22,35,58,.045)}
+.guest-card{border-left:4px solid var(--ink-3)}.guest-card.p1c{border-left-color:#B3271E}.guest-card.p2c{border-left-color:#B26A00}.guest-card.p3c{border-left-color:#1F3864}.guest-card.p4c{border-left-color:#7B8AA1}
+.guest-head{display:flex;gap:10px;align-items:flex-start}.guest-head .tx{font-size:14px}.guest-head .tx b{font-size:14.5px}.guest-head .id{margin-left:auto;padding-top:2px}
+.room-card .room-no{font-family:'Barlow Condensed',sans-serif;font-size:24px;line-height:1;font-weight:700}.room-card .room-name{font-weight:600;margin-top:5px}.room-card.empty-room{background:#fafbfd;border-style:dashed}
+.status-pill{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:3px 8px;display:inline-block}.status-pill.ok{background:#E8F5EF;color:#0E6A4D}.status-pill.wait{background:#FFF3D8;color:#845200}.status-pill.bad{background:#FDECEA;color:#93211A}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--rule-2);background:var(--panel-2)}.section-head h3{margin:0;font-family:'Barlow Condensed',sans-serif;font-size:13.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}.section-head small{font-size:10.5px;color:var(--ink-3)}
+
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -285,7 +321,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v7
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8
   </footer>
 </div></main>
 
@@ -299,7 +335,7 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-10',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v7'
+  CACHE_KEY: 'pim-event-cache-v8'
 };
 
 /* ============================================================
@@ -347,6 +383,39 @@ const fmtD=s=>{const d=parseD(s);return d?`${d.getDate()} ${MON[d.getMonth()]}`:
 const isOver=(dl,st)=>{const d=parseD(dl); if(!d) return false;
   const s=String(st||'').toLowerCase(); return d<today() && s!=='done' && s!=='n/a';};
 const daysTo=()=>Math.round((parseD(CONFIG.EVENT_START)-today())/86400000);
+
+const num=v=>{const n=parseFloat(String(v??'').replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0;};
+const isMess=r=>{const t=f(r,'Tipe').toLowerCase(),l=f(r,'Lokasi').toLowerCase();return !t.includes('hotel')&&!l.includes('hotel');};
+const roomFilled=r=>has(f(r,'Tamu'))&&!/^(free|kosong|na|n\/a|-)$/i.test(f(r,'Tamu'));
+const roomReady=r=>/^(ready|siap|baik)$/i.test(f(r,'Kesiapan'))||(!/pengisian|belum|proses/i.test(f(r,'Kesiapan'))&&has(f(r,'Kesiapan')));
+function pctWidth(v,total){return Math.max(0,Math.min(100,total?Math.round(v/total*100):0));}
+function miniRows(data,total){return data.map(([label,val])=>`<div class="mini-row"><span title="${esc(label)}">${esc(label)}</span><div class="mini-track"><i style="width:${pctWidth(val,total)}%"></i></div><b>${esc(val)}</b></div>`).join('');}
+function timelineClass(lane){const v=String(lane||'').toLowerCase();if(v.includes('vip'))return'vip';if(v.includes('undangan'))return'undangan';if(v.includes('raker'))return'raker';if(v.includes('konsultasi'))return'konsultasi';if(v.includes('olimpiade'))return'olimpiade';if(v.includes('dirut'))return'dirut';return'';}
+function hmMinutes(v){const m=String(v||'').match(/(\d{1,2}):(\d{2})/);return m?(+m[1]*60 + +m[2]):null;}
+function rundownChart(){
+  const all=RD();
+  const major=/rakor|plenary|raker|konsultasi|olimpiade|dinner|welcoming|flight|sarapan|ishoma|plant tour|kepulangan|badminton/i;
+  const days=[...new Set(all.map(r=>f(r,'Tanggal')).filter(has))].sort();
+  if(!days.length)return'<div class="empty">Rundown belum tersedia.</div>';
+  const axis='<div class="tl-axis"><span></span><div class="tl-hours"><span>06:00</span><span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span><span>21:00</span><span>24:00</span></div></div>';
+  const body=days.map(day=>{
+    let list=all.filter(r=>f(r,'Tanggal')===day && major.test(f(r,'Kegiatan')));
+    if(!list.length) list=all.filter(r=>f(r,'Tanggal')===day).slice(0,6);
+    list=list.slice(0,10);
+    const rowsHtml=list.map(r=>{
+      const sm=hmMinutes(f(r,'Mulai')),em=hmMinutes(f(r,'Selesai'));
+      if(sm===null)return'';
+      const start=Math.max(360,Math.min(1440,sm));
+      let end=em===null?start+15:em; if(end<sm)end+=1440; end=Math.max(start+12,Math.min(1440,end));
+      const left=(start-360)/1080*100, width=Math.max(1.5,(end-start)/1080*100);
+      const label=f(r,'Kegiatan'),lane=f(r,'Jalur');
+      return `<div class="tl-row"><div class="tl-label" title="${esc(label)}"><b>${esc(String(f(r,'Mulai')).slice(0,5))}</b> · ${esc(label)}</div><div class="tl-track"><div class="tl-bar ${timelineClass(lane)}" style="left:${left}%;width:${width}%" title="${esc(label)} · ${esc(lane)}">${esc(lane)}</div></div></div>`;
+    }).join('');
+    return `<div class="tl-day"><div class="tl-day-title"><b>${fmtD(day)}</b><span>${list.length} kegiatan utama</span></div>${rowsHtml}</div>`;
+  }).join('');
+  return `<div class="timeline-wrap"><div class="timeline-chart">${axis}${body}</div></div>`;
+}
+
 
 /* ============================================================
    3. Navigation
@@ -455,124 +524,68 @@ function viewHome(){
   const iss=rows('ISSUES').filter(r=>f(r,'Status').toLowerCase()!=='closed');
   const hi=iss.filter(r=>f(r,'Prioritas').toLowerCase()==='tinggi');
   const d=daysTo();
-  const cdN = d>0?d : d===0?'HARI':(d>=-2?'H+'+Math.abs(d):'✓');
-  const cdL = d>0?'hari menuju<br>10 Agustus' : d===0?'ini<br>hari pertama'
-            : d>=-2?'acara<br>berlangsung':'rangkaian<br>selesai';
+  const cdN=d>0?d:d===0?'HARI':(d>=-2?'H+'+Math.abs(d):'✓');
+  const cdL=d>0?'hari menuju<br>10 Agustus':d===0?'ini<br>hari pertama':d>=-2?'acara<br>berlangsung':'rangkaian<br>selesai';
   const w=v=>items.length?(v/items.length*100):0;
 
-  // venue readiness
-  const venue = VENUES.map(([v,ac])=>{
-    const mine=items.filter(r=>f(r,'Venue').toLowerCase().includes(v.toLowerCase().split(' ')[0]==='tenda'?'tenda':v.toLowerCase()));
-    const dn=mine.filter(r=>f(r,'Status').toLowerCase()==='done').length;
-    const q=mine.length?Math.round(dn/mine.length*100):null;
-    return `<div class="kv"><span>${esc(v.replace('Tenda samping Gedung Pertemuan','Tenda samping GP'))}</span>
-      <b>${esc(ac)}${q===null?' <span style="color:var(--ink-3)">— tidak ada item khusus</span>':` · ${dn}/${mine.length} selesai`}</b></div>`;
-  }).join('');
-
-  // this week's deadlines
-  const soon=items.filter(r=>{
-    const dl=parseD(f(r,'Deadline')); const st=f(r,'Status').toLowerCase();
-    if(!dl||st==='done'||st==='n/a') return false;
-    const diff=(dl-today())/86400000; return diff>=0 && diff<=7;
-  }).sort((a,b)=>f(a,'Deadline').localeCompare(f(b,'Deadline'))).slice(0,8);
-
-  const crit=[...items.filter(r=>isOver(f(r,'Deadline'),f(r,'Status'))),
-              ...items.filter(r=>f(r,'Status').toLowerCase()==='blocked')].slice(0,8);
+  const soon=items.filter(r=>{const dl=parseD(f(r,'Deadline')),st=f(r,'Status').toLowerCase();if(!dl||st==='done'||st==='n/a')return false;const diff=(dl-today())/86400000;return diff>=0&&diff<=7;}).sort((a,b)=>f(a,'Deadline').localeCompare(f(b,'Deadline')));
+  const crit=[...items.filter(r=>isOver(f(r,'Deadline'),f(r,'Status'))),...items.filter(r=>f(r,'Status').toLowerCase()==='blocked')].slice(0,8);
 
   const board=bidang.map(b=>{
-    const nm=f(b,'Bidang'), mine=items.filter(r=>f(r,'Bidang')===nm);
-    const cc=s=>mine.filter(r=>f(r,'Status').toLowerCase()===s).length;
-    const dd=cc('done'),pp=cc('in progress'),bb=cc('blocked'),nn=cc('n/a');
-    const tot=mine.length, dn=tot-nn, q=dn>0?Math.round(dd/dn*100):0;
-    const ww=v=>tot?(v/tot*100):0;
-    const usul=f(b,'Sumber / Status','Sumber').toUpperCase().startsWith('USULAN');
+    const nm=f(b,'Bidang'),mine=items.filter(r=>f(r,'Bidang')===nm),cc=s=>mine.filter(r=>f(r,'Status').toLowerCase()===s).length;
+    const dd=cc('done'),pp=cc('in progress'),bb=cc('blocked'),nn=cc('n/a'),tot=mine.length,dn=tot-nn,q=dn>0?Math.round(dd/dn*100):0,ww=v=>tot?(v/tot*100):0;
     const ket=f(b,'Ketua Bidang');
-    return `<button class="bd" data-bidang="${esc(nm)}">
-      <div class="top"><span class="nm">${esc(nm)}</span><span class="pc">${q}%</span></div>
-      <div class="bar2"><i style="width:${ww(dd)}%;background:var(--st-done)"></i>
-        <i style="width:${ww(pp)}%;background:var(--st-prog)"></i>
-        <i style="width:${ww(bb)}%;background:var(--st-block)"></i></div>
-      <div class="meta">${dd}/${dn} selesai${bb?' · '+bb+' blocked':''} · ${ket && !/^#/.test(ket) && !/belum|tbc|ditetapkan/i.test(ket)?esc(ket):'<span class="warn-t">ketua belum ditetapkan</span>'}${usul?' <span class="warn-t">· usulan</span>':''}</div>
-    </button>`;
-  }).join('') || '<div class="empty">Belum ada bidang.</div>';
+    return `<button class="bd" data-bidang="${esc(nm)}"><div class="top"><span class="nm">${esc(nm)}</span><span class="pc">${q}%</span></div><div class="bar2"><i style="width:${ww(dd)}%;background:var(--st-done)"></i><i style="width:${ww(pp)}%;background:var(--st-prog)"></i><i style="width:${ww(bb)}%;background:var(--st-block)"></i></div><div class="meta">${dd}/${dn} selesai${bb?' · '+bb+' blocked':''}${ket?' · '+esc(ket):''}</div></button>`;
+  }).join('')||'<div class="empty">Belum ada bidang.</div>';
 
-  const tamu=rows('TAMU');
-  const p1=tamu.filter(r=>f(r,'Prioritas')==='P1').length;
-  const vip=tamu.filter(isVIP).length;
-  const raker=tamu.filter(isRaker).length;
-  const vipRaker=tamu.filter(isVIPRaker).length;
-  const noRoom=tamu.filter(r=>!has(f(r,'Akomodasi'))).length;
-  const ak=rows('AKOMODASI');
-  const notReady=ak.filter(r=>/pengisian|belum/i.test(f(r,'Kesiapan'))).length;
-  const filled=ak.filter(r=>has(f(r,'Tamu')) && !/^(free|kosong|na|-)$/i.test(f(r,'Tamu'))).length;
+  const tamu=rows('TAMU'),total=tamu.length,p1=tamu.filter(r=>f(r,'Prioritas')==='P1').length,vip=tamu.filter(isVIP).length,raker=tamu.filter(isRaker).length,overlap=tamu.filter(isVIPRaker).length;
+  const vipOnly=Math.max(0,vip-overlap),rakerOnly=Math.max(0,raker-overlap);
+  const mess=rows('AKOMODASI').filter(isMess),messFilled=mess.filter(roomFilled).length,messReady=mess.filter(roomReady).length,messFree=Math.max(0,mess.length-messFilled);
 
-  $('#v-home').innerHTML = demoNote() + `
-  <div class="hero">
-    <div class="row">
-      <div class="cd"><b>${cdN}</b><i>${cdL}</i></div>
-      <div class="meta">
-        <b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>
-        Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>
-        PT Pupuk Iskandar Muda, Lhokseumawe
-      </div>
+  const cons=rows('KONSUMSI').filter(r=>has(f(r,'ID'))),consTotal=cons.reduce((a,r)=>a+num(f(r,'Jumlah Final')),0);
+  const consTypes=['Snack','Sarapan','Makan Siang','Makan Malam'].map(t=>[t,cons.filter(r=>f(r,'Jenis Konsumsi')===t).reduce((a,r)=>a+num(f(r,'Jumlah Final')),0)]).filter(x=>x[1]);
+  const consOpen=cons.filter(r=>!['done','n/a'].includes(f(r,'Status').toLowerCase())).length;
+
+  const veh=rows('KENDARAAN').filter(r=>has(f(r,'ID Tamu'))),need=veh.filter(r=>f(r,'Perlu Mobil?').toLowerCase()==='ya');
+  const assigned=need.filter(r=>{const j=f(r,'Jenis Mobil');return has(j)&&!/belum terdata/i.test(j);});
+  const units=assigned.reduce((a,r)=>a+Math.max(1,num(f(r,'Jumlah Unit'))),0),unassigned=Math.max(0,need.length-assigned.length);
+  const vehicleTypes=[...new Set(assigned.map(r=>f(r,'Jenis Mobil')).filter(has))].map(t=>[t,assigned.filter(r=>f(r,'Jenis Mobil')===t).reduce((a,r)=>a+Math.max(1,num(f(r,'Jumlah Unit'))),0)]).sort((a,b)=>b[1]-a[1]);
+
+  const deadlineHtml=soon.length?soon.map((r,i)=>`<div class="item deadline-extra" ${i>=3?'hidden':''}><div class="l1"><span class="id">${fmtD(f(r,'Deadline'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2"><i class="tag">${esc(f(r,'Bidang'))}</i>${f(r,'Owner').toUpperCase().includes('TBC')?'<i class="tag tbc">TBC</i>':`<i class="tag">${esc(f(r,'Owner'))}</i>`}</div></div>`).join(''):'<div class="empty">Tidak ada deadline dalam 7 hari.</div>';
+
+  $('#v-home').innerHTML=demoNote()+`
+  <div class="hero"><div class="row"><div class="cd"><b>${cdN}</b><i>${cdL}</i></div><div class="meta"><b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>PT Pupuk Iskandar Muda, Lhokseumawe</div></div><div class="ring"><div class="bar"><i style="width:${w(done)}%;background:var(--st-done)"></i><i style="width:${w(prog)}%;background:var(--amber)"></i><i style="width:${w(blocked)}%;background:var(--st-block)"></i></div><b>${pct}%</b></div></div>
+
+  <div class="panel"><div class="metric-grid">
+    <div class="metric-card"><b>${total}</b><span>Total Peserta</span><small>${vip} VIP · ${raker} Raker · ${overlap} overlap</small></div>
+    <div class="metric-card good"><b>${messFilled}/${mess.length}</b><span>Kamar Mess Terisi</span><small>${messFree} kamar masih tersedia</small></div>
+    <div class="metric-card warn"><b>${consTotal.toLocaleString('id-ID')}</b><span>Total Porsi</span><small>${cons.length} item konsumsi</small></div>
+    <div class="metric-card ${unassigned?'bad':'good'}"><b>${assigned.length}/${need.length}</b><span>Kendaraan Terdata</span><small>${unassigned} tamu masih belum terassign</small></div>
+  </div></div>
+
+  <div class="panel"><div class="section-head"><h3>Ringkasan Rundown</h3><small>kegiatan utama · 06:00–24:00</small></div>${rundownChart()}</div>
+
+  <div class="quick-grid">
+    <div>
+      <div class="panel"><h3>Readiness Board</h3>${board}</div>
+      <details class="panel fold" open><summary>Deadline 7 Hari ke Depan <span>${soon.length} item</span></summary>${deadlineHtml}${soon.length>3?`<button class="show-more" id="deadlineMore" type="button">Tampilkan ${soon.length-3} lainnya</button>`:''}</details>
     </div>
-    <div class="ring">
-      <div class="bar"><i style="width:${w(done)}%;background:var(--st-done)"></i>
-        <i style="width:${w(prog)}%;background:var(--amber)"></i>
-        <i style="width:${w(blocked)}%;background:var(--st-block)"></i></div>
-      <b>${pct}%</b>
+    <div>
+      <div class="panel"><h3>Perlu Perhatian</h3>${crit.length?crit.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2">${stTag(f(r,'Status'))}${isOver(f(r,'Deadline'),f(r,'Status'))?`<i class="tag over">Lewat ${fmtD(f(r,'Deadline'))}</i>`:''}<i class="tag">${esc(f(r,'Bidang'))}</i></div></div>`).join(''):'<div class="empty">Tidak ada item lewat deadline atau blocked.</div>'}</div>
+      <div class="panel"><h3>Peserta</h3><div class="visual-bar"><i style="width:${pctWidth(vipOnly,total)}%;background:#9A3B35"></i><i style="width:${pctWidth(overlap,total)}%;background:#F0A500"></i><i style="width:${pctWidth(rakerOnly,total)}%;background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja ${vipOnly}</span><span><i style="background:#F0A500"></i>VIP + Raker ${overlap}</span><span><i style="background:#2F6D89"></i>Raker saja ${rakerOnly}</span></div><div class="kv"><span>Prioritas P1</span><b>${p1} peserta</b></div><div class="kv"><span>LO</span><b>${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='confirmed').length} confirmed · ${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='pending').length} pending</b></div></div>
+      <div class="panel"><h3>Akomodasi Mess</h3><div class="metric-grid"><div class="metric-card good"><b>${messFilled}</b><span>Terisi</span></div><div class="metric-card"><b>${messFree}</b><span>Tersedia</span></div><div class="metric-card ${messReady<mess.length?'warn':'good'}"><b>${messReady}</b><span>Siap</span></div><div class="metric-card"><b>${mess.length}</b><span>Total Kamar</span></div></div></div>
     </div>
   </div>
 
-  <div class="panel"><div class="stats">
-    <div class="stat"><b>${items.length}</b><span>Total Items</span></div>
-    <div class="stat ${over?'bad':''}"><b>${over}</b><span>Overdue</span></div>
-    <div class="stat ${blocked?'bad':''}"><b>${blocked}</b><span>Blocked</span></div>
-    <div class="stat ${hi.length?'warn':''}"><b>${hi.length}</b><span>Isu Prioritas</span></div>
-  </div></div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="panel"><div class="section-head"><h3>Konsumsi</h3><small>${consOpen} item belum selesai</small></div><div class="metric-grid"><div class="metric-card warn"><b>${consTotal.toLocaleString('id-ID')}</b><span>Porsi Final</span><small>sudah termasuk buffer</small></div><div class="metric-card"><b>${cons.length}</b><span>Item Konsumsi</span><small>10–12 Agustus</small></div></div><div class="mini-bars">${miniRows(consTypes,Math.max(...consTypes.map(x=>x[1]),1))}</div></div>
+    <div class="panel"><div class="section-head"><h3>Kendaraan</h3><small>${need.length} tamu membutuhkan mobil</small></div><div class="metric-grid"><div class="metric-card ${unassigned?'bad':'good'}"><b>${assigned.length}</b><span>Terassign</span><small>${units} unit terdata</small></div><div class="metric-card ${unassigned?'warn':'good'}"><b>${unassigned}</b><span>Belum Terdata</span><small>jenis mobil belum diisi</small></div></div>${vehicleTypes.length?`<div class="mini-bars">${miniRows(vehicleTypes,Math.max(...vehicleTypes.map(x=>x[1]),1))}</div>`:'<div class="empty"><b>Jenis kendaraan belum diisi</b>Isi kolom Jenis Mobil pada sheet KENDARAAN.</div>'}</div>
+  </div>
 
-  <div class="grid g3">
-    <div>
-      <div class="panel"><h3>Readiness Board</h3>${board}</div>
-    </div>
-    <div>
-      <div class="panel"><h3>Perlu Perhatian</h3>
-        ${crit.length?crit.map(r=>`<div class="item">
-          <div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div>
-          <div class="l2">${stTag(f(r,'Status'))}
-            ${isOver(f(r,'Deadline'),f(r,'Status'))?`<i class="tag over">Lewat ${fmtD(f(r,'Deadline'))}</i>`:''}
-            <i class="tag">${esc(f(r,'Bidang'))}</i></div>
-        </div>`).join(''):'<div class="empty">Tidak ada item lewat deadline atau blocked.</div>'}
-      </div>
-      <div class="panel"><h3>Deadline 7 Hari ke Depan</h3>
-        ${soon.length?soon.map(r=>`<div class="item">
-          <div class="l1"><span class="id">${fmtD(f(r,'Deadline'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div>
-          <div class="l2"><i class="tag">${esc(f(r,'Bidang'))}</i>
-            ${f(r,'Owner').toUpperCase().includes('TBC')?'<i class="tag tbc">TBC</i>':`<i class="tag">${esc(f(r,'Owner'))}</i>`}</div>
-        </div>`).join(''):'<div class="empty">Tidak ada deadline dalam 7 hari.</div>'}
-      </div>
-    </div>
-    <div>
-      <div class="panel"><h3>Venue</h3>${venue}</div>
-      <div class="panel"><h3>Tamu &amp; Akomodasi</h3>
-        <div class="kv"><span>Roster unik</span><b>${tamu.length} slot</b></div>
-        <div class="kv"><span>Peserta VIP</span><b>${vip} peserta${vipRaker?` · ${vipRaker} juga mengikuti Raker`:''}</b></div>
-        <div class="kv"><span>Peserta Raker</span><b>${raker} peserta</b></div>
-        <div class="kv"><span>Prioritas P1</span><b>${p1} slot</b></div>
-        <div class="kv"><span>Akomodasi kosong</span><b>${noRoom} slot belum memiliki data akomodasi</b></div>
-        <div class="kv"><span>Kamar terisi</span><b>${filled} dari ${ak.length}</b></div>
-        <div class="kv"><span>Kamar disiapkan</span><b>${notReady?`<span class="warn-t">${notReady} masih pengisian furnitur</span>`:'semua siap'}</b></div>
-      </div>
-      <div class="panel"><h3>Status Lain</h3>
-        <div class="kv"><span>Isu terbuka</span><b>${iss.length} isu, ${hi.length} prioritas tinggi</b></div>
-        <div class="kv"><span>Menunggu EO</span><b>${tbc} item bertanda TBC</b></div>
-        <div class="kv"><span>Penugasan LO</span><b>${rows('LO').length} penugasan</b></div>
-      </div>
-    </div>
-  </div>`;
-  $$('#v-home [data-bidang]').forEach(b=>b.addEventListener('click',()=>{
-    go('chk'); const s=$('#fBidang'); if(s){s.value=b.dataset.bidang; drawChk();}
-  }));
+  <div class="panel" style="margin-top:14px"><h3>Status Operasional</h3><div class="stats"><div class="stat"><b>${items.length}</b><span>Total Items</span></div><div class="stat ${over?'bad':''}"><b>${over}</b><span>Overdue</span></div><div class="stat ${blocked?'bad':''}"><b>${blocked}</b><span>Blocked</span></div><div class="stat ${hi.length?'warn':''}"><b>${hi.length}</b><span>Isu Prioritas</span></div></div><div class="kv"><span>Menunggu EO</span><b>${tbc} item bertanda TBC</b></div><div class="kv"><span>Isu terbuka</span><b>${iss.length} isu · ${hi.length} prioritas tinggi</b></div></div>`;
+
+  $$('#v-home [data-bidang]').forEach(b=>b.addEventListener('click',()=>{go('chk');const sel=$('#fBidang');if(sel){sel.value=b.dataset.bidang;drawChk();}}));
+  const more=$('#deadlineMore');if(more){let open=false;more.addEventListener('click',()=>{open=!open;$$('#v-home .deadline-extra').forEach((el,i)=>{if(i>=3)el.hidden=!open;});more.textContent=open?'Tampilkan lebih sedikit':`Tampilkan ${Math.max(0,soon.length-3)} lainnya`;});}
 }
 
 /* ---------- Checklist ---------- */
@@ -675,167 +688,51 @@ function drawRun(){
 const PRI={P1:['p1','Prioritas utama'],P2:['p2','Prioritas tinggi'],
   P3:['p3','Prioritas menengah'],P4:['p4','Peserta umum / pendamping']};
 function viewTamu(){
-  const tm=rows('TAMU');
-  const comp=[...new Set(tm.map(r=>f(r,'Perusahaan')).filter(has))].sort();
-  const romb=[...new Set(tm.map(r=>f(r,'Rombongan')).filter(has))];
-  const source=[...new Set(tm.map(r=>f(r,'Kategori Sumber')).filter(has))].sort();
-  $('#v-tamu').innerHTML = ph('Tamu','Roster gabungan VIP dan Raker. Gunakan filter keikutsertaan untuk mengikuti angka ringkasan PI.') + demoNote() + `
-    <div class="filters">
-      <input id="tCari" type="search" placeholder="Cari nama, jabatan, perusahaan, atau kategori…" autocomplete="off">
-      <select id="tJoin"><option value="">Semua keikutsertaan</option>
-        <option value="VIP">VIP</option><option value="RAKER">Raker</option>
-        <option value="BOTH">VIP &amp; Raker</option></select>
-      <select id="tPri"><option value="">Semua prioritas</option>
-        <option value="P1">P1 — Prioritas utama</option><option value="P2">P2 — Prioritas tinggi</option>
-        <option value="P3">P3 — Prioritas menengah</option><option value="P4">P4 — Peserta umum</option></select>
-      <select id="tSource"><option value="">Semua kategori sumber</option>${source.map(r=>`<option>${esc(r)}</option>`).join('')}</select>
-      <select id="tRomb"><option value="">Semua rombongan</option>${romb.map(r=>`<option>${esc(r)}</option>`).join('')}</select>
-      <select id="tComp"><option value="">Semua perusahaan</option>${comp.map(c=>`<option>${esc(c)}</option>`).join('')}</select>
-    </div>
-    <div class="panel"><div class="legend">${Object.entries(PRI).map(([k,v])=>
-      `<div><i class="${v[0]}"></i><b>${k}</b>&nbsp;${esc(v[1])}</div>`).join('')}</div>
-      <div class="sub" style="padding:0 16px 12px;margin-top:0">Klasifikasi prioritas merupakan kategori kerja pada workbook dan masih menunggu ratifikasi final.</div>
-    </div>
-    <div class="count" id="cTamu"></div><div class="panel" id="listTamu"></div>`;
-  ['tCari','tJoin','tPri','tSource','tRomb','tComp'].forEach(id=>
-    $('#'+id).addEventListener(id==='tCari'?'input':'change',drawTamu));
-  drawTamu();
+  const tm=rows('TAMU'),comp=[...new Set(tm.map(r=>f(r,'Perusahaan')).filter(has))].sort(),romb=[...new Set(tm.map(r=>f(r,'Rombongan')).filter(has))],source=[...new Set(tm.map(r=>f(r,'Kategori Sumber')).filter(has))].sort();
+  const total=tm.length,vip=tm.filter(isVIP).length,raker=tm.filter(isRaker).length,both=tm.filter(isVIPRaker).length,p1=tm.filter(r=>f(r,'Prioritas')==='P1').length;
+  $('#v-tamu').innerHTML=ph('Tamu','Total peserta gabungan VIP dan Raker. Gunakan filter untuk menemukan tamu dan kebutuhan operasionalnya.')+demoNote()+`
+    <div class="panel"><div class="metric-grid"><div class="metric-card"><b>${total}</b><span>Total Peserta</span></div><div class="metric-card bad"><b>${vip}</b><span>Peserta VIP</span></div><div class="metric-card"><b>${raker}</b><span>Peserta Raker</span></div><div class="metric-card warn"><b>${both}</b><span>VIP + Raker</span><small>${p1} peserta prioritas P1</small></div></div><div class="visual-bar"><i style="width:${pctWidth(Math.max(0,vip-both),total)}%;background:#9A3B35"></i><i style="width:${pctWidth(both,total)}%;background:#F0A500"></i><i style="width:${pctWidth(Math.max(0,raker-both),total)}%;background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja</span><span><i style="background:#F0A500"></i>Overlap</span><span><i style="background:#2F6D89"></i>Raker saja</span></div></div>
+    <div class="filters"><input id="tCari" type="search" placeholder="Cari nama, jabatan, perusahaan, atau kategori…" autocomplete="off"><select id="tJoin"><option value="">Semua keikutsertaan</option><option value="VIP">VIP</option><option value="RAKER">Raker</option><option value="BOTH">VIP &amp; Raker</option></select><select id="tPri"><option value="">Semua prioritas</option><option value="P1">P1 — Prioritas utama</option><option value="P2">P2 — Prioritas tinggi</option><option value="P3">P3 — Prioritas menengah</option><option value="P4">P4 — Peserta umum</option></select><select id="tSource"><option value="">Semua kategori sumber</option>${source.map(r=>`<option>${esc(r)}</option>`).join('')}</select><select id="tRomb"><option value="">Semua rombongan</option>${romb.map(r=>`<option>${esc(r)}</option>`).join('')}</select><select id="tComp"><option value="">Semua perusahaan</option>${comp.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div>
+    <div class="count" id="cTamu"></div><div class="guest-grid" id="listTamu"></div>`;
+  ['tCari','tJoin','tPri','tSource','tRomb','tComp'].forEach(id=>$('#'+id).addEventListener(id==='tCari'?'input':'change',drawTamu));drawTamu();
 }
 function drawTamu(){
-  const q=($('#tCari')?.value||'').toLowerCase().trim();
-  const join=$('#tJoin')?.value||'',pr=$('#tPri')?.value||'',src=$('#tSource')?.value||'';
-  const rb=$('#tRomb')?.value||'',cp=$('#tComp')?.value||'';
-  const all=rows('TAMU');
-  let list=all.filter(r=>{
-    if(join==='VIP'&&!isVIP(r)) return false;
-    if(join==='RAKER'&&!isRaker(r)) return false;
-    if(join==='BOTH'&&!isVIPRaker(r)) return false;
-    if(pr&&f(r,'Prioritas')!==pr) return false;
-    if(src&&f(r,'Kategori Sumber')!==src) return false;
-    if(rb&&f(r,'Rombongan')!==rb) return false;
-    if(cp&&f(r,'Perusahaan')!==cp) return false;
-    if(q){ const h=[f(r,'Nama'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Akomodasi'),f(r,'LO'),
-      f(r,'Rombongan'),f(r,'Keikutsertaan'),f(r,'Kategori Sumber')].join(' ').toLowerCase();
-      if(!h.includes(q)) return false; }
-    return true;
-  });
-  const ord={P1:0,P2:1,P3:2,P4:3};
-  list.sort((a,b)=>(ord[f(a,'Prioritas')]??9)-(ord[f(b,'Prioritas')]??9)
-    ||f(a,'Perusahaan').localeCompare(f(b,'Perusahaan'))||f(a,'Nama').localeCompare(f(b,'Nama')));
-  const vip=list.filter(isVIP).length,raker=list.filter(isRaker).length,both=list.filter(isVIPRaker).length;
-  $('#cTamu').textContent=`${list.length} dari ${all.length} slot roster · VIP ${vip} · Raker ${raker}${both?` · overlap ${both}`:''}`;
-  if(!list.length){ $('#listTamu').innerHTML='<div class="empty"><b>Tamu tidak ditemukan</b>Coba nama, kategori, atau filter lain.</div>'; return; }
-  let h='',g='';
-  for(const r of list){
-    const p=f(r,'Prioritas')||'P4';
-    if(!pr&&p!==g){g=p;h+=`<div class="grp">${esc(p)} &middot; ${esc((PRI[p]||['','Lainnya'])[1])}</div>`;}
-    const nm=f(r,'Nama'),ak=f(r,'Akomodasi'),km=f(r,'No Kamar'),lo=f(r,'LO'),cat=f(r,'Catatan');
-    const dtg=f(r,'Kedatangan'),fdt=f(r,'Flight Datang'),plg=f(r,'Kepulangan'),fpl=f(r,'Flight Pulang');
-    const rmb=f(r,'Rombongan'),joinVal=f(r,'Keikutsertaan'),sourceVal=f(r,'Kategori Sumber');
-    const placeholder=/nama menyusul|belum dikonfirmasi/i.test(nm+' '+cat);
-    h+=`<div class="item">
-      <div class="l1"><span class="pri ${(PRI[p]||['p4'])[0]}">${esc(p)}</span>
-        <span class="tx"><b>${esc(nm)}</b><span class="sub" style="margin-top:2px;display:block;color:var(--ink-2);font-size:13px">${esc(f(r,'Jabatan'))}</span></span></div>
-      <div class="l2">
-        ${has(f(r,'Perusahaan'))?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}
-        ${joinVal?`<i class="tag lane-tag">${esc(joinVal)}</i>`:''}
-        ${sourceVal?`<i class="tag">${esc(sourceVal)}</i>`:''}
-        ${rmb?`<i class="tag">${esc(rmb)}</i>`:''}
-        ${placeholder?'<i class="tag hi">Nama menyusul</i>':
-          (ak?`<i class="tag">${esc(ak)}${km?' &middot; kamar '+esc(km):''}</i>`:'<i class="tag over">Data akomodasi belum diisi</i>')}
-        ${!placeholder?(lo?`<i class="tag">LO: ${esc(lo)}</i>`:'<i class="tag over">LO belum ditetapkan</i>'):''}
-      </div>
-      ${(dtg||plg)?`<div class="l2">
-        ${dtg?`<i class="tag fly">↓ ${esc(dtg)}</i>`:''}
-        ${fdt?`<i class="tag fly">${esc(fdt)}</i>`:''}
-        ${plg?`<i class="tag fly">↑ ${esc(plg)}</i>`:''}
-        ${fpl?`<i class="tag fly">${esc(fpl)}</i>`:''}
-      </div>`:''}
-      ${cat&&!placeholder?`<div class="sub">${esc(cat)}</div>`:''}</div>`;
-  }
-  $('#listTamu').innerHTML=h;
+  const q=($('#tCari')?.value||'').toLowerCase().trim(),join=$('#tJoin')?.value||'',pr=$('#tPri')?.value||'',src=$('#tSource')?.value||'',rb=$('#tRomb')?.value||'',cp=$('#tComp')?.value||'',all=rows('TAMU');
+  let list=all.filter(r=>{if(join==='VIP'&&!isVIP(r))return false;if(join==='RAKER'&&!isRaker(r))return false;if(join==='BOTH'&&!isVIPRaker(r))return false;if(pr&&f(r,'Prioritas')!==pr)return false;if(src&&f(r,'Kategori Sumber')!==src)return false;if(rb&&f(r,'Rombongan')!==rb)return false;if(cp&&f(r,'Perusahaan')!==cp)return false;if(q){const h=[f(r,'Nama'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Akomodasi'),f(r,'LO'),f(r,'Rombongan'),f(r,'Keikutsertaan'),f(r,'Kategori Sumber')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
+  const ord={P1:0,P2:1,P3:2,P4:3};list.sort((a,b)=>(ord[f(a,'Prioritas')]??9)-(ord[f(b,'Prioritas')]??9)||f(a,'Perusahaan').localeCompare(f(b,'Perusahaan'))||f(a,'Nama').localeCompare(f(b,'Nama')));
+  const vip=list.filter(isVIP).length,raker=list.filter(isRaker).length,both=list.filter(isVIPRaker).length;$('#cTamu').textContent=`${list.length} dari ${all.length} peserta · VIP ${vip} · Raker ${raker}${both?` · overlap ${both}`:''}`;
+  if(!list.length){$('#listTamu').innerHTML='<div class="empty"><b>Tamu tidak ditemukan</b>Coba nama, kategori, atau filter lain.</div>';return;}
+  let h='',g='';for(const r of list){const p=f(r,'Prioritas')||'P4';if(!pr&&p!==g){g=p;h+=`<div class="grp">${esc(p)} · ${esc((PRI[p]||['','Lainnya'])[1])}</div>`;}const nm=f(r,'Nama'),ak=f(r,'Akomodasi'),km=f(r,'No Kamar'),lo=f(r,'LO'),cat=f(r,'Catatan'),dtg=f(r,'Kedatangan'),fdt=f(r,'Flight Datang'),plg=f(r,'Kepulangan'),fpl=f(r,'Flight Pulang'),rmb=f(r,'Rombongan'),joinVal=f(r,'Keikutsertaan'),sourceVal=f(r,'Kategori Sumber'),placeholder=/nama menyusul|belum dikonfirmasi/i.test(nm+' '+cat);
+    h+=`<article class="guest-card ${p.toLowerCase()}c"><div class="guest-head"><span class="pri ${(PRI[p]||['p4'])[0]}">${esc(p)}</span><span class="tx"><b>${esc(nm)}</b><span class="sub" style="margin-top:2px;display:block;color:var(--ink-2);font-size:12.5px">${esc(f(r,'Jabatan'))}</span></span><span class="id">${esc(f(r,'ID'))}</span></div><div class="l2">${has(f(r,'Perusahaan'))?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}${joinVal?`<i class="tag lane-tag">${esc(joinVal)}</i>`:''}${rmb?`<i class="tag">${esc(rmb)}</i>`:''}${placeholder?'<i class="tag hi">Nama menyusul</i>':(ak?`<i class="tag">${esc(ak)}${km?' · kamar '+esc(km):''}</i>`:'<i class="tag over">Akomodasi belum diisi</i>')}${!placeholder?(lo?`<i class="tag">LO: ${esc(lo)}</i>`:'<i class="tag over">LO belum ditetapkan</i>'):''}</div>${(dtg||plg)?`<div class="l2">${dtg?`<i class="tag fly">↓ ${esc(dtg)}</i>`:''}${fdt?`<i class="tag fly">${esc(fdt)}</i>`:''}${plg?`<i class="tag fly">↑ ${esc(plg)}</i>`:''}${fpl?`<i class="tag fly">${esc(fpl)}</i>`:''}</div>`:''}${sourceVal?`<div class="sub">${esc(sourceVal)}</div>`:''}${cat&&!placeholder?`<div class="sub">${esc(cat)}</div>`:''}</article>`;
+  }$('#listTamu').innerHTML=h;
 }
 
 /* ---------- Akomodasi ---------- */
 function viewAkm(){
-  const ak=rows('AKOMODASI');
-  const loc=[...new Set(ak.map(r=>f(r,'Lokasi')).filter(has))].sort();
-  $('#v-akm').innerHTML = ph('Akomodasi','Cari nama tamu untuk menemukan lokasi dan nomor kamarnya.') + demoNote() + `
-    <div class="filters">
-      <input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan…" autocomplete="off">
-      <select id="aLok"><option value="">Semua lokasi</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select>
-      <select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select>
-    </div>
-    <div class="count" id="cAkm"></div><div class="panel" id="listAkm"></div>`;
-  ['aCari','aLok','aIsi'].forEach(id=>$('#'+id).addEventListener(id==='aCari'?'input':'change',drawAkm));
-  drawAkm();
+  const ak=rows('AKOMODASI').filter(isMess),loc=[...new Set(ak.map(r=>f(r,'Lokasi')).filter(has))].sort(),filled=ak.filter(roomFilled).length,ready=ak.filter(roomReady).length,free=Math.max(0,ak.length-filled);
+  const locData=loc.map(l=>[l,ak.filter(r=>f(r,'Lokasi')===l&&roomFilled(r)).length,ak.filter(r=>f(r,'Lokasi')===l).length]);
+  $('#v-akm').innerHTML=ph('Akomodasi Mess','Dashboard hanya menghitung mess/rumah kompleks. Data hotel tidak dimasukkan dalam perhitungan.')+demoNote()+`
+    <div class="panel"><div class="metric-grid"><div class="metric-card"><b>${ak.length}</b><span>Total Kamar Mess</span></div><div class="metric-card good"><b>${filled}</b><span>Terisi</span></div><div class="metric-card"><b>${free}</b><span>Tersedia</span></div><div class="metric-card ${ready<ak.length?'warn':'good'}"><b>${ready}</b><span>Siap</span><small>${ak.length-ready} masih perlu perhatian</small></div></div><div class="mini-bars">${locData.slice(0,10).map(([l,v,t])=>`<div class="mini-row"><span title="${esc(l)}">${esc(l)}</span><div class="mini-track"><i style="width:${pctWidth(v,t)}%"></i></div><b>${v}/${t}</b></div>`).join('')}</div></div>
+    <div class="filters"><input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan…" autocomplete="off"><select id="aLok"><option value="">Semua lokasi mess</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select></div><div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
+  ['aCari','aLok','aIsi'].forEach(id=>$('#'+id).addEventListener(id==='aCari'?'input':'change',drawAkm));drawAkm();
 }
 function drawAkm(){
-  const q=($('#aCari')?.value||'').toLowerCase().trim();
-  const lk=$('#aLok')?.value||'',isi=$('#aIsi')?.value||'';
-  const filled=r=>has(f(r,'Tamu'))&&!/^(free|kosong|na|-)$/i.test(f(r,'Tamu'));
-  let list=rows('AKOMODASI').filter(r=>{
-    if(lk&&f(r,'Lokasi')!==lk) return false;
-    if(isi==='isi'&&!filled(r)) return false;
-    if(isi==='kosong'&&filled(r)) return false;
-    if(q){ const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Lokasi'),f(r,'No Kamar')].join(' ').toLowerCase();
-      if(!h.includes(q)) return false; }
-    return true;
-  });
-  $('#cAkm').textContent=list.length+' dari '+rows('AKOMODASI').length+' kamar';
-  if(!list.length){ $('#listAkm').innerHTML='<div class="empty"><b>Kamar tidak ditemukan</b>Coba nama atau lokasi lain.</div>'; return; }
-  let h='',loc='';
-  for(const r of list.slice(0,400)){
-    const l=f(r,'Lokasi'); if(l!==loc){loc=l;h+=`<div class="grp">${esc(l)}</div>`;}
-    const kes=f(r,'Kesiapan'),belum=/pengisian|belum/i.test(kes);
-    h+=`<div class="item">
-      <div class="l1"><span class="id">${esc(f(r,'No Kamar')||f(r,'ID'))}</span>
-        <span class="tx">${filled(r)?esc(f(r,'Tamu')):'<span style="color:var(--ink-3)">Belum terisi</span>'}</span></div>
-      <div class="l2">
-        ${has(f(r,'Jabatan'))?`<i class="tag">${esc(f(r,'Jabatan'))}</i>`:''}
-        ${has(f(r,'Perusahaan'))?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}
-        ${has(f(r,'Tipe Kasur'))?`<i class="tag">${esc(f(r,'Tipe Kasur'))}</i>`:''}
-        ${has(kes)?`<i class="tag ${belum?'over':''}">${esc(kes)}</i>`:''}</div></div>`;
-  }
-  $('#listAkm').innerHTML=h;
+  const q=($('#aCari')?.value||'').toLowerCase().trim(),lk=$('#aLok')?.value||'',isi=$('#aIsi')?.value||'',all=rows('AKOMODASI').filter(isMess);
+  let list=all.filter(r=>{if(lk&&f(r,'Lokasi')!==lk)return false;if(isi==='isi'&&!roomFilled(r))return false;if(isi==='kosong'&&roomFilled(r))return false;if(q){const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Lokasi'),f(r,'No Kamar')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
+  $('#cAkm').textContent=`${list.length} dari ${all.length} kamar mess`;if(!list.length){$('#listAkm').innerHTML='<div class="empty"><b>Kamar tidak ditemukan</b>Coba nama atau lokasi lain.</div>';return;}
+  let h='',loc='';for(const r of list.slice(0,400)){const l=f(r,'Lokasi');if(l!==loc){loc=l;h+=`<div class="grp">${esc(l)}</div>`;}const filled=roomFilled(r),kes=f(r,'Kesiapan'),ready=roomReady(r);h+=`<article class="room-card ${filled?'':'empty-room'}"><div class="l1"><span class="room-no">${esc(f(r,'No Kamar')||f(r,'ID'))}</span><span style="margin-left:auto" class="status-pill ${ready?'ok':'wait'}">${ready?'Siap':esc(kes||'Belum siap')}</span></div><div class="room-name">${filled?esc(f(r,'Tamu')):'Kamar tersedia'}</div><div class="sub">${filled?esc(f(r,'Jabatan')):'Belum ditempati'}</div><div class="l2">${has(f(r,'Perusahaan'))&&filled?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}${has(f(r,'Tipe Kasur'))?`<i class="tag">${esc(f(r,'Tipe Kasur'))}</i>`:''}${has(f(r,'Tipe Rumah'))?`<i class="tag">${esc(f(r,'Tipe Rumah'))}</i>`:''}</div></article>`;}$('#listAkm').innerHTML=h;
 }
 
 /* ---------- LO ---------- */
 function viewLO(){
-  $('#v-lo').innerHTML = ph('Liaison Officer','Penugasan LO per delegasi. Penugasan ganda ditandai merah.') + demoNote() + `
-    <div class="filters">
-      <input id="lCari" type="search" placeholder="Cari nama LO, VIP, atau perusahaan…" autocomplete="off">
-      <select id="lPos"><option value="">Semua pos</option><option>Lhokseumawe</option><option>Medan</option></select>
-    </div>
-    <div class="count" id="cLo"></div><div class="panel" id="listLo"></div>`;
-  ['lCari','lPos'].forEach(id=>$('#'+id).addEventListener(id==='lCari'?'input':'change',drawLO));
-  drawLO();
+  const all=rows('LO'),confirmed=all.filter(r=>f(r,'Status').toLowerCase()==='confirmed').length,pending=all.filter(r=>f(r,'Status').toLowerCase()==='pending').length;
+  $('#v-lo').innerHTML=ph('Liaison Officer','Penugasan resmi LO per delegasi dan status konfirmasinya.')+demoNote()+`<div class="panel"><div class="metric-grid"><div class="metric-card good"><b>${confirmed}</b><span>Confirmed</span></div><div class="metric-card warn"><b>${pending}</b><span>Pending</span></div></div></div><div class="filters"><input id="lCari" type="search" placeholder="Cari nama LO, VIP, atau perusahaan…" autocomplete="off"><select id="lPos"><option value="">Semua pos</option><option>Lhokseumawe</option><option>Medan</option></select><select id="lStatus"><option value="">Semua status</option><option>Confirmed</option><option>Pending</option></select></div><div class="count" id="cLo"></div><div class="panel" id="listLo"></div>`;
+  ['lCari','lPos','lStatus'].forEach(id=>$('#'+id).addEventListener(id==='lCari'?'input':'change',drawLO));drawLO();
 }
 function drawLO(){
-  const q=($('#lCari')?.value||'').toLowerCase().trim(),p=$('#lPos')?.value||'';
-  let list=rows('LO').filter(r=>{
-    if(p&&f(r,'Pos')!==p) return false;
-    if(q){ const h=[f(r,'Nama LO'),f(r,'Nama VIP'),f(r,'Delegasi / Perusahaan','Delegasi'),f(r,'Kategori VIP'),f(r,'No Badge')].join(' ').toLowerCase();
-      if(!h.includes(q)) return false; }
-    return true;
-  });
-  $('#cLo').textContent=list.length+' dari '+rows('LO').length+' penugasan';
-  if(!list.length){ $('#listLo').innerHTML='<div class="empty"><b>Penugasan tidak ditemukan</b>Coba nama lain.</div>'; return; }
-  let h='',c='';
-  for(const r of list){
-    const cc=f(r,'Delegasi / Perusahaan','Delegasi');
-    if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}
-    const note=f(r,'Catatan'),dbl=/ganda/i.test(note);
-    h+=`<div class="item">
-      <div class="l1"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx">${esc(f(r,'Nama LO'))}</span></div>
-      <div class="l2"><i class="tag">${esc(f(r,'Kategori VIP'))}</i>
-        ${has(f(r,'Nama VIP'))?`<i class="tag">${esc(f(r,'Nama VIP'))}</i>`:''}
-        ${has(f(r,'Pos'))?`<i class="tag">${esc(f(r,'Pos'))}</i>`:''}
-        ${has(f(r,'Kontak'))?`<i class="tag">${esc(f(r,'Kontak'))}</i>`:''}
-        ${dbl?'<i class="tag hi">Penugasan ganda</i>':''}</div>
-      ${note&&!dbl?`<div class="sub">${esc(note)}</div>`:''}</div>`;
-  }
-  $('#listLo').innerHTML=h;
+  const q=($('#lCari')?.value||'').toLowerCase().trim(),p=$('#lPos')?.value||'',st=$('#lStatus')?.value||'';let list=rows('LO').filter(r=>{if(p&&f(r,'Pos')!==p)return false;if(st&&f(r,'Status')!==st)return false;if(q){const h=[f(r,'Nama LO'),f(r,'Nama VIP'),f(r,'Delegasi / Perusahaan','Delegasi'),f(r,'Kategori VIP'),f(r,'No Badge')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
+  $('#cLo').textContent=list.length+' dari '+rows('LO').length+' penugasan';if(!list.length){$('#listLo').innerHTML='<div class="empty"><b>Penugasan tidak ditemukan</b>Coba nama lain.</div>';return;}
+  let h='',c='';for(const r of list){const cc=f(r,'Delegasi / Perusahaan','Delegasi');if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}const status=f(r,'Status')||'Pending',vip=esc(f(r,'Nama VIP')).replace(/\n/g,'<br>');h+=`<div class="item"><div class="l1"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx"><b>${esc(f(r,'Nama LO'))}</b></span><span class="status-pill ${status.toLowerCase()==='confirmed'?'ok':'wait'}">${esc(status)}</span></div><div class="l2"><i class="tag">${esc(f(r,'Kategori VIP'))}</i>${has(f(r,'Pos'))?`<i class="tag">${esc(f(r,'Pos'))}</i>`:''}${has(f(r,'Kontak'))?`<i class="tag">${esc(f(r,'Kontak'))}</i>`:''}</div>${vip?`<div class="sub"><b>Ditangani:</b><br>${vip}</div>`:''}${has(f(r,'Catatan'))?`<div class="sub">${esc(f(r,'Catatan'))}</div>`:''}</div>`;}$('#listLo').innerHTML=h;
 }
 
 /* ---------- Issues ---------- */
