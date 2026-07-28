@@ -296,6 +296,24 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
 .status-pill{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:3px 8px;display:inline-block}.status-pill.ok{background:#E8F5EF;color:#0E6A4D}.status-pill.wait{background:#FFF3D8;color:#845200}.status-pill.bad{background:#FDECEA;color:#93211A}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--rule-2);background:var(--panel-2)}.section-head h3{margin:0;font-family:'Barlow Condensed',sans-serif;font-size:13.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}.section-head small{font-size:10.5px;color:var(--ink-3)}
 
+
+/* Mobile guest cards: prevent long metadata and flight tags from widening the page. */
+.guest-grid,.guest-card,.guest-head,.guest-card .l2{min-width:0;max-width:100%}
+.guest-card{width:100%;overflow:hidden}
+.guest-head .tx{min-width:0;overflow:hidden}
+.guest-head .tx b,.guest-head .tx .sub,.guest-card>.sub{overflow-wrap:anywhere;word-break:break-word}
+@media(max-width:759px){
+  #v-tamu,.guest-grid{width:100%;max-width:100%;overflow-x:hidden}
+  .guest-card{padding:12px 12px 13px}
+  .guest-card .l2{width:100%;overflow:hidden}
+  .guest-card .tag{
+    min-width:0;max-width:100%;white-space:normal;
+    overflow-wrap:anywhere;word-break:break-word;line-height:1.35;
+  }
+  .guest-card .tag.fly{flex:1 1 100%}
+  .guest-head .id{max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -327,7 +345,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.4
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.5
   </footer>
 </div></main>
 
