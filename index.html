@@ -324,7 +324,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.1
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.2
   </footer>
 </div></main>
 
@@ -389,6 +389,7 @@ const daysTo=()=>Math.round((parseD(CONFIG.EVENT_START)-today())/86400000);
 
 const num=v=>{const n=parseFloat(String(v??'').replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0;};
 const isMess=r=>{const t=f(r,'Tipe').toLowerCase(),l=f(r,'Lokasi').toLowerCase();return !t.includes('hotel')&&!l.includes('hotel');};
+const accommodationKind=r=>/^rumah\b/i.test(f(r,'Lokasi').trim())?'Rumah Kompleks':'Mess';
 const roomFilled=r=>has(f(r,'Tamu'))&&!/^(free|kosong|na|n\/a|-)$/i.test(f(r,'Tamu'));
 const roomReady=r=>/^(ready|siap|baik)$/i.test(f(r,'Kesiapan'))||(!/pengisian|belum|proses/i.test(f(r,'Kesiapan'))&&has(f(r,'Kesiapan')));
 function pctWidth(v,total){return Math.max(0,Math.min(100,total?Math.round(v/total*100):0));}
@@ -595,7 +596,9 @@ function viewHome(){
 
   const tamu=rows('TAMU'),total=tamu.length,p1=tamu.filter(r=>f(r,'Prioritas')==='P1').length,vip=tamu.filter(isVIP).length,raker=tamu.filter(isRaker).length,overlap=tamu.filter(isVIPRaker).length;
   const vipOnly=Math.max(0,vip-overlap),rakerOnly=Math.max(0,raker-overlap);
-  const mess=rows('AKOMODASI').filter(isMess),messFilled=mess.filter(roomFilled).length,messReady=mess.filter(roomReady).length,messFree=Math.max(0,mess.length-messFilled);
+  const akm=rows('AKOMODASI').filter(isMess),mess=akm.filter(r=>accommodationKind(r)==='Mess'),houses=akm.filter(r=>accommodationKind(r)==='Rumah Kompleks');
+  const akmFilled=akm.filter(roomFilled).length,akmReady=akm.filter(roomReady).length,akmFree=Math.max(0,akm.length-akmFilled);
+  const messFilled=mess.filter(roomFilled).length,houseFilled=houses.filter(roomFilled).length;
 
   const cons=rows('KONSUMSI').filter(r=>has(f(r,'ID'))),consTotal=cons.reduce((a,r)=>a+num(f(r,'Jumlah Final')),0);
   const consTypes=['Snack','Sarapan','Makan Siang','Makan Malam'].map(t=>[t,cons.filter(r=>f(r,'Jenis Konsumsi')===t).reduce((a,r)=>a+num(f(r,'Jumlah Final')),0)]).filter(x=>x[1]);
@@ -613,7 +616,7 @@ function viewHome(){
 
   <div class="panel"><div class="metric-grid">
     <div class="metric-card"><b>${total}</b><span>Total Peserta</span><small>${vip} VIP · ${raker} Raker · ${overlap} overlap</small></div>
-    <div class="metric-card good"><b>${messFilled}/${mess.length}</b><span>Kamar Mess Terisi</span><small>${messFree} kamar masih tersedia</small></div>
+    <div class="metric-card good"><b>${akmFilled}/${akm.length}</b><span>Akomodasi Terisi</span><small>${messFilled}/${mess.length} mess · ${houseFilled}/${houses.length} rumah</small></div>
     <div class="metric-card warn"><b>${consTotal.toLocaleString('id-ID')}</b><span>Total Porsi</span><small>${cons.length} item konsumsi</small></div>
     <div class="metric-card ${unassigned?'bad':'good'}"><b>${assigned.length}/${need.length}</b><span>Kendaraan Terdata</span><small>${unassigned} tamu masih belum terassign</small></div>
   </div></div>
@@ -628,7 +631,7 @@ function viewHome(){
     <div>
       <div class="panel"><h3>Perlu Perhatian</h3>${crit.length?crit.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2">${stTag(f(r,'Status'))}${isOver(f(r,'Deadline'),f(r,'Status'))?`<i class="tag over">Lewat ${fmtD(f(r,'Deadline'))}</i>`:''}<i class="tag">${esc(f(r,'Bidang'))}</i></div></div>`).join(''):'<div class="empty">Tidak ada item lewat deadline atau blocked.</div>'}</div>
       <div class="panel"><h3>Peserta</h3><div class="visual-bar"><i style="width:${pctWidth(vipOnly,total)}%;background:#9A3B35"></i><i style="width:${pctWidth(overlap,total)}%;background:#F0A500"></i><i style="width:${pctWidth(rakerOnly,total)}%;background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja ${vipOnly}</span><span><i style="background:#F0A500"></i>VIP + Raker ${overlap}</span><span><i style="background:#2F6D89"></i>Raker saja ${rakerOnly}</span></div><div class="kv"><span>Prioritas P1</span><b>${p1} peserta</b></div><div class="kv"><span>LO</span><b>${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='confirmed').length} confirmed · ${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='pending').length} pending</b></div></div>
-      <div class="panel"><h3>Akomodasi Mess</h3><div class="metric-grid"><div class="metric-card good"><b>${messFilled}</b><span>Terisi</span></div><div class="metric-card"><b>${messFree}</b><span>Tersedia</span></div><div class="metric-card ${messReady<mess.length?'warn':'good'}"><b>${messReady}</b><span>Siap</span></div><div class="metric-card"><b>${mess.length}</b><span>Total Kamar</span></div></div></div>
+      <div class="panel"><h3>Akomodasi Mess &amp; Rumah Kompleks</h3><div class="metric-grid"><div class="metric-card good"><b>${akmFilled}</b><span>Terisi</span><small>${messFilled} mess · ${houseFilled} rumah</small></div><div class="metric-card"><b>${akmFree}</b><span>Tersedia</span></div><div class="metric-card ${akmReady<akm.length?'warn':'good'}"><b>${akmReady}</b><span>Siap</span><small>${akm.length-akmReady} perlu perhatian</small></div><div class="metric-card"><b>${akm.length}</b><span>Total Kamar/Slot</span><small>${mess.length} mess · ${houses.length} rumah</small></div></div></div>
     </div>
   </div>
 
@@ -764,18 +767,29 @@ function drawTamu(){
 
 /* ---------- Akomodasi ---------- */
 function viewAkm(){
-  const ak=rows('AKOMODASI').filter(isMess),loc=[...new Set(ak.map(r=>f(r,'Lokasi')).filter(has))].sort(),filled=ak.filter(roomFilled).length,ready=ak.filter(roomReady).length,free=Math.max(0,ak.length-filled);
+  const ak=rows('AKOMODASI').filter(isMess),mess=ak.filter(r=>accommodationKind(r)==='Mess'),houses=ak.filter(r=>accommodationKind(r)==='Rumah Kompleks');
+  const loc=[...new Set(ak.map(r=>f(r,'Lokasi')).filter(has))].sort(),filled=ak.filter(roomFilled).length,ready=ak.filter(roomReady).length,free=Math.max(0,ak.length-filled);
+  const stats=list=>({total:list.length,filled:list.filter(roomFilled).length,ready:list.filter(roomReady).length});
+  const ms=stats(mess),hs=stats(houses);
   const locData=loc.map(l=>[l,ak.filter(r=>f(r,'Lokasi')===l&&roomFilled(r)).length,ak.filter(r=>f(r,'Lokasi')===l).length]);
-  $('#v-akm').innerHTML=ph('Akomodasi Mess','Dashboard hanya menghitung mess/rumah kompleks. Data hotel tidak dimasukkan dalam perhitungan.')+demoNote()+`
-    <div class="panel"><div class="metric-grid"><div class="metric-card"><b>${ak.length}</b><span>Total Kamar Mess</span></div><div class="metric-card good"><b>${filled}</b><span>Terisi</span></div><div class="metric-card"><b>${free}</b><span>Tersedia</span></div><div class="metric-card ${ready<ak.length?'warn':'good'}"><b>${ready}</b><span>Siap</span><small>${ak.length-ready} masih perlu perhatian</small></div></div><div class="mini-bars">${locData.slice(0,10).map(([l,v,t])=>`<div class="mini-row"><span title="${esc(l)}">${esc(l)}</span><div class="mini-track"><i style="width:${pctWidth(v,t)}%"></i></div><b>${v}/${t}</b></div>`).join('')}</div></div>
-    <div class="filters"><input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan…" autocomplete="off"><select id="aLok"><option value="">Semua lokasi mess</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select></div><div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
-  ['aCari','aLok','aIsi'].forEach(id=>$('#'+id).addEventListener(id==='aCari'?'input':'change',drawAkm));drawAkm();
+  const messLoc=locData.filter(([l])=>!/^rumah\b/i.test(l)),houseLoc=locData.filter(([l])=>/^rumah\b/i.test(l));
+  const barBlock=(title,data,st)=>`<div class="panel"><div class="section-head"><h3>${esc(title)}</h3><small>${st.filled}/${st.total} terisi · ${st.total-st.filled} tersedia</small></div><div class="mini-bars">${data.map(([l,v,t])=>`<div class="mini-row"><span title="${esc(l)}">${esc(l)}</span><div class="mini-track"><i style="width:${pctWidth(v,t)}%"></i></div><b>${v}/${t}</b></div>`).join('')||'<div class="empty">Belum ada data lokasi.</div>'}</div></div>`;
+  $('#v-akm').innerHTML=ph('Akomodasi Mess & Rumah Kompleks','Perhitungan mencakup seluruh kamar/slot di mess dan rumah kompleks. Data hotel tidak dimasukkan.')+demoNote()+`
+    <div class="panel"><div class="metric-grid">
+      <div class="metric-card"><b>${ak.length}</b><span>Total Kamar/Slot</span><small>${ms.total} mess · ${hs.total} rumah kompleks</small></div>
+      <div class="metric-card good"><b>${filled}</b><span>Terisi</span><small>${ms.filled} mess · ${hs.filled} rumah kompleks</small></div>
+      <div class="metric-card"><b>${free}</b><span>Tersedia</span><small>${ms.total-ms.filled} mess · ${hs.total-hs.filled} rumah kompleks</small></div>
+      <div class="metric-card ${ready<ak.length?'warn':'good'}"><b>${ready}</b><span>Siap</span><small>${ak.length-ready} masih perlu perhatian</small></div>
+    </div></div>
+    <div class="grid g2" style="margin-top:14px">${barBlock('Mess',messLoc,ms)}${barBlock('Rumah Kompleks',houseLoc,hs)}</div>
+    <div class="filters"><input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan…" autocomplete="off"><select id="aJenis"><option value="">Mess &amp; rumah kompleks</option><option value="Mess">Hanya mess</option><option value="Rumah Kompleks">Hanya rumah kompleks</option></select><select id="aLok"><option value="">Semua lokasi</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select></div><div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
+  ['aCari','aJenis','aLok','aIsi'].forEach(id=>$('#'+id).addEventListener(id==='aCari'?'input':'change',drawAkm));drawAkm();
 }
 function drawAkm(){
-  const q=($('#aCari')?.value||'').toLowerCase().trim(),lk=$('#aLok')?.value||'',isi=$('#aIsi')?.value||'',all=rows('AKOMODASI').filter(isMess);
-  let list=all.filter(r=>{if(lk&&f(r,'Lokasi')!==lk)return false;if(isi==='isi'&&!roomFilled(r))return false;if(isi==='kosong'&&roomFilled(r))return false;if(q){const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Lokasi'),f(r,'No Kamar')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
-  $('#cAkm').textContent=`${list.length} dari ${all.length} kamar mess`;if(!list.length){$('#listAkm').innerHTML='<div class="empty"><b>Kamar tidak ditemukan</b>Coba nama atau lokasi lain.</div>';return;}
-  let h='',loc='';for(const r of list.slice(0,400)){const l=f(r,'Lokasi');if(l!==loc){loc=l;h+=`<div class="grp">${esc(l)}</div>`;}const filled=roomFilled(r),kes=f(r,'Kesiapan'),ready=roomReady(r);h+=`<article class="room-card ${filled?'':'empty-room'}"><div class="l1"><span class="room-no">${esc(f(r,'No Kamar')||f(r,'ID'))}</span><span style="margin-left:auto" class="status-pill ${ready?'ok':'wait'}">${ready?'Siap':esc(kes||'Belum siap')}</span></div><div class="room-name">${filled?esc(f(r,'Tamu')):'Kamar tersedia'}</div><div class="sub">${filled?esc(f(r,'Jabatan')):'Belum ditempati'}</div><div class="l2">${has(f(r,'Perusahaan'))&&filled?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}${has(f(r,'Tipe Kasur'))?`<i class="tag">${esc(f(r,'Tipe Kasur'))}</i>`:''}${has(f(r,'Tipe Rumah'))?`<i class="tag">${esc(f(r,'Tipe Rumah'))}</i>`:''}</div></article>`;}$('#listAkm').innerHTML=h;
+  const q=($('#aCari')?.value||'').toLowerCase().trim(),jenis=$('#aJenis')?.value||'',lk=$('#aLok')?.value||'',isi=$('#aIsi')?.value||'',all=rows('AKOMODASI').filter(isMess);
+  let list=all.filter(r=>{if(jenis&&accommodationKind(r)!==jenis)return false;if(lk&&f(r,'Lokasi')!==lk)return false;if(isi==='isi'&&!roomFilled(r))return false;if(isi==='kosong'&&roomFilled(r))return false;if(q){const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Lokasi'),f(r,'No Kamar'),f(r,'Tipe Rumah')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
+  $('#cAkm').textContent=`${list.length} dari ${all.length} kamar/slot mess & rumah kompleks`;if(!list.length){$('#listAkm').innerHTML='<div class="empty"><b>Akomodasi tidak ditemukan</b>Coba nama, jenis, atau lokasi lain.</div>';return;}
+  let h='',loc='';for(const r of list.slice(0,400)){const l=f(r,'Lokasi');if(l!==loc){loc=l;h+=`<div class="grp">${esc(l)} · ${esc(accommodationKind(r))}</div>`;}const filled=roomFilled(r),kes=f(r,'Kesiapan'),ready=roomReady(r);h+=`<article class="room-card ${filled?'':'empty-room'}"><div class="l1"><span class="room-no">${esc(f(r,'No Kamar')||f(r,'ID'))}</span><span style="margin-left:auto" class="status-pill ${ready?'ok':'wait'}">${ready?'Siap':esc(kes||'Belum siap')}</span></div><div class="room-name">${filled?esc(f(r,'Tamu')):'Kamar/slot tersedia'}</div><div class="sub">${filled?esc(f(r,'Jabatan')):'Belum ditempati'}</div><div class="l2">${has(f(r,'Perusahaan'))&&filled?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}${has(f(r,'Tipe Kasur'))?`<i class="tag">${esc(f(r,'Tipe Kasur'))}</i>`:''}${has(f(r,'Tipe Rumah'))?`<i class="tag">${esc(f(r,'Tipe Rumah'))}</i>`:''}</div></article>`;}$('#listAkm').innerHTML=h;
 }
 
 /* ---------- LO ---------- */
