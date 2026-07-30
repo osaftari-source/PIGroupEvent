@@ -1,21 +1,70 @@
-# PIM Event Control PWA — v8.7
+# PIM Event Control PWA — v8.8
 
-## Changes in this release
+## Perbaikan utama
 
-- Rundown IDs beginning with `RD-` are accepted, including `RD-030B`; this restores the 9 August Batch 1 dinner in the Home timeline and Rundown page.
-- Source notes are no longer displayed on the Rundown page.
-- Guest cards now show only arrival/departure from `Flight Manifest Datang` and `Flight Manifest Pulang`. When a manifest field is empty, the card falls back to `Tiba di Lhokseumawe` or `Berangkat dari Lhokseumawe`.
-- Guest-card flight information is shortened to day, date, and time only.
-- Liaison Officer cards use the label **Menangani** and no longer display `Catatan`.
-- Frontend and service-worker cache versions raised to v8.7.
+Versi ini memperbaiki pergeseran waktu pada data Google Sheets:
 
-## Required deployment order
+- `08:45` sebelumnya terbaca `15:45`
+- `12:30` sebelumnya terbaca `19:30`
+- `19:30` sebelumnya terbaca `02:30`
+- durasi `01:10` sebelumnya terbaca `08:17`
 
-1. Replace `Code.gs` in Apps Script.
-2. **Deploy → Manage deployments → Edit → New version → Deploy.** Saving the script alone does not update the `/exec` API.
-3. Upload `index.html`, `sw.js`, `manifest.webmanifest`, and the `icons` directory to GitHub.
-4. Hard refresh once, or close/reopen the installed PWA, so service worker v8.7 replaces the old cache.
+Penyebabnya adalah sel tanggal/waktu spreadsheet diformat kembali menggunakan
+zona `Asia/Jakarta`. Nilai serial Google Sheets kemudian mendapat tambahan
+tujuh jam, dan durasi lama juga dapat terkena offset historis tujuh menit.
 
-## Why the 9 August dinner was missing
+`Code.gs` v8.8 sekarang:
 
-The dinner row uses ID `RD-030B`. An older deployed Apps Script or cached frontend accepted only purely numeric IDs such as `RD-030`, so `RD-030B` was removed before rendering. Version 8.7 accepts every operational ID starting with `RD-`.
+- memakai `GMT` hanya untuk membaca komponen tanggal/waktu dari sel spreadsheet;
+- tetap memakai zona waktu spreadsheet untuk `generatedAt`;
+- mempertahankan waktu rundown sesuai yang terlihat di workbook;
+- menyediakan fungsi `testSundayTimes()` untuk pengecekan cepat.
+
+Nilai yang diharapkan untuk Minggu, 9 Agustus:
+
+- RD-029: 08:45–09:55
+- RD-030: 12:30–13:30
+- RD-030B: 19:30–20:30
+
+## File yang perlu diterapkan
+
+### Google Apps Script
+
+Ganti seluruh isi `Code.gs`, lalu:
+
+1. **Deploy**
+2. **Manage deployments**
+3. Edit deployment web app
+4. Pilih **New version**
+5. **Deploy**
+
+Menyimpan script tanpa membuat versi deployment baru tidak memperbarui API `/exec`.
+
+### GitHub Pages / PWA
+
+Unggah seluruh file dan folder berikut:
+
+- `index.html`
+- `sw.js`
+- `manifest.webmanifest`
+- folder `icons/`
+
+`index.html` dan `sw.js` sudah dinaikkan ke v8.8. Kunci cache data juga berubah,
+sehingga payload v8.7 yang memiliki waktu salah tidak digunakan kembali.
+
+## Verifikasi setelah deployment
+
+1. Jalankan `testSundayTimes()` dari Apps Script editor.
+2. Buka URL `/exec` dan cari `RD-029`, `RD-030`, serta `RD-030B`.
+3. Pastikan API mengirim:
+   - `08:45`, `09:55`
+   - `12:30`, `13:30`
+   - `19:30`, `20:30`
+4. Upload file GitHub.
+5. Hard refresh browser atau tutup dan buka ulang PWA.
+6. Bila masih melihat data lama, hapus site data/cache satu kali lalu buka kembali.
+
+## Catatan
+
+Workbook tidak perlu diubah untuk masalah waktu ini. Perbaikannya berada pada
+normalisasi tanggal/waktu di backend Apps Script dan pembaruan cache PWA.

@@ -16,7 +16,10 @@
  */
 
 var SHEET_ID = '1BTAdWvVX5YOFn7IbmAbVnXZ-PX1fm90ySMkyDTCFHZw';
-var TIMEZONE = 'Asia/Jakarta';
+// Spreadsheet serial date/time cells must be formatted in GMT so their
+// visible clock/date components are preserved exactly. Using Asia/Jakarta here
+// would add seven hours to time-only cells (for example 08:45 -> 15:45).
+var CELL_SERIAL_TIMEZONE = 'GMT';
 
 // Tab name -> row number that holds the column headers
 var TABS = {
@@ -45,9 +48,18 @@ function doGet(e) {
 
 function buildPayload() {
   var ss = SpreadsheetApp.openById(SHEET_ID);
+  var generatedTimezone =
+    ss.getSpreadsheetTimeZone() ||
+    Session.getScriptTimeZone() ||
+    'Asia/Jakarta';
+
   var result = {
     ok: true,
-    generatedAt: Utilities.formatDate(new Date(), TIMEZONE, "yyyy-MM-dd'T'HH:mm:ssXXX"),
+    generatedAt: Utilities.formatDate(
+      new Date(),
+      generatedTimezone,
+      "yyyy-MM-dd'T'HH:mm:ssXXX"
+    ),
     tabs: {}
   };
 
@@ -97,6 +109,11 @@ var TIME_COLUMNS = ['Mulai Manual', 'Mulai', 'Selesai', 'Durasi', 'Harus Tersedi
  * Dates become plain yyyy-MM-dd strings and times become HH:mm strings, so the
  * browser never has to guess a timezone. Everything else is a trimmed string.
  *
+ * Google Sheets returns date/time cells as JavaScript Date objects representing
+ * spreadsheet serial values. Their visible components must be read in GMT.
+ * Reformatting them in Asia/Jakarta would incorrectly add seven hours, while
+ * old duration serials can also pick up a historical seven-minute offset.
+ *
  * RUNDOWN stores Mulai and Selesai as full date-times (that is how the duration
  * cascade survives midnight), but the app only wants the clock part.
  */
@@ -108,9 +125,9 @@ function normalise(v, header) {
 
   if (v instanceof Date) {
     if (TIME_COLUMNS.indexOf(header) !== -1) {
-      return Utilities.formatDate(v, TIMEZONE, 'HH:mm');
+      return Utilities.formatDate(v, CELL_SERIAL_TIMEZONE, 'HH:mm');
     }
-    return Utilities.formatDate(v, TIMEZONE, 'yyyy-MM-dd');
+    return Utilities.formatDate(v, CELL_SERIAL_TIMEZONE, 'yyyy-MM-dd');
   }
 
   // A duration typed straight into the sheet arrives as a fraction of a day.
@@ -130,3 +147,23 @@ function testPayload() {
     Logger.log(k + ': ' + p.tabs[k].length + ' rows');
   });
 }
+
+/**
+ * Run after deployment from the Apps Script editor.
+ * Expected Sunday values:
+ *   RD-029 08:45-09:55
+ *   RD-030 12:30-13:30
+ *   RD-030B 19:30-20:30
+ */
+function testSundayTimes() {
+  var p = buildPayload();
+  var sunday = p.tabs.RUNDOWN.filter(function (r) {
+    return r.Tanggal === '2026-08-09';
+  });
+  sunday.forEach(function (r) {
+    Logger.log(
+      [r.ID, r.Mulai, r.Selesai, r.Durasi, r.Kegiatan].join(' | ')
+    );
+  });
+}
+
