@@ -1,32 +1,21 @@
-# PIM Event Control PWA — v8.6
+# PIM Event Control PWA — v8.7
 
-## Files updated
+## Changes in this release
 
-- `Code.gs`
-  - exports `KENDARAAN` and `KONSUMSI`
-  - accepts rundown IDs such as `RD-030B`
-  - normalizes consumption time columns
-  - converts empty LO lookup values (`0`) to blank text
-- `index.html`
-  - event period changed to 9–12 August 2026
-  - Day 0 appears in the rundown summary
-  - official Raker and Plenary headcounts are read from `KONSUMSI`
-  - accommodation only counts `Tipe = Rumah Komplek`
-  - `Tipe = TBC` is displayed separately
-  - cache/frontend version raised to v8.6
-- `manifest.webmanifest` and `sw.js`
-  - event period and cache version updated
-  - PWA icons included
+- Rundown IDs beginning with `RD-` are accepted, including `RD-030B`; this restores the 9 August Batch 1 dinner in the Home timeline and Rundown page.
+- Source notes are no longer displayed on the Rundown page.
+- Guest cards now show only arrival/departure from `Flight Manifest Datang` and `Flight Manifest Pulang`. When a manifest field is empty, the card falls back to `Tiba di Lhokseumawe` or `Berangkat dari Lhokseumawe`.
+- Guest-card flight information is shortened to day, date, and time only.
+- Liaison Officer cards use the label **Menangani** and no longer display `Catatan`.
+- Frontend and service-worker cache versions raised to v8.7.
 
-## Deployment order
+## Required deployment order
 
-1. Upload/import the latest Event Control workbook into Google Sheets.
-2. Confirm sheet names and row-4 headers are unchanged.
-3. Replace Apps Script `Code.gs` with this version.
-4. Deploy Apps Script as a **new version**. If the `/exec` URL changes, update `CONFIG.API_URL` in `index.html`.
-5. Upload all repository files to GitHub, including the `icons` folder.
-6. Wait for GitHub Pages deployment, then hard-refresh the web app. Installed PWA users may need to close and reopen the app once for the new service worker to activate.
+1. Replace `Code.gs` in Apps Script.
+2. **Deploy → Manage deployments → Edit → New version → Deploy.** Saving the script alone does not update the `/exec` API.
+3. Upload `index.html`, `sw.js`, `manifest.webmanifest`, and the `icons` directory to GitHub.
+4. Hard refresh once, or close/reopen the installed PWA, so service worker v8.7 replaces the old cache.
 
-## Expected backend tabs
+## Why the 9 August dinner was missing
 
-`CHECKLIST`, `BIDANG`, `ISSUES`, `LO`, `TAMU`, `RUNDOWN`, `AKOMODASI`, `KENDARAAN`, `KONSUMSI`.
+The dinner row uses ID `RD-030B`. An older deployed Apps Script or cached frontend accepted only purely numeric IDs such as `RD-030`, so `RD-030B` was removed before rendering. Version 8.7 accepts every operational ID starting with `RD-`.

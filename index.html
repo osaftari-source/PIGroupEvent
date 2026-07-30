@@ -346,7 +346,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.6
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.7
   </footer>
 </div></main>
 
@@ -360,7 +360,7 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-09',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v8-6'
+  CACHE_KEY: 'pim-event-cache-v8-7'
 };
 
 /* ============================================================
@@ -387,7 +387,7 @@ const isRaker = r => joinText(r).includes('RAKER');
 const isVIPRaker = r => isVIP(r) && isRaker(r);
 const CH = () => rows('CHECKLIST').filter(r=>has(f(r,'ID')));
 const BD = () => rows('BIDANG').filter(r=>has(f(r,'Bidang')) && f(r,'Bidang').toUpperCase()!=='TOTAL');
-const RD = () => rows('RUNDOWN').filter(r=>/^RD-\d+[A-Z]*$/i.test(f(r,'ID')));
+const RD = () => rows('RUNDOWN').filter(r=>/^RD-/i.test(f(r,'ID')));
 
 const ST={'not started':['st-none','Not Started'],'in progress':['st-prog','In Progress'],
   'done':['st-done','Done'],'blocked':['st-block','Blocked'],'n/a':['st-na','N/A']};
@@ -428,6 +428,25 @@ function timelineClass(lane){const v=String(lane||'').toLowerCase();if(v.include
 function hmMinutes(v){const m=String(v||'').match(/(\d{1,2}):(\d{2})/);return m?(+m[1]*60 + +m[2]):null;}
 function fmtClock(v){const m=String(v||'').match(/(\d{1,2}):(\d{2})/);return m?`${String(+m[1]).padStart(2,'0')}:${m[2]}`:'';}
 function fmtDayDate(s){const d=parseD(s);if(!d)return esc(s);const dn=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];return `${dn[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}`;}
+function compactFlightMoment(value){
+  const raw=String(value||'').trim();
+  if(!raw)return'';
+  if(/^TBC\b/i.test(raw)||/belum terkonfirmasi/i.test(raw))return'TBC';
+  const days={minggu:'Min',min:'Min',senin:'Sen',sen:'Sen',selasa:'Sel',sel:'Sel',rabu:'Rab',rab:'Rab',kamis:'Kam',kam:'Kam',jumat:'Jum',jum:'Jum',sabtu:'Sab',sab:'Sab'};
+  const months={januari:'Jan',jan:'Jan',februari:'Feb',feb:'Feb',maret:'Mar',mar:'Mar',april:'Apr',apr:'Apr',mei:'Mei',juni:'Jun',jun:'Jun',juli:'Jul',jul:'Jul',agustus:'Agu',agu:'Agu',september:'Sep',sep:'Sep',oktober:'Okt',okt:'Okt',november:'Nov',nov:'Nov',desember:'Des',des:'Des'};
+  const dayMatch=raw.match(/\b(Minggu|Min|Senin|Sen|Selasa|Sel|Rabu|Rab|Kamis|Kam|Jumat|Jum|Sabtu|Sab)\b/i);
+  const dateMatch=raw.match(/\b(\d{1,2})\s+(Januari|Jan|Februari|Feb|Maret|Mar|April|Apr|Mei|Juni|Jun|Juli|Jul|Agustus|Agu|September|Sep|Oktober|Okt|November|Nov|Desember|Des)\b/i);
+  const timeMatches=[...raw.matchAll(/\b((?:[01]?\d|2[0-3]):[0-5]\d)(?:\s*[–—-]\s*((?:[01]?\d|2[0-3]):[0-5]\d))?\b/g)];
+  const day=dayMatch?days[dayMatch[1].toLowerCase()]:'';
+  const date=dateMatch?`${+dateMatch[1]} ${months[dateMatch[2].toLowerCase()]}`:'';
+  let time='';
+  if(timeMatches.length){
+    const m=timeMatches[timeMatches.length-1];
+    time=m[2]?`${m[1]}–${m[2]}`:m[1];
+  }
+  const datePart=[day,date].filter(Boolean).join(' ');
+  return [datePart,time].filter(Boolean).join(' · ')||'TBC';
+}
 function placeTag(venue,activity=''){
   const v=`${venue} ${activity}`.toLowerCase();
   const kno=v.indexOf('kno'),lsw=v.indexOf('lsw');
@@ -770,7 +789,7 @@ function drawRun(){
   for(const r of list){
     const lj=f(r,'Jalur');
     const fmtHM=t=>String(t||'').slice(0,5);
-    const s=fmtHM(f(r,'Mulai')),e=fmtHM(f(r,'Selesai')),v=f(r,'Venue'),cat=f(r,'Catatan');
+    const s=fmtHM(f(r,'Mulai')),e=fmtHM(f(r,'Selesai')),v=f(r,'Venue');
     const live=f(r,'Tanggal')===nISO && s<=nowHM && (!e||nowHM<e);
     h+=`<div class="rd${live?' now':''}">
       <div class="tm">${esc(s)}<small>${esc(e)}</small></div>
@@ -782,7 +801,6 @@ function drawRun(){
           ${has(f(r,'Durasi'))?`<i class="tag">Durasi ${esc(fmtHM(f(r,'Durasi')))}</i>`:''}
           ${has(f(r,'PIC'))?`<i class="tag">${esc(f(r,'PIC'))}</i>`:''}
         </div>
-        ${cat?`<div class="rd-note"><b>Catatan sumber:</b> ${esc(cat)}</div>`:''}
       </div></div>`;
   }
   $('#listRun').innerHTML=h;
@@ -807,8 +825,8 @@ function drawTamu(){
   const ord={P1:0,P2:1,P3:2,P4:3};list.sort((a,b)=>(ord[f(a,'Prioritas')]??9)-(ord[f(b,'Prioritas')]??9)||f(a,'Perusahaan').localeCompare(f(b,'Perusahaan'))||f(a,'Nama').localeCompare(f(b,'Nama')));
   const vip=list.filter(isVIP).length,raker=list.filter(isRaker).length,both=list.filter(isVIPRaker).length;$('#cTamu').textContent=`${list.length} dari ${all.length} peserta · VIP ${vip} · Raker ${raker}${both?` · overlap ${both}`:''}`;
   if(!list.length){$('#listTamu').innerHTML='<div class="empty"><b>Tamu tidak ditemukan</b>Coba nama, kategori, atau filter lain.</div>';return;}
-  let h='',g='';for(const r of list){const p=f(r,'Prioritas')||'P4';if(!pr&&p!==g){g=p;h+=`<div class="grp">${esc(p)} · ${esc((PRI[p]||['','Lainnya'])[1])}</div>`;}const nm=f(r,'Nama'),ak=f(r,'Akomodasi'),km=f(r,'No Kamar'),lo=f(r,'LO'),cat=f(r,'Catatan'),dtg=f(r,'Kedatangan'),fdt=f(r,'Flight Datang'),plg=f(r,'Kepulangan'),fpl=f(r,'Flight Pulang'),rmb=f(r,'Rombongan'),joinVal=f(r,'Keikutsertaan'),sourceVal=f(r,'Kategori Sumber'),placeholder=/nama menyusul|belum dikonfirmasi/i.test(nm+' '+cat);
-    h+=`<article class="guest-card ${p.toLowerCase()}c"><div class="guest-head"><span class="pri ${(PRI[p]||['p4'])[0]}">${esc(p)}</span><span class="tx"><b>${esc(nm)}</b><span class="sub" style="margin-top:2px;display:block;color:var(--ink-2);font-size:12.5px">${esc(f(r,'Jabatan'))}</span></span><span class="id">${esc(f(r,'ID'))}</span></div><div class="l2">${has(f(r,'Perusahaan'))?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}${joinVal?`<i class="tag lane-tag">${esc(joinVal)}</i>`:''}${rmb?`<i class="tag">${esc(rmb)}</i>`:''}${placeholder?'<i class="tag hi">Nama menyusul</i>':(ak?`<i class="tag">${esc(ak)}${km?' · kamar '+esc(km):''}</i>`:'<i class="tag over">Akomodasi belum diisi</i>')}${!placeholder?(lo?`<i class="tag">LO: ${esc(lo)}</i>`:'<i class="tag over">LO belum ditetapkan</i>'):''}</div>${(dtg||plg)?`<div class="l2">${dtg?`<i class="tag fly">↓ ${esc(dtg)}</i>`:''}${fdt?`<i class="tag fly">${esc(fdt)}</i>`:''}${plg?`<i class="tag fly">↑ ${esc(plg)}</i>`:''}${fpl?`<i class="tag fly">${esc(fpl)}</i>`:''}</div>`:''}${sourceVal?`<div class="sub">${esc(sourceVal)}</div>`:''}${cat&&!placeholder?`<div class="sub">${esc(cat)}</div>`:''}</article>`;
+  let h='',g='';for(const r of list){const p=f(r,'Prioritas')||'P4';if(!pr&&p!==g){g=p;h+=`<div class="grp">${esc(p)} · ${esc((PRI[p]||['','Lainnya'])[1])}</div>`;}const nm=f(r,'Nama'),ak=f(r,'Akomodasi'),km=f(r,'No Kamar'),lo=f(r,'LO'),cat=f(r,'Catatan'),manifestIn=f(r,'Flight Manifest Datang'),manifestOut=f(r,'Flight Manifest Pulang'),fallbackIn=f(r,'Tiba di Lhokseumawe'),fallbackOut=f(r,'Berangkat dari Lhokseumawe'),arrival=compactFlightMoment(manifestIn||fallbackIn),departure=compactFlightMoment(manifestOut||fallbackOut),rmb=f(r,'Rombongan'),joinVal=f(r,'Keikutsertaan'),sourceVal=f(r,'Kategori Sumber'),placeholder=/nama menyusul|belum dikonfirmasi/i.test(nm+' '+cat);
+    h+=`<article class="guest-card ${p.toLowerCase()}c"><div class="guest-head"><span class="pri ${(PRI[p]||['p4'])[0]}">${esc(p)}</span><span class="tx"><b>${esc(nm)}</b><span class="sub" style="margin-top:2px;display:block;color:var(--ink-2);font-size:12.5px">${esc(f(r,'Jabatan'))}</span></span><span class="id">${esc(f(r,'ID'))}</span></div><div class="l2">${has(f(r,'Perusahaan'))?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}${joinVal?`<i class="tag lane-tag">${esc(joinVal)}</i>`:''}${rmb?`<i class="tag">${esc(rmb)}</i>`:''}${placeholder?'<i class="tag hi">Nama menyusul</i>':(ak?`<i class="tag">${esc(ak)}${km?' · kamar '+esc(km):''}</i>`:'<i class="tag over">Akomodasi belum diisi</i>')}${!placeholder?(lo?`<i class="tag">LO: ${esc(lo)}</i>`:'<i class="tag over">LO belum ditetapkan</i>'):''}</div>${(arrival||departure)?`<div class="l2">${arrival?`<i class="tag fly">↓ ${esc(arrival)}</i>`:''}${departure?`<i class="tag fly">↑ ${esc(departure)}</i>`:''}</div>`:''}${sourceVal?`<div class="sub">${esc(sourceVal)}</div>`:''}${cat&&!placeholder?`<div class="sub">${esc(cat)}</div>`:''}</article>`;
   }$('#listTamu').innerHTML=h;
 }
 
@@ -850,7 +868,7 @@ function viewLO(){
 function drawLO(){
   const q=($('#lCari')?.value||'').toLowerCase().trim(),p=$('#lPos')?.value||'',st=$('#lStatus')?.value||'';let list=rows('LO').filter(r=>{if(p&&f(r,'Pos')!==p)return false;if(st&&f(r,'Status')!==st)return false;if(q){const h=[f(r,'Nama LO'),f(r,'Nama VIP'),f(r,'Delegasi / Perusahaan','Delegasi'),f(r,'Kategori VIP'),f(r,'No Badge')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
   $('#cLo').textContent=list.length+' dari '+rows('LO').length+' penugasan';if(!list.length){$('#listLo').innerHTML='<div class="empty"><b>Penugasan tidak ditemukan</b>Coba nama lain.</div>';return;}
-  let h='',c='';for(const r of list){const cc=f(r,'Delegasi / Perusahaan','Delegasi');if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}const status=f(r,'Status')||'Pending',vip=esc(f(r,'Nama VIP')).replace(/\n/g,'<br>');h+=`<div class="item"><div class="l1"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx"><b>${esc(f(r,'Nama LO'))}</b></span><span class="status-pill ${status.toLowerCase()==='confirmed'?'ok':'wait'}">${esc(status)}</span></div><div class="l2"><i class="tag">${esc(f(r,'Kategori VIP'))}</i>${has(f(r,'Pos'))?`<i class="tag">${esc(f(r,'Pos'))}</i>`:''}${has(f(r,'Kontak'))?`<i class="tag">${esc(f(r,'Kontak'))}</i>`:''}</div>${vip?`<div class="sub"><b>Ditangani:</b><br>${vip}</div>`:''}${has(f(r,'Catatan'))?`<div class="sub">${esc(f(r,'Catatan'))}</div>`:''}</div>`;}$('#listLo').innerHTML=h;
+  let h='',c='';for(const r of list){const cc=f(r,'Delegasi / Perusahaan','Delegasi');if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}const status=f(r,'Status')||'Pending',vip=esc(f(r,'Nama VIP')).replace(/\n/g,'<br>');h+=`<div class="item"><div class="l1"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx"><b>${esc(f(r,'Nama LO'))}</b></span><span class="status-pill ${status.toLowerCase()==='confirmed'?'ok':'wait'}">${esc(status)}</span></div><div class="l2"><i class="tag">${esc(f(r,'Kategori VIP'))}</i>${has(f(r,'Pos'))?`<i class="tag">${esc(f(r,'Pos'))}</i>`:''}${has(f(r,'Kontak'))?`<i class="tag">${esc(f(r,'Kontak'))}</i>`:''}</div>${vip?`<div class="sub"><b>Menangani:</b><br>${vip}</div>`:''}</div>`;}$('#listLo').innerHTML=h;
 }
 
 /* ---------- Issues ---------- */
@@ -895,8 +913,8 @@ const DEMO_DATA={tabs:{
   {'ID':'AK-206','Tipe':'TBC','Lokasi':'TBC','Tamu':'Mukhtasor','Jabatan':'Komisaris','Perusahaan':'PT Pupuk Kujang Cikampek','Kesiapan':'Not Started'}],
  LO:[{'ID':'LO-001','Delegasi / Perusahaan':'Panitia LO Inti','Kategori VIP':'Koordinator LO','Nama LO':'Yusrizal','No Badge':'5122009','Pos':'Lhokseumawe','Catatan':'PENUGASAN GANDA'}],
  TAMU:[
-  {'ID':'TM-001','Nama':'Setyanto Hantoro','Jabatan':'MD Business II, Danantara Asset Management','Perusahaan':'Danantara','Prioritas':'P1','Rombongan':'Tamu VIP','Kedatangan':'Sen 10 Agu · 18:55 · KNO (Medan)','Flight Datang':'GA-190 CGK–KNO','Kepulangan':'Sel 11 Agu · 15:15 · KNO','Flight Pulang':'Charter LSW–KNO 14:15','LO':'Safwat Ardy (5121980)'},
-  {'ID':'TM-002','Nama':'Rahmad Pribadi','Jabatan':'Direktur Utama','Perusahaan':'Pupuk Indonesia','Prioritas':'P1','Akomodasi':'Mess Utama Raja Lanang 11','No Kamar':'1','Rombongan':'Tamu VIP','Kedatangan':'Sen 10 Agu · 18:55 · KNO (Medan)','LO':'Fahirul Muhar (5180056)'}],
+  {'ID':'TM-001','Nama':'Setyanto Hantoro','Jabatan':'MD Business II, Danantara Asset Management','Perusahaan':'Danantara','Prioritas':'P1','Rombongan':'Tamu VIP','Flight Manifest Datang':'Selasa, 11 Agustus 2026 — Charter KNO–LSW, 07:45–08:30','Flight Manifest Pulang':'Selasa, 11 Agustus 2026 — Charter LSW–KNO, 13:45–14:30','LO':'Safwat Ardy (5121980)'},
+  {'ID':'TM-002','Nama':'Rahmad Pribadi','Jabatan':'Direktur Utama','Perusahaan':'Pupuk Indonesia','Prioritas':'P1','Akomodasi':'Mess Utama Raja Lanang 11','No Kamar':'1','Rombongan':'Tamu VIP','Tiba di Lhokseumawe':'Sel 11 Agu · 08:30 · Charter KNO–LSW','LO':'Fahirul Muhar (5180056)'}],
  KONSUMSI:[
   {'ID':'KM-001','Tanggal':'2026-08-10','Waktu Konsumsi':'12:30','Jenis Konsumsi':'Makan Siang','Acara / Rujukan':'Makan siang peserta Raker lainnya','Dasar Headcount':'Headcount resmi Raker RKAP dikurangi peserta makan siang Rakor Dirut','Jumlah Dasar':'211','Jumlah Final':'233','Status':'Not Started'},
   {'ID':'KM-002','Tanggal':'2026-08-10','Waktu Konsumsi':'19:30','Jenis Konsumsi':'Makan Malam','Acara / Rujukan':'Welcoming Dinner Lhokseumawe','Dasar Headcount':'Headcount resmi Raker RKAP','Jumlah Dasar':'236','Jumlah Final':'260','Status':'Not Started'},

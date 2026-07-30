@@ -83,7 +83,7 @@ function readTab(ss, name, headerRow) {
     }
     // RUNDOWN may contain instruction or legend rows below the activity table.
     // Keep those instructions in the workbook, but do not expose them as API data.
-    if (name === 'RUNDOWN' && !/^RD-\d+[A-Z]*$/i.test(String(obj.ID || ''))) continue;
+    if (name === 'RUNDOWN' && !/^RD-/i.test(String(obj.ID || ''))) continue;
 
     if (!empty) rows.push(obj);
   }
