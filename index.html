@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#16233A">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -322,7 +323,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
 <aside>
   <div class="brand">
     <h1>PIM Event<br>Control</h1>
-    <span>10&ndash;12 Agustus 2026</span>
+    <span>9&ndash;12 Agustus 2026</span>
   </div>
   <div class="snav" id="snav" role="tablist"></div>
   <div class="sfoot">
@@ -331,7 +332,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
 </aside>
 
 <header class="mob">
-  <h1>PIM Event Control<span>10&ndash;12 Agustus 2026</span></h1>
+  <h1>PIM Event Control<span>9&ndash;12 Agustus 2026</span></h1>
   <button class="sync" id="sync" type="button"><i class="dot" id="dot"></i><span id="syncTx">Loading</span></button>
 </header>
 
@@ -345,7 +346,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.5
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.6
   </footer>
 </div></main>
 
@@ -357,9 +358,9 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
    ============================================================ */
 const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
-  EVENT_START: '2026-08-10',
+  EVENT_START: '2026-08-09',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v8'
+  CACHE_KEY: 'pim-event-cache-v8-6'
 };
 
 /* ============================================================
@@ -386,7 +387,7 @@ const isRaker = r => joinText(r).includes('RAKER');
 const isVIPRaker = r => isVIP(r) && isRaker(r);
 const CH = () => rows('CHECKLIST').filter(r=>has(f(r,'ID')));
 const BD = () => rows('BIDANG').filter(r=>has(f(r,'Bidang')) && f(r,'Bidang').toUpperCase()!=='TOTAL');
-const RD = () => rows('RUNDOWN').filter(r=>/^RD-\d+$/i.test(f(r,'ID')));
+const RD = () => rows('RUNDOWN').filter(r=>/^RD-\d+[A-Z]*$/i.test(f(r,'ID')));
 
 const ST={'not started':['st-none','Not Started'],'in progress':['st-prog','In Progress'],
   'done':['st-done','Done'],'blocked':['st-block','Blocked'],'n/a':['st-na','N/A']};
@@ -409,10 +410,18 @@ const isOver=(dl,st)=>{const d=parseD(dl); if(!d) return false;
 const daysTo=()=>Math.round((parseD(CONFIG.EVENT_START)-today())/86400000);
 
 const num=v=>{const n=parseFloat(String(v??'').replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0;};
-const isMess=r=>{const t=f(r,'Tipe').toLowerCase(),l=f(r,'Lokasi').toLowerCase();return !t.includes('hotel')&&!l.includes('hotel');};
+const isMess=r=>f(r,'Tipe').trim().toLowerCase()==='rumah komplek';
+const isAccommodationTBC=r=>f(r,'Tipe').trim().toLowerCase()==='tbc';
 const accommodationKind=r=>/^rumah\b/i.test(f(r,'Lokasi').trim())?'Rumah Kompleks':'Mess';
 const roomFilled=r=>has(f(r,'Tamu'))&&!/^(free|kosong|na|n\/a|-)$/i.test(f(r,'Tamu'));
 const roomReady=r=>/^(ready|siap|baik)$/i.test(f(r,'Kesiapan'))||(!/pengisian|belum|proses/i.test(f(r,'Kesiapan'))&&has(f(r,'Kesiapan')));
+function officialHeadcount(pattern,fallback=0){
+  const values=rows('KONSUMSI')
+    .filter(r=>pattern.test(`${f(r,'Dasar Headcount')} ${f(r,'Acara / Rujukan','Acara')}`))
+    .map(r=>num(f(r,'Jumlah Dasar')))
+    .filter(v=>v>0);
+  return values.length?Math.max(...values):fallback;
+}
 function pctWidth(v,total){return Math.max(0,Math.min(100,total?Math.round(v/total*100):0));}
 function miniRows(data,total){return data.map(([label,val])=>`<div class="mini-row"><span title="${esc(label)}">${esc(label)}</span><div class="mini-track"><i style="width:${pctWidth(val,total)}%"></i></div><b>${esc(val)}</b></div>`).join('');}
 function timelineClass(lane){const v=String(lane||'').toLowerCase();if(v.includes('vip')&&v.includes('undangan'))return'gabungan';if(v.includes('vip'))return'vip';if(v.includes('undangan'))return'undangan';if(v.includes('raker'))return'raker';if(v.includes('konsultasi'))return'konsultasi';if(v.includes('olimpiade'))return'olimpiade';if(v.includes('dirut'))return'dirut';return'';}
@@ -445,6 +454,7 @@ function summaryTimelineItems(dayRows){
 
   dayRows.filter(r=>/\bflight\b/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
   dayRows.filter(r=>/^(VIP Dinner|Welcoming Dinner)$/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
+  dayRows.filter(r=>/^Makan (siang|malam) Batch 1/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
   const rakor=find(/Rakor Direktur Utama/i);if(rakor)add(timelineBlock(rakor));
   dayRows.filter(r=>/^Sarapan/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
 
@@ -603,7 +613,7 @@ function viewHome(){
   const hi=iss.filter(r=>f(r,'Prioritas').toLowerCase()==='tinggi');
   const d=daysTo();
   const cdN=d>0?d:d===0?'HARI':(d>=-2?'H+'+Math.abs(d):'✓');
-  const cdL=d>0?'hari menuju<br>10 Agustus':d===0?'ini<br>hari pertama':d>=-2?'acara<br>berlangsung':'rangkaian<br>selesai';
+  const cdL=d>0?'hari menuju<br>Day 0':d===0?'hari ini<br>Day 0':d>=-3?'acara<br>berlangsung':'rangkaian<br>selesai';
   const w=v=>items.length?(v/items.length*100):0;
 
   const soon=items.filter(r=>{const dl=parseD(f(r,'Deadline')),st=f(r,'Status').toLowerCase();if(!dl||st==='done'||st==='n/a')return false;const diff=(dl-today())/86400000;return diff>=0&&diff<=7;}).sort((a,b)=>f(a,'Deadline').localeCompare(f(b,'Deadline')));
@@ -617,8 +627,10 @@ function viewHome(){
   }).join('')||'<div class="empty">Belum ada bidang.</div>';
 
   const tamu=rows('TAMU'),total=tamu.length,p1=tamu.filter(r=>f(r,'Prioritas')==='P1').length,vip=tamu.filter(isVIP).length,raker=tamu.filter(isRaker).length,overlap=tamu.filter(isVIPRaker).length;
+  const rakerOfficial=officialHeadcount(/headcount resmi raker rkap/i,raker);
+  const plenaryOfficial=officialHeadcount(/headcount resmi plenary session/i,0);
   const vipOnly=Math.max(0,vip-overlap),rakerOnly=Math.max(0,raker-overlap);
-  const akm=rows('AKOMODASI').filter(isMess),mess=akm.filter(r=>accommodationKind(r)==='Mess'),houses=akm.filter(r=>accommodationKind(r)==='Rumah Kompleks');
+  const akmAll=rows('AKOMODASI'),akm=akmAll.filter(isMess),akmTbc=akmAll.filter(isAccommodationTBC).length,mess=akm.filter(r=>accommodationKind(r)==='Mess'),houses=akm.filter(r=>accommodationKind(r)==='Rumah Kompleks');
   const akmFilled=akm.filter(roomFilled).length,akmReady=akm.filter(roomReady).length,akmFree=Math.max(0,akm.length-akmFilled);
   const messFilled=mess.filter(roomFilled).length,houseFilled=houses.filter(roomFilled).length;
 
@@ -649,8 +661,8 @@ function viewHome(){
   <div class="hero"><div class="row"><div class="cd"><b>${cdN}</b><i>${cdL}</i></div><div class="meta"><b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>PT Pupuk Iskandar Muda, Lhokseumawe</div></div><div class="ring"><div class="bar"><i style="width:${w(done)}%;background:var(--st-done)"></i><i style="width:${w(prog)}%;background:var(--amber)"></i><i style="width:${w(blocked)}%;background:var(--st-block)"></i></div><b>${pct}%</b></div></div>
 
   <div class="panel"><div class="metric-grid">
-    <div class="metric-card"><b>${total}</b><span>Total Peserta</span><small>${vip} VIP · ${raker} Raker · ${overlap} overlap</small></div>
-    <div class="metric-card good"><b>${akmFilled}/${akm.length}</b><span>Akomodasi Terisi</span><small>${messFilled}/${mess.length} mess · ${houseFilled}/${houses.length} rumah</small></div>
+    <div class="metric-card"><b>${total}</b><span>Total Peserta</span><small>${vip} VIP roster · ${raker} Raker roster · ${rakerOfficial} Raker resmi</small></div>
+    <div class="metric-card good"><b>${akmFilled}/${akm.length}</b><span>Akomodasi Terisi</span><small>${messFilled}/${mess.length} mess · ${houseFilled}/${houses.length} rumah · ${akmTbc} TBC</small></div>
     <div class="metric-card warn"><b>${consTotal.toLocaleString('id-ID')}</b><span>Total Porsi</span><small>${cons.length} item konsumsi</small></div>
     <div class="metric-card ${unassignedUnits?'bad':'good'}"><b>${units}</b><span>Kebutuhan Kendaraan</span><small>${minimumPI} minimum PI · ${tambahanPIM} tambahan PIM</small></div>
   </div></div>
@@ -664,8 +676,8 @@ function viewHome(){
     </div>
     <div>
       <div class="panel"><h3>Perlu Perhatian</h3>${crit.length?crit.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2">${stTag(f(r,'Status'))}${isOver(f(r,'Deadline'),f(r,'Status'))?`<i class="tag over">Lewat ${fmtD(f(r,'Deadline'))}</i>`:''}<i class="tag">${esc(f(r,'Bidang'))}</i></div></div>`).join(''):'<div class="empty">Tidak ada item lewat deadline atau blocked.</div>'}</div>
-      <div class="panel"><h3>Peserta</h3><div class="visual-bar"><i style="width:${pctWidth(vipOnly,total)}%;background:#9A3B35"></i><i style="width:${pctWidth(overlap,total)}%;background:#F0A500"></i><i style="width:${pctWidth(rakerOnly,total)}%;background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja ${vipOnly}</span><span><i style="background:#F0A500"></i>VIP + Raker ${overlap}</span><span><i style="background:#2F6D89"></i>Raker saja ${rakerOnly}</span></div><div class="kv"><span>Prioritas P1</span><b>${p1} peserta</b></div><div class="kv"><span>LO</span><b>${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='confirmed').length} confirmed · ${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='pending').length} pending</b></div></div>
-      <div class="panel"><h3>Akomodasi Mess &amp; Rumah Kompleks</h3><div class="metric-grid"><div class="metric-card good"><b>${akmFilled}</b><span>Terisi</span><small>${messFilled} mess · ${houseFilled} rumah</small></div><div class="metric-card"><b>${akmFree}</b><span>Tersedia</span></div><div class="metric-card ${akmReady<akm.length?'warn':'good'}"><b>${akmReady}</b><span>Siap</span><small>${akm.length-akmReady} perlu perhatian</small></div><div class="metric-card"><b>${akm.length}</b><span>Total Kamar/Slot</span><small>${mess.length} mess · ${houses.length} rumah</small></div></div></div>
+      <div class="panel"><h3>Peserta</h3><div class="visual-bar"><i style="width:${pctWidth(vipOnly,total)}%;background:#9A3B35"></i><i style="width:${pctWidth(overlap,total)}%;background:#F0A500"></i><i style="width:${pctWidth(rakerOnly,total)}%;background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja ${vipOnly}</span><span><i style="background:#F0A500"></i>VIP + Raker ${overlap}</span><span><i style="background:#2F6D89"></i>Raker saja ${rakerOnly}</span></div><div class="kv"><span>Headcount resmi Raker</span><b>${rakerOfficial} peserta</b></div><div class="kv"><span>Headcount resmi Plenary</span><b>${plenaryOfficial||'—'} peserta</b></div><div class="kv"><span>Prioritas P1</span><b>${p1} peserta</b></div><div class="kv"><span>LO</span><b>${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='confirmed').length} confirmed · ${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='pending').length} pending</b></div></div>
+      <div class="panel"><h3>Akomodasi Mess &amp; Rumah Kompleks</h3><div class="metric-grid"><div class="metric-card good"><b>${akmFilled}</b><span>Terisi</span><small>${messFilled} mess · ${houseFilled} rumah</small></div><div class="metric-card"><b>${akmFree}</b><span>Tersedia</span></div><div class="metric-card ${akmReady<akm.length?'warn':'good'}"><b>${akmReady}</b><span>Siap</span><small>${akm.length-akmReady} perlu perhatian</small></div><div class="metric-card"><b>${akm.length}</b><span>Total Kamar/Slot</span><small>${mess.length} mess · ${houses.length} rumah</small></div><div class="metric-card ${akmTbc?'warn':'good'}"><b>${akmTbc}</b><span>Belum Teralokasi</span><small>tamu dengan status TBC</small></div></div></div>
     </div>
   </div>
 
@@ -782,8 +794,9 @@ const PRI={P1:['p1','Prioritas utama'],P2:['p2','Prioritas tinggi'],
 function viewTamu(){
   const tm=rows('TAMU'),comp=[...new Set(tm.map(r=>f(r,'Perusahaan')).filter(has))].sort(),romb=[...new Set(tm.map(r=>f(r,'Rombongan')).filter(has))],source=[...new Set(tm.map(r=>f(r,'Kategori Sumber')).filter(has))].sort();
   const total=tm.length,vip=tm.filter(isVIP).length,raker=tm.filter(isRaker).length,both=tm.filter(isVIPRaker).length,p1=tm.filter(r=>f(r,'Prioritas')==='P1').length;
+  const rakerOfficial=officialHeadcount(/headcount resmi raker rkap/i,raker),plenaryOfficial=officialHeadcount(/headcount resmi plenary session/i,0);
   $('#v-tamu').innerHTML=ph('Tamu','Total peserta gabungan VIP dan Raker. Gunakan filter untuk menemukan tamu dan kebutuhan operasionalnya.')+demoNote()+`
-    <div class="panel"><div class="metric-grid"><div class="metric-card"><b>${total}</b><span>Total Peserta</span></div><div class="metric-card bad"><b>${vip}</b><span>Peserta VIP</span></div><div class="metric-card"><b>${raker}</b><span>Peserta Raker</span></div><div class="metric-card warn"><b>${both}</b><span>VIP + Raker</span><small>${p1} peserta prioritas P1</small></div></div><div class="visual-bar"><i style="width:${pctWidth(Math.max(0,vip-both),total)}%;background:#9A3B35"></i><i style="width:${pctWidth(both,total)}%;background:#F0A500"></i><i style="width:${pctWidth(Math.max(0,raker-both),total)}%;background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja</span><span><i style="background:#F0A500"></i>Overlap</span><span><i style="background:#2F6D89"></i>Raker saja</span></div></div>
+    <div class="panel"><div class="metric-grid"><div class="metric-card"><b>${total}</b><span>Total Peserta</span></div><div class="metric-card bad"><b>${vip}</b><span>VIP di Roster</span></div><div class="metric-card"><b>${raker}</b><span>Raker di Roster</span><small>${rakerOfficial} headcount resmi</small></div><div class="metric-card warn"><b>${both}</b><span>VIP + Raker</span><small>${p1} P1 · Plenary resmi ${plenaryOfficial||'—'}</small></div></div><div class="visual-bar"><i style="width:${pctWidth(Math.max(0,vip-both),total)}%;background:#9A3B35"></i><i style="width:${pctWidth(both,total)}%;background:#F0A500"></i><i style="width:${pctWidth(Math.max(0,raker-both),total)}%;background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja</span><span><i style="background:#F0A500"></i>Overlap</span><span><i style="background:#2F6D89"></i>Raker saja</span></div></div>
     <div class="filters"><input id="tCari" type="search" placeholder="Cari nama, jabatan, perusahaan, atau kategori…" autocomplete="off"><select id="tJoin"><option value="">Semua keikutsertaan</option><option value="VIP">VIP</option><option value="RAKER">Raker</option><option value="BOTH">VIP &amp; Raker</option></select><select id="tPri"><option value="">Semua prioritas</option><option value="P1">P1 — Prioritas utama</option><option value="P2">P2 — Prioritas tinggi</option><option value="P3">P3 — Prioritas menengah</option><option value="P4">P4 — Peserta umum</option></select><select id="tSource"><option value="">Semua kategori sumber</option>${source.map(r=>`<option>${esc(r)}</option>`).join('')}</select><select id="tRomb"><option value="">Semua rombongan</option>${romb.map(r=>`<option>${esc(r)}</option>`).join('')}</select><select id="tComp"><option value="">Semua perusahaan</option>${comp.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div>
     <div class="count" id="cTamu"></div><div class="guest-grid" id="listTamu"></div>`;
   ['tCari','tJoin','tPri','tSource','tRomb','tComp'].forEach(id=>$('#'+id).addEventListener(id==='tCari'?'input':'change',drawTamu));drawTamu();
@@ -801,7 +814,7 @@ function drawTamu(){
 
 /* ---------- Akomodasi ---------- */
 function viewAkm(){
-  const ak=rows('AKOMODASI').filter(isMess),mess=ak.filter(r=>accommodationKind(r)==='Mess'),houses=ak.filter(r=>accommodationKind(r)==='Rumah Kompleks');
+  const allAkm=rows('AKOMODASI'),ak=allAkm.filter(isMess),tbcRows=allAkm.filter(isAccommodationTBC),mess=ak.filter(r=>accommodationKind(r)==='Mess'),houses=ak.filter(r=>accommodationKind(r)==='Rumah Kompleks');
   const loc=[...new Set(ak.map(r=>f(r,'Lokasi')).filter(has))].sort(),filled=ak.filter(roomFilled).length,ready=ak.filter(roomReady).length,free=Math.max(0,ak.length-filled);
   const stats=list=>({total:list.length,filled:list.filter(roomFilled).length,ready:list.filter(roomReady).length});
   const ms=stats(mess),hs=stats(houses);
@@ -814,8 +827,10 @@ function viewAkm(){
       <div class="metric-card good"><b>${filled}</b><span>Terisi</span><small>${ms.filled} mess · ${hs.filled} rumah kompleks</small></div>
       <div class="metric-card"><b>${free}</b><span>Tersedia</span><small>${ms.total-ms.filled} mess · ${hs.total-hs.filled} rumah kompleks</small></div>
       <div class="metric-card ${ready<ak.length?'warn':'good'}"><b>${ready}</b><span>Siap</span><small>${ak.length-ready} masih perlu perhatian</small></div>
+      <div class="metric-card ${tbcRows.length?'warn':'good'}"><b>${tbcRows.length}</b><span>Belum Teralokasi</span><small>status TBC, tidak masuk total kamar</small></div>
     </div></div>
     <div class="grid g2" style="margin-top:14px">${barBlock('Mess',messLoc,ms)}${barBlock('Rumah Kompleks',houseLoc,hs)}</div>
+    ${tbcRows.length?`<details class="panel fold"><summary>Tamu Belum Teralokasi <span>${tbcRows.length} orang</span></summary>${tbcRows.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Tamu'))}</span></div><div class="l2"><i class="tag tbc">TBC</i><i class="tag">${esc(f(r,'Perusahaan'))}</i></div><div class="sub">${esc(f(r,'Jabatan'))}</div></div>`).join('')}</details>`:''}
     <div class="filters"><input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan…" autocomplete="off"><select id="aJenis"><option value="">Mess &amp; rumah kompleks</option><option value="Mess">Hanya mess</option><option value="Rumah Kompleks">Hanya rumah kompleks</option></select><select id="aLok"><option value="">Semua lokasi</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select></div><div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
   ['aCari','aJenis','aLok','aIsi'].forEach(id=>$('#'+id).addEventListener(id==='aCari'?'input':'change',drawAkm));drawAkm();
 }
@@ -870,15 +885,24 @@ const DEMO_DATA={tabs:{
   {'ID':'ACR-003','Bidang':'Tempat & Acara','Item':'Pemasangan tenda Raker','Acara':'Raker RKAP','Venue':'Tenda samping Gedung Pertemuan','Owner':'TBC (EO?)','Deadline':'2026-08-04','Status':'Not Started'},
   {'ID':'KNS-001','Bidang':'Konsumsi','Item':'Konfirmasi headcount final','Acara':'Semua','Venue':'Semua','Owner':'PIM','Deadline':'2026-07-29','Status':'Blocked','Catatan':'Menunggu konfirmasi anper'}],
  RUNDOWN:[
+  {'ID':'RD-029','Hari':'Minggu','Tanggal':'2026-08-09','Mulai':'08:45','Selesai':'09:55','Durasi':'01:10','Jalur':'TAMU UNDANGAN','Kegiatan':'Flight KNO–LSW — Batch 1 Tamu Undangan','Venue':'Bandara Kualanamu (KNO) → Malikussaleh (LSW)'},
+  {'ID':'RD-030B','Hari':'Minggu','Tanggal':'2026-08-09','Mulai':'19:30','Selesai':'20:30','Durasi':'01:00','Jalur':'TAMU UNDANGAN','Kegiatan':'Makan malam Batch 1 Tamu Undangan','Venue':'TBC'},
   {'ID':'RD-001','Hari':'Senin','Tanggal':'2026-08-10','Mulai':'16:30','Selesai':'18:55','Durasi':'02:25','Jalur':'TAMU VIP','Kegiatan':'Flight CGK-KNO — Garuda Indonesia GA-190','Venue':'Bandara Soekarno-Hatta (CGK) → Kualanamu (KNO)'},
   {'ID':'RD-034','Hari':'Senin','Tanggal':'2026-08-10','Mulai':'13:30','Selesai':'17:00','Durasi':'03:30','Jalur':'TAMU UNDANGAN','Kegiatan':'Rakor Direktur Utama PI Grup','Venue':'Ruang Keupula'}],
  AKOMODASI:[
   {'ID':'AK-001','Tipe':'Rumah Komplek','Lokasi':'Rumah Seulawah 46','No Kamar':'1','Tamu':'','Kesiapan':'Pengisian tempat tidur, sofa'},
-  {'ID':'AK-002','Tipe':'Hotel','Lokasi':'Hotel Rajawali','No Kamar':'12','Tamu':'NA','Jabatan':'Sekper','Perusahaan':'Pupuk Kaltim','Kesiapan':'Ready'}],
+  {'ID':'AK-002','Tipe':'Hotel','Lokasi':'Hotel Rajawali','No Kamar':'12','Tamu':'NA','Jabatan':'Sekper','Perusahaan':'Pupuk Kaltim','Kesiapan':'Ready'},
+  {'ID':'AK-206','Tipe':'TBC','Lokasi':'TBC','Tamu':'Mukhtasor','Jabatan':'Komisaris','Perusahaan':'PT Pupuk Kujang Cikampek','Kesiapan':'Not Started'}],
  LO:[{'ID':'LO-001','Delegasi / Perusahaan':'Panitia LO Inti','Kategori VIP':'Koordinator LO','Nama LO':'Yusrizal','No Badge':'5122009','Pos':'Lhokseumawe','Catatan':'PENUGASAN GANDA'}],
  TAMU:[
   {'ID':'TM-001','Nama':'Setyanto Hantoro','Jabatan':'MD Business II, Danantara Asset Management','Perusahaan':'Danantara','Prioritas':'P1','Rombongan':'Tamu VIP','Kedatangan':'Sen 10 Agu · 18:55 · KNO (Medan)','Flight Datang':'GA-190 CGK–KNO','Kepulangan':'Sel 11 Agu · 15:15 · KNO','Flight Pulang':'Charter LSW–KNO 14:15','LO':'Safwat Ardy (5121980)'},
   {'ID':'TM-002','Nama':'Rahmad Pribadi','Jabatan':'Direktur Utama','Perusahaan':'Pupuk Indonesia','Prioritas':'P1','Akomodasi':'Mess Utama Raja Lanang 11','No Kamar':'1','Rombongan':'Tamu VIP','Kedatangan':'Sen 10 Agu · 18:55 · KNO (Medan)','LO':'Fahirul Muhar (5180056)'}],
+ KONSUMSI:[
+  {'ID':'KM-001','Tanggal':'2026-08-10','Waktu Konsumsi':'12:30','Jenis Konsumsi':'Makan Siang','Acara / Rujukan':'Makan siang peserta Raker lainnya','Dasar Headcount':'Headcount resmi Raker RKAP dikurangi peserta makan siang Rakor Dirut','Jumlah Dasar':'211','Jumlah Final':'233','Status':'Not Started'},
+  {'ID':'KM-002','Tanggal':'2026-08-10','Waktu Konsumsi':'19:30','Jenis Konsumsi':'Makan Malam','Acara / Rujukan':'Welcoming Dinner Lhokseumawe','Dasar Headcount':'Headcount resmi Raker RKAP','Jumlah Dasar':'236','Jumlah Final':'260','Status':'Not Started'},
+  {'ID':'KS-002','Tanggal':'2026-08-11','Waktu Konsumsi':'09:00','Jenis Konsumsi':'Snack','Acara / Rujukan':'Plenary Session','Dasar Headcount':'Headcount resmi Plenary Session','Jumlah Dasar':'500','Jumlah Final':'550','Status':'Not Started'}],
+ KENDARAAN:[
+  {'No':'1','Nama':'Andi Amran Sulaiman','Perusahaan':'Kementerian Pertanian RI','Perlu Mobil?':'Ya','Jenis Mobil':'Alphard Hybrid','Jumlah Minimum PI':'1','Tambahan PIM':'0','Jumlah Unit':'1'}],
  ISSUES:[{'ID':'ISS-001','Isu / Keputusan yang dibutuhkan':'Jadwal penerbangan komersil masih TBC','Bidang':'Transportasi','Prioritas':'Tinggi','Sumber':'Rundown','Status':'Open'}]
 }};
 

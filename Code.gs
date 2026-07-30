@@ -26,7 +26,9 @@ var TABS = {
   LO: 4,
   TAMU: 4,
   RUNDOWN: 4,
-  AKOMODASI: 4
+  AKOMODASI: 4,
+  KENDARAAN: 4,
+  KONSUMSI: 4
 };
 
 function doGet(e) {
@@ -79,9 +81,9 @@ function readTab(ss, name, headerRow) {
       obj[headers[c]] = v;
       if (v !== '') empty = false;
     }
-    // RUNDOWN contains six instruction rows below the 70 activities.
+    // RUNDOWN may contain instruction or legend rows below the activity table.
     // Keep those instructions in the workbook, but do not expose them as API data.
-    if (name === 'RUNDOWN' && !/^RD-\d+$/i.test(String(obj.ID || ''))) continue;
+    if (name === 'RUNDOWN' && !/^RD-\d+[A-Z]*$/i.test(String(obj.ID || ''))) continue;
 
     if (!empty) rows.push(obj);
   }
@@ -89,7 +91,7 @@ function readTab(ss, name, headerRow) {
 }
 
 // Columns that hold a clock time or a duration rather than a calendar date.
-var TIME_COLUMNS = ['Mulai', 'Selesai', 'Durasi'];
+var TIME_COLUMNS = ['Mulai Manual', 'Mulai', 'Selesai', 'Durasi', 'Harus Tersedia', 'Waktu Konsumsi'];
 
 /**
  * Dates become plain yyyy-MM-dd strings and times become HH:mm strings, so the
@@ -100,6 +102,9 @@ var TIME_COLUMNS = ['Mulai', 'Selesai', 'Durasi'];
  */
 function normalise(v, header) {
   if (v === null || v === undefined) return '';
+
+  // Empty lookup results in the LO column can arrive from Sheets as numeric zero.
+  if (header === 'LO' && (v === 0 || String(v).trim() === '0')) return '';
 
   if (v instanceof Date) {
     if (TIME_COLUMNS.indexOf(header) !== -1) {
