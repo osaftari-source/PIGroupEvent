@@ -1,0 +1,14 @@
+(function(){
+  const C=window.PIM_CONFIG; let state={payload:null,index:{},mode:'production',source:'none',message:'',error:null};
+  const preview=new URLSearchParams(location.search).get('preview')==='1'; state.mode=preview?'preview':'production';
+  const key=preview?C.CACHE_PREVIEW:C.CACHE_PRODUCTION;
+  function cacheAgeLabel(ts){const h=(Date.now()-new Date(ts).getTime())/36e5;if(h<2)return {text:'Data tersimpan',level:'ok'};if(h<6)return {text:'Data mungkin belum terbaru',level:'warn'};if(h<24)return {text:'Data lama—harap refresh',level:'danger'};return {text:'Data sangat lama—perlu koneksi dan refresh',level:'danger'};}
+  function validate(p){if(!p||p.ok!==true)throw new Error(p&&p.error||'Payload backend tidak valid');if(String(p.schemaVersion)!==C.SCHEMA_VERSION)throw new Error('Schema backend tidak kompatibel');if(String(p.appVersion)!==C.APP_VERSION)throw new Error('Versi backend tidak kompatibel');if(!preview&&p.workbookStatus!=='Production')throw new Error('Workbook belum Production');if(!p.data||!Array.isArray(p.data.TAMU)||!Array.isArray(p.data.RUNDOWN))throw new Error('Dataset minimum tidak tersedia');return p;}
+  function buildIndex(p){const idx={};Object.keys(p.data).forEach(k=>{idx[k]={};(p.data[k]||[]).forEach(r=>{const id=Object.keys(r).find(x=>/^id[A-Z]/.test(x));if(id&&r[id])idx[k][r[id]]=r;});});state.index=idx;}
+  function save(p){localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),payload:p}));}
+  function loadCache(){try{const c=JSON.parse(localStorage.getItem(key)||'null');if(!c)return null;validate(c.payload);return c;}catch(e){localStorage.removeItem(key);return null;}}
+  async function fetchData(){if(!C.API_URL)throw new Error('Backend belum dikonfigurasi');const url=C.API_URL+(C.API_URL.includes('?')?'&':'?')+(preview?'preview=1':'_='+Date.now());const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error('Backend HTTP '+res.status);return validate(await res.json());}
+  async function init(){state.error=null;state.cacheLevel='';if(!C.API_URL){state.payload=null;state.index={};state.source='none';state.error=new Error('Backend belum dikonfigurasi');state.message=state.error.message;return state;}try{const p=await fetchData();state.payload=p;state.source='network';state.message='Data terbaru · '+formatDateTime(p.generatedAt);save(p);buildIndex(p);}catch(err){const c=loadCache();if(c){state.payload=c.payload;state.source='cache';const age=cacheAgeLabel(c.savedAt);state.message=age.text+' · '+formatDateTime(c.savedAt);state.cacheLevel=age.level;buildIndex(c.payload);}else{state.error=err;state.message=err.message;}}return state;}
+  function formatDateTime(v){if(!v)return '—';const d=new Date(v);return isNaN(d)?String(v):new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Jakarta'}).format(d)+' WIB';}
+  window.PIMStore={state,init,refresh:init,getPayload:()=>state.payload,getIndex:()=>state.index,formatDateTime};
+})();
