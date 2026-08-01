@@ -78,6 +78,7 @@ header.mob h1{
   font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:21px;line-height:1.05;
   letter-spacing:.02em;text-transform:uppercase;margin:0;flex:1;
 }
+header.mob h1 b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:inherit;line-height:inherit}
 header.mob h1 span{display:block;font-size:10px;font-weight:500;letter-spacing:.14em;color:#93A6C4;margin-top:3px}
 nav.bottom{
   position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;
@@ -323,10 +324,96 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
 @media(max-width:700px){.timeline-wrap{display:none}.mobile-rundown{display:block;padding:6px 12px 14px}.report-grid{grid-template-columns:1fr}.generic-row{grid-template-columns:minmax(0,1fr) 55px}.generic-row span{grid-column:1/-1}}
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+
+/* ============ v9.6 DESIGN & ACCESSIBILITY PASS ============ */
+.skip-link{position:fixed;left:12px;top:-60px;z-index:2000;background:#fff;color:var(--ink);padding:10px 14px;border-radius:8px;box-shadow:var(--shadow);font-weight:700}.skip-link:focus{top:12px}
+body{font-size:15.5px}
+.ph p,.sub,.count,.section-head small,.metric-card small,.kv span,.kv b{line-height:1.5}
+.count{font-size:12px;color:var(--ink-2);margin:8px 2px 12px}
+.tag{font-size:10.5px}
+
+/* Compact executive hero */
+.hero{position:relative;overflow:hidden}
+.hero:after{content:'';position:absolute;width:170px;height:170px;border:28px solid rgba(255,255,255,.035);border-radius:50%;right:-72px;top:-88px;pointer-events:none}
+.hero .theme-line{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#93A6C4;margin-bottom:7px}
+@media(min-width:860px){
+  .hero{padding:14px 18px 12px;margin-bottom:12px}
+  .hero .row{align-items:center;gap:14px}
+  .hero .cd b{font-size:46px}
+  .hero .cd i{font-size:10.5px;line-height:1.25}
+  .hero .meta{font-size:12px;line-height:1.45}
+  .ring{margin-top:10px;padding-top:10px}
+  .ring .bar{height:8px}
+}
+
+/* Critical attention strip */
+.critical-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 14px}
+.attn-card{display:flex;align-items:center;gap:10px;min-height:58px;background:var(--panel);border:1px solid var(--rule);border-left:5px solid var(--signal);border-radius:12px;padding:10px 12px;box-shadow:0 4px 14px rgba(22,35,58,.04);color:inherit;text-decoration:none;cursor:pointer;text-align:left}
+.attn-card:hover{border-color:#aac0d0}.attn-card.high{border-left-color:var(--st-block)}.attn-card.warn{border-left-color:var(--amber)}.attn-card.good{border-left-color:var(--st-done)}
+.attn-card .attn-icon{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:10px;background:var(--panel-2);font-weight:800;color:var(--ink)}
+.attn-card b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:23px;line-height:1}.attn-card span{display:block;font-size:11px;color:var(--ink-2);margin-top:3px}.attn-card small{display:block;font-size:10px;color:var(--ink-3)}
+@media(min-width:860px){.critical-strip{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}}
+
+/* Collapsible mobile filters; always expanded on desktop */
+.filter-box{margin:0 0 12px;border:1px solid var(--rule);border-radius:12px;background:var(--panel);box-shadow:0 2px 8px rgba(22,35,58,.035)}
+.filter-box>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:var(--tap);padding:9px 12px;font-weight:700;font-size:12px;cursor:pointer;background:var(--panel-2);border-radius:11px}
+.filter-box>summary::-webkit-details-marker{display:none}.filter-box>summary:after{content:'';width:8px;height:8px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(45deg);transition:transform .2s ease;margin-right:4px}.filter-box[open]>summary:after{transform:rotate(225deg)}
+.filter-box .filter-body{padding:10px}.filter-box .filters{margin:0}.filter-count{font-size:10.5px;color:var(--ink-3);font-weight:500;margin-left:auto}
+@media(min-width:860px){.filter-box{border:0;background:transparent;box-shadow:none}.filter-box>summary{display:none}.filter-box>.filter-body,.filter-box:not([open])>.filter-body{display:block!important;padding:0}.filter-box .filters{margin-bottom:12px}}
+@media(max-width:859px){.filter-box>summary{position:sticky;top:64px;z-index:26}.filter-box[open]>summary{border-bottom:1px solid var(--rule);border-radius:11px 11px 0 0}.filters select,.filters input{min-height:var(--tap);font-size:14px}}
+
+/* Touch and accordion affordances */
+.mobile-day>summary,.cons-day-head,.generic-row,.fold>summary{min-height:var(--tap)}
+.mobile-day>summary:after,.cons-day-head:after{content:''!important;width:8px;height:8px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(45deg);transition:transform .2s ease;flex:none;margin:0 5px 4px 10px}
+.mobile-day[open]>summary:after,.cons-day[open]>.cons-day-head:after{transform:rotate(225deg);margin-bottom:-4px}
+.mobile-day[open]>summary,.cons-day[open]>.cons-day-head{background:#eef4f8}
+
+/* Checklist hierarchy: item -> PIC -> deadline/status -> venue/owner */
+.check-item{padding:13px 15px}.check-item .check-title{font-size:13.5px;font-weight:700;line-height:1.4}.check-pic{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:12px}.check-pic b{color:var(--signal)}.check-pic .pic-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#eaf3f7;color:var(--signal);font-size:10px;font-weight:800;flex:none}.check-meta{margin-top:7px}
+
+/* Rundown mode switch */
+.run-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.segmented{display:inline-flex;border:1px solid var(--rule);border-radius:10px;padding:3px;background:var(--panel)}.segmented button{border:0;background:transparent;color:var(--ink-2);min-height:36px;padding:6px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer}.segmented button[aria-pressed="true"]{background:var(--ink);color:#fff}.day-timeline{padding:14px;overflow-x:auto}.day-timeline .timeline-chart{min-width:880px;--tl-label:270px}
+
+/* Guest cards: primary information first, secondary details expandable */
+.guest-primary-tags{margin-top:10px}.guest-more{margin-top:9px;border-top:1px solid var(--rule-2);padding-top:8px}.guest-more>summary{list-style:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--signal);min-height:32px;display:flex;align-items:center}.guest-more>summary::-webkit-details-marker{display:none}.guest-more>summary:after{content:'Lihat detail';}.guest-more[open]>summary:after{content:'Tutup detail'}.guest-more-body{padding-top:7px}.guest-more-body .tag{white-space:normal}
+
+/* Occupancy and operational relationship cards */
+.occupancy-state{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;border-radius:999px;padding:2px 6px;margin-left:5px}.occupancy-state.full{background:#fdecea;color:#93211a}.occupancy-state.open{background:#e8f5ef;color:#0e6a4d}
+.lo-alert{border:1px solid #efc7c3;border-left:5px solid var(--st-block);background:#fff8f7;border-radius:12px;padding:12px 14px;margin-bottom:14px}.lo-alert h3{margin:0;font-size:14px}.lo-alert p{margin:4px 0 0;font-size:11.5px;color:var(--ink-2)}.lo-alert-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.lo-card{padding:14px 15px}.lo-name-row{display:flex;align-items:center;gap:9px}.lo-name-row .tx{flex:1}.lo-relation{margin-top:10px;padding:10px 11px;background:var(--panel-2);border-radius:9px;font-size:12px;line-height:1.5}.lo-relation b{color:var(--signal)}
+
+/* Action-oriented Issues */
+.issue-grid{display:grid;grid-template-columns:1fr;gap:10px}.issue-card{border:1px solid var(--rule);border-left:5px solid var(--ink-3);background:var(--panel);border-radius:12px;padding:14px 15px;box-shadow:0 4px 14px rgba(22,35,58,.04)}.issue-card.high{border-left-color:var(--st-block)}.issue-card.medium{border-left-color:var(--amber)}.issue-card h3{font-size:14px;margin:7px 0 10px;line-height:1.4}.issue-fields{display:grid;gap:8px}.issue-field{padding:8px 10px;background:var(--panel-2);border-radius:8px}.issue-field span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3)}.issue-field b,.issue-field p{display:block;margin:2px 0 0;font-size:11.5px;line-height:1.45}.issue-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+@media(min-width:900px){.issue-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.issue-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.issue-field.wide{grid-column:1/-1}}
+
+/* Report modal: fixed PDF, flexible Excel */
+.report-fixed{border:1px solid #c8d9e5;background:#f5fafc;border-radius:12px;padding:13px;margin-bottom:14px}.report-fixed>p{font-size:11.5px;color:var(--ink-2);margin:5px 0 11px}.report-type{display:grid;grid-template-columns:1fr 1fr;gap:9px}.report-type label{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--rule);border-radius:10px;background:#fff;padding:10px;cursor:pointer}.report-type span b{display:block;font-size:12px}.report-type span small{display:block;font-size:10px;color:var(--ink-3);margin-top:2px}.report-excel{border-top:1px solid var(--rule-2);padding-top:13px}.report-section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}.report-section-title small{color:var(--ink-3);font-size:10.5px}.report-actions button{min-height:var(--tap)}.secondary-action{background:#fff!important;color:var(--signal)!important}
+
+/* Compact mobile header and improved small-text readability */
+@media(max-width:859px){
+  header.mob{align-items:center;padding:calc(8px + env(safe-area-inset-top)) 13px 8px;min-height:58px}
+  header.mob h1{font-size:19px;line-height:1}
+  header.mob h1 span{font-family:'Inter',sans-serif;font-size:10.5px;letter-spacing:.04em;text-transform:none;margin-top:4px}
+  header.mob .sync{min-height:40px;padding:4px 0;font-size:10.5px}
+  main{padding-top:13px}
+  .ph{margin-bottom:12px}.ph h2{font-size:25px}.ph p{font-size:12.5px}
+  .section-head small,.metric-card small,.sub{font-size:11px}
+  .critical-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .attn-card{padding:9px;gap:8px}.attn-card b{font-size:21px}.attn-card span{font-size:10.5px}
+  .report-type{grid-template-columns:1fr}.report-actions{display:grid;grid-template-columns:1fr 1fr}.report-actions #reportClose{grid-column:1/-1;order:3}
+}
+@media(max-width:420px){.critical-strip{grid-template-columns:1fr 1fr}.attn-card .attn-icon{display:none}.attn-card{min-height:62px}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:860px){.panel>h3,.section-head h3{font-size:14px}.section-head small,.metric-card small,.sub{font-size:11.5px}}
+
+
+@media(min-width:860px){.run-toolbar>.filter-box{flex:1;margin:0}.run-toolbar .filters{margin-bottom:0}}
+@media(max-width:859px){.run-toolbar{display:block}.run-toolbar>.filter-box{margin-bottom:8px}.segmented{margin-bottom:4px}}
+@media(max-width:700px){.segmented{display:none}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#v-home">Lewati ke konten utama</a>
 
 <aside>
   <div class="brand">
@@ -341,7 +428,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
 </aside>
 
 <header class="mob">
-  <h1>PIM Event Control<span>9&ndash;12 Agustus 2026 · Transform · Integrate · Accelerate</span></h1>
+  <h1><b id="mobilePageTitle">Beranda</b><span>9&ndash;12 Agustus 2026</span></h1>
   <button class="sync" id="sync" type="button"><i class="dot" id="dot"></i><span id="syncTx">Loading</span></button>
 </header>
 
@@ -355,12 +442,12 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.5
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.6
   </footer>
 </div></main>
 
 
-<div class="report-modal" id="reportModal" aria-hidden="true"><div class="report-box" role="dialog" aria-modal="true" aria-labelledby="reportTitle"><div class="report-head"><h2 id="reportTitle">Generate Report</h2><p>A Global Player in the Making · Transform · Integrate · Accelerate</p></div><div class="report-body"><div class="report-option" style="margin-bottom:12px"><b style="display:block;margin-bottom:8px">Jenis PDF</b><label style="margin-bottom:7px"><input type="radio" name="pdfType" value="director" checked> Ringkas Direksi</label><label><input type="radio" name="pdfType" value="internal"> Lengkap Internal</label></div><div class="report-grid" id="reportOptions"></div><div class="report-meta" id="reportMeta"></div><div class="report-actions"><button id="reportClose" type="button">Cancel</button><button id="reportExcel" class="primary" type="button">Export Excel</button><button id="reportPdf" class="primary" type="button">Generate PDF</button></div></div></div></div>
+<div class="report-modal" id="reportModal" aria-hidden="true"><div class="report-box" role="dialog" aria-modal="true" aria-labelledby="reportTitle"><div class="report-head"><h2 id="reportTitle">Generate Report</h2><p>A Global Player in the Making · Transform · Integrate · Accelerate</p></div><div class="report-body"><section class="report-fixed"><b>PDF terstruktur</b><p>Rundown, peserta, LO, operasional, readiness, isu terbuka, dan Plant Tour selalu disertakan agar laporan tetap dapat dipahami secara mandiri.</p><div class="report-type"><label><input type="radio" name="pdfType" value="director" checked> <span><b>Ringkas Direksi</b><small>Executive overview dan keputusan utama</small></span></label><label><input type="radio" name="pdfType" value="internal"> <span><b>Lengkap Internal</b><small>Termasuk kontak operasional tersamarkan</small></span></label></div></section><section class="report-excel"><div class="report-section-title"><b>Bagian Excel</b><small>Pilih sheet yang akan diekspor</small></div><div class="report-grid" id="reportOptions"></div></section><div class="report-meta" id="reportMeta"></div><div class="report-actions"><button id="reportClose" type="button">Cancel</button><button id="reportExcel" class="primary secondary-action" type="button">Export Excel</button><button id="reportPdf" class="primary" type="button">Generate PDF</button></div></div></div></div>
 
 <nav class="bottom" id="bnav" role="tablist"></nav>
 
@@ -372,7 +459,7 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-09',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v9-5'
+  CACHE_KEY: 'pim-event-cache-v9-6'
 };
 
 /* ============================================================
@@ -537,7 +624,7 @@ function rundownChart(){
     }).join('');
     return `<div class="tl-day"><div class="tl-day-title"><b>${fmtDayDate(day)}</b><span>${list.length} blok kegiatan</span></div>${rowsHtml||'<div class="empty">Tidak ada kegiatan utama pada hari ini.</div>'}</div>`;
   }).join('');
-  const today=new Date().toISOString().slice(0,10);const openDay=days.includes(today)?today:days[0];const mobile=days.map(day=>{const list=summaryTimelineItems(all.filter(r=>f(r,'Tanggal')===day));const starts=list.map(r=>String(r.start||'').slice(0,5)).filter(Boolean),ends=list.map(r=>String(r.end||'').slice(0,5)).filter(Boolean);const span=starts.length?`${starts[0]}–${ends[ends.length-1]||starts[starts.length-1]}`:'';return `<details class="mobile-day" ${day===openDay?'open':''}><summary><span class="mobile-day-summary">${fmtDayDate(day)}<small>${list.length} kegiatan${span?' · '+span:''}</small></span></summary><div class="mobile-day-body">${list.map(r=>{const cls=timelineClass(r.lane);return `<article class="mobile-agenda ${cls}"><div class="mobile-agenda-time">${esc(String(r.start||'').slice(0,5))}${r.end?'–'+esc(String(r.end).slice(0,5)):''}</div><div class="mobile-agenda-title">${esc(r.label)}</div><span class="mobile-lane-badge">${esc(r.lane||'Operasional')}</span><div class="mobile-agenda-meta">${esc(placeTag(r.venue,r.label))} · ${esc(r.venue||'Lokasi belum diisi')}</div></article>`}).join('')||'<div class="empty">Tidak ada kegiatan utama.</div>'}</div></details>`}).join('');
+  const today=new Date().toISOString().slice(0,10);const openDay=days.includes(today)?today:days[0];const mobile=days.map(day=>{const list=summaryTimelineItems(all.filter(r=>f(r,'Tanggal')===day));const starts=list.map(r=>String(r.start||'').slice(0,5)).filter(Boolean),ends=list.map(r=>String(r.end||'').slice(0,5)).filter(Boolean);const span=starts.length?`${starts[0]}–${ends[ends.length-1]||starts[starts.length-1]}`:'';return `<details class="mobile-day" data-state-key="run-${esc(day)}" ${day===openDay?'open':''}><summary><span class="mobile-day-summary">${fmtDayDate(day)}<small>${list.length} kegiatan${span?' · '+span:''}</small></span></summary><div class="mobile-day-body">${list.map(r=>{const cls=timelineClass(r.lane);return `<article class="mobile-agenda ${cls}"><div class="mobile-agenda-time">${esc(String(r.start||'').slice(0,5))}${r.end?'–'+esc(String(r.end).slice(0,5)):''}</div><div class="mobile-agenda-title">${esc(r.label)}</div><span class="mobile-lane-badge">${esc(r.lane||'Operasional')}</span><div class="mobile-agenda-meta">${esc(placeTag(r.venue,r.label))} · ${esc(r.venue||'Lokasi belum diisi')}</div></article>`}).join('')||'<div class="empty">Tidak ada kegiatan utama.</div>'}</div></details>`}).join('');
   return `<div class="timeline-wrap"><div class="timeline-chart">${axis}${legend}${body}</div></div><div class="mobile-rundown">${mobile}</div>`;
 }
 
@@ -561,16 +648,23 @@ const PAGES=[
 function svg(k){ return `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
   stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`; }
 function buildNav(){
-  $('#bnav').innerHTML = PAGES.map(([k,short])=>
-    `<button role="tab" data-v="${k}" aria-selected="${k===PAGE}">${svg(k)}<span>${short}</span></button>`).join('');
-  $('#snav').innerHTML = PAGES.map(([k,,long])=>
-    `<button role="tab" data-v="${k}" aria-selected="${k===PAGE}">${svg(k)}<span>${long}</span><i class="badge" data-b="${k}" hidden></i></button>`).join('');
-  $$('#bnav button, #snav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.v)));
+  $('#bnav').innerHTML=PAGES.map(([k,short])=>`<button role="tab" data-v="${k}" aria-label="${esc(short)}" aria-selected="${k===PAGE}" tabindex="${k===PAGE?0:-1}">${svg(k)}<span>${short}</span></button>`).join('');
+  $('#snav').innerHTML=PAGES.map(([k,,long])=>`<button role="tab" data-v="${k}" aria-label="${esc(long)}" aria-selected="${k===PAGE}" tabindex="${k===PAGE?0:-1}">${svg(k)}<span>${long}</span><i class="badge" data-b="${k}" hidden></i></button>`).join('');
+  $$('#bnav button, #snav button').forEach(b=>{
+    b.addEventListener('click',()=>go(b.dataset.v));
+    b.addEventListener('keydown',e=>{
+      if(!['ArrowRight','ArrowLeft','ArrowDown','ArrowUp','Home','End'].includes(e.key))return;
+      const group=[...b.parentElement.querySelectorAll('button[data-v]')],idx=group.indexOf(b);let next=idx;
+      if(e.key==='Home')next=0;else if(e.key==='End')next=group.length-1;else if(e.key==='ArrowRight'||e.key==='ArrowDown')next=(idx+1)%group.length;else next=(idx-1+group.length)%group.length;
+      e.preventDefault();group[next].focus();go(group[next].dataset.v);
+    });
+  });
 }
 function go(v){
   PAGE=v;
-  $$('#bnav button, #snav button').forEach(b=>b.setAttribute('aria-selected', b.dataset.v===v));
-  $$('.view').forEach(s=>s.classList.toggle('on', s.id==='v-'+v));
+  $$('#bnav button, #snav button').forEach(b=>{const on=b.dataset.v===v;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;});
+  $$('.view').forEach(section=>section.classList.toggle('on',section.id==='v-'+v));
+  const page=PAGES.find(x=>x[0]===v);if($('#mobilePageTitle'))$('#mobilePageTitle').textContent=page?.[2]||'PIM Event Control';
   window.scrollTo({top:0,behavior:'instant'});
 }
 function navBadges(){
@@ -631,6 +725,43 @@ function render(){ viewHome(); viewChk(); viewRun(); viewTamu(); viewAkm(); view
 const demoNote = () => DEMO ? `<div class="note"><b>Demo data</b>
   Isi CONFIG.API_URL di index.html dengan URL Apps Script agar aplikasi membaca Google Sheet yang sebenarnya.</div>` : '';
 function ph(t,s){ return `<div class="ph"><h2>${t}</h2>${s?`<p>${s}</p>`:''}</div>`; }
+function filterBox(label,controls,hint='Ketuk untuk membuka'){
+  return `<details class="filter-box"><summary>${esc(label)}<span class="filter-count">${esc(hint)}</span></summary><div class="filter-body"><div class="filters">${controls}</div></div></details>`;
+}
+function missingP1LO(){
+  return rows('TAMU').filter(r=>{
+    if(f(r,'Prioritas')!=='P1')return false;
+    const lo=f(r,'LO');
+    if(/tidak perlu lo/i.test(lo))return false;
+    return !has(lo)||/^(tbc|belum|tidak ditetapkan|-)$/i.test(lo)||/belum (ditetapkan|terdata)/i.test(lo);
+  });
+}
+function bindPersistentDetails(root,prefix){
+  $$(root).forEach((el,i)=>{
+    const key=`pim-details-${prefix}-${el.dataset.stateKey||i}`;
+    try{const saved=sessionStorage.getItem(key);if(saved!==null)el.open=saved==='1';}catch(e){}
+    el.addEventListener('toggle',()=>{try{sessionStorage.setItem(key,el.open?'1':'0')}catch(e){}});
+  });
+}
+function issueVal(r,...keys){return f(r,...keys);}
+function runListHtml(list,ln=''){
+  if(!list.length)return'<div class="empty"><b>Belum ada kegiatan</b>Pilih hari atau jalur lain.</div>';
+  const clock=eventClock(),nISO=clock.date,nowHM=clock.hm;
+  let h=ln?`<div class="grp">${esc(ln)}</div>`:'';
+  for(const r of list){
+    const lj=f(r,'Jalur'),fmtHM=t=>String(t||'').slice(0,5),st=fmtHM(f(r,'Mulai')),en=fmtHM(f(r,'Selesai')),v=f(r,'Venue');
+    const live=f(r,'Tanggal')===nISO&&st<=nowHM&&(!en||nowHM<en);
+    h+=`<div class="rd${live?' now':''}"><div class="tm">${esc(st)}<small>${esc(en)}</small></div><div style="flex:1;min-width:0"><div class="kg">${esc(f(r,'Kegiatan'))}</div><div class="l2">${!ln?`<i class="tag lane-tag">${esc(lj)}</i>`:''}${v?`<i class="tag">${esc(v)}</i>`:'<i class="tag over">Lokasi belum diisi</i>'}${has(f(r,'Durasi'))?`<i class="tag">Durasi ${esc(fmtHM(f(r,'Durasi')))}</i>`:''}${has(f(r,'PIC'))?`<i class="tag">PIC: ${esc(f(r,'PIC'))}</i>`:''}</div></div></div>`;
+  }
+  return h;
+}
+function runDayTimeline(list,day){
+  const blocks=summaryTimelineItems(list);
+  if(!blocks.length)return'<div class="empty"><b>Belum ada kegiatan</b>Pilih hari atau jalur lain.</div>';
+  const axis='<div class="tl-axis"><span></span><div class="tl-hours"><span>06:00</span><span>09:00</span><span>12:00</span><span>15:00</span><span>18:00</span><span>21:00</span><span>24:00</span></div></div>';
+  const rowsHtml=blocks.map(r=>{const sm=hmMinutes(r.start),em=hmMinutes(r.end);if(sm===null)return'';const start=Math.max(360,Math.min(1440,sm));let end=em===null?start+15:em;if(end<sm)end+=1440;end=Math.max(start+12,Math.min(1440,end));const left=(start-360)/1080*100,width=Math.max(1.5,(end-start)/1080*100),loc=placeTag(r.venue,r.label);return `<div class="tl-row"><div class="tl-label"><span class="tl-activity"><span class="tl-time">${esc(String(r.start).slice(0,5))}</span> ${esc(r.label)}</span><span class="tl-location"><i class="tl-place">${esc(loc)}</i><span class="tl-venue">${esc(r.venue)}</span></span></div><div class="tl-track"><div class="tl-bar ${timelineClass(r.lane)}" style="left:${left}%;width:${width}%">${esc(r.lane||'Operasional')}</div></div></div>`}).join('');
+  return `<div class="day-timeline"><div class="timeline-chart">${axis}<div class="tl-day"><div class="tl-day-title"><b>${fmtDayDate(day)}</b><span>${blocks.length} kegiatan utama</span></div>${rowsHtml}</div></div></div>`;
+}
 
 /* ---------- Beranda ---------- */
 const VENUES=[
@@ -662,7 +793,7 @@ function viewHome(){
     return `<button class="bd" data-acara="${esc(nm)}"><div class="top"><span class="nm">${esc(nm)}</span><span class="pc">${q}%</span></div><div class="bar2"><i style="width:${ww(dd)}%;background:var(--st-done)"></i><i style="width:${ww(pp)}%;background:var(--st-prog)"></i><i style="width:${ww(bb)}%;background:var(--st-block)"></i></div><div class="meta">${dd}/${dn} selesai${pp?' · '+pp+' in progress':''}${bb?' · '+bb+' blocked':''}</div></button>`;
   }).join('')||'<div class="empty">Belum ada kategori acara.</div>';
 
-  const tamu=rows('TAMU'),total=tamu.length,p1=tamu.filter(r=>f(r,'Prioritas')==='P1').length,vip=tamu.filter(isVIP).length,raker=tamu.filter(isRaker).length,overlap=tamu.filter(isVIPRaker).length;
+  const tamu=rows('TAMU'),total=tamu.length,p1=tamu.filter(r=>f(r,'Prioritas')==='P1').length,vip=tamu.filter(isVIP).length,raker=tamu.filter(isRaker).length,overlap=tamu.filter(isVIPRaker).length,p1NoLo=missingP1LO();
   const rakerOfficial=officialHeadcount(/headcount resmi raker rkap/i,raker);
   const plenaryOfficial=officialHeadcount(/headcount resmi plenary session/i,0);
   const vipOnly=Math.max(0,vip-overlap),rakerOnly=Math.max(0,raker-overlap);
@@ -678,7 +809,7 @@ function viewHome(){
   const consDays=[...consByDay.entries()];
   const consDailyTotals=consDays.map(([date,list])=>[date==='Tanpa tanggal'?date:fmtDayDate(date),list.reduce((a,r)=>a+num(f(r,'Jumlah Final')),0)]);
   const consMaxActivity=Math.max(...cons.map(r=>num(f(r,'Jumlah Final'))),1);
-  const consActivityHtml=consDays.map(([date,list],dayIndex)=>{const dayTotal=list.reduce((a,r)=>a+num(f(r,'Jumlah Final')),0);return `<details class="cons-day" ${dayIndex===0?'open':''}><summary class="cons-day-head"><b>${date==='Tanpa tanggal'?date:fmtDayDate(date)}</b><span>${list.length} kegiatan · ${dayTotal.toLocaleString('id-ID')} porsi</span></summary><div class="cons-day-body">${list.map(r=>{const qty=num(f(r,'Jumlah Final')),serve=fmtClock(f(r,'Waktu Konsumsi')),ready=fmtClock(f(r,'Harus Tersedia')),activity=f(r,'Acara / Rujukan','Acara')||f(r,'ID'),type=f(r,'Jenis Konsumsi'),venue=f(r,'Venue');return `<div class="cons-activity"><div class="cons-clock"><b>${serve||ready||'—'}</b>${ready&&ready!==serve?`<span>siap ${ready}</span>`:'<span>waktu konsumsi</span>'}</div><div class="cons-desc"><b>${esc(activity)}</b><small>${esc(type)}${venue?` · ${esc(venue)}`:''}</small></div><div class="cons-track"><i style="width:${pctWidth(qty,consMaxActivity)}%"></i></div><div class="cons-qty"><b>${qty.toLocaleString('id-ID')}</b><span>porsi</span></div></div>`;}).join('')}</div></details>`;}).join('');
+  const consActivityHtml=consDays.map(([date,list],dayIndex)=>{const dayTotal=list.reduce((a,r)=>a+num(f(r,'Jumlah Final')),0);return `<details class="cons-day" data-state-key="cons-${esc(date)}" ${dayIndex===0?'open':''}><summary class="cons-day-head"><b>${date==='Tanpa tanggal'?date:fmtDayDate(date)}</b><span>${list.length} kegiatan · ${dayTotal.toLocaleString('id-ID')} porsi</span></summary><div class="cons-day-body">${list.map(r=>{const qty=num(f(r,'Jumlah Final')),serve=fmtClock(f(r,'Waktu Konsumsi')),ready=fmtClock(f(r,'Harus Tersedia')),activity=f(r,'Acara / Rujukan','Acara')||f(r,'ID'),type=f(r,'Jenis Konsumsi'),venue=f(r,'Venue');return `<div class="cons-activity"><div class="cons-clock"><b>${serve||ready||'—'}</b>${ready&&ready!==serve?`<span>siap ${ready}</span>`:'<span>waktu konsumsi</span>'}</div><div class="cons-desc"><b>${esc(activity)}</b><small>${esc(type)}${venue?` · ${esc(venue)}`:''}</small></div><div class="cons-track"><i style="width:${pctWidth(qty,consMaxActivity)}%"></i></div><div class="cons-qty"><b>${qty.toLocaleString('id-ID')}</b><span>porsi</span></div></div>`;}).join('')}</div></details>`;}).join('');
 
   const veh=rows('KENDARAAN').filter(r=>has(f(r,'No'))||has(f(r,'Nama'))||has(f(r,'ID Tamu')));
   const vehicleUnits=r=>{const total=num(f(r,'Jumlah Unit'));if(total>0)return total;const calc=num(f(r,'Jumlah Minimum PI'))+num(f(r,'Tambahan PIM'));return calc>0?calc:0;};
@@ -694,7 +825,14 @@ function viewHome(){
   const deadlineHtml=soon.length?soon.map((r,i)=>`<div class="item deadline-extra" ${i>=3?'hidden':''}><div class="l1"><span class="id">${fmtD(f(r,'Deadline'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2"><i class="tag">${esc(f(r,'Acara'))}</i>${f(r,'Owner').toUpperCase().includes('TBC')?'<i class="tag tbc">TBC</i>':`<i class="tag">${esc(f(r,'Owner'))}</i>`}</div></div>`).join(''):'<div class="empty">Tidak ada deadline dalam 7 hari.</div>';
 
   $('#v-home').innerHTML=demoNote()+`
-  <div class="hero"><div class="row"><div class="cd"><b>${cdN}</b><i>${cdL}</i></div><div class="meta"><b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>PT Pupuk Iskandar Muda, Lhokseumawe</div></div><div class="ring"><div class="bar"><i style="width:${w(done)}%;background:var(--st-done)"></i><i style="width:${w(prog)}%;background:var(--amber)"></i><i style="width:${w(blocked)}%;background:var(--st-block)"></i></div><b>${pct}%</b></div></div>
+  <div class="hero"><div class="theme-line">A Global Player in the Making · Transform · Integrate · Accelerate</div><div class="row"><div class="cd"><b>${cdN}</b><i>${cdL}</i></div><div class="meta"><b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>PT Pupuk Iskandar Muda, Lhokseumawe</div></div><div class="ring"><div class="bar" aria-label="Readiness ${pct} persen"><i style="width:${w(done)}%;background:var(--st-done)"></i><i style="width:${w(prog)}%;background:var(--amber)"></i><i style="width:${w(blocked)}%;background:var(--st-block)"></i></div><b>${pct}%</b></div></div>
+
+  <div class="critical-strip" aria-label="Perhatian kritis">
+    <button class="attn-card ${over?'high':'good'}" data-attn="overdue" type="button"><span class="attn-icon">!</span><span><b>${over}</b><span>Checklist overdue</span><small>${over?'Buka item paling mendesak':'Tidak ada keterlambatan'}</small></span></button>
+    <button class="attn-card ${blocked?'high':'good'}" data-attn="blocked" type="button"><span class="attn-icon">×</span><span><b>${blocked}</b><span>Item blocked</span><small>${blocked?'Memerlukan eskalasi':'Tidak ada hambatan'}</small></span></button>
+    <button class="attn-card ${hi.length?'warn':'good'}" data-attn="issues" type="button"><span class="attn-icon">?</span><span><b>${hi.length}</b><span>Isu prioritas tinggi</span><small>${hi.length?'Keputusan masih dibutuhkan':'Tidak ada isu tinggi'}</small></span></button>
+    <button class="attn-card ${p1NoLo.length?'high':'good'}" data-attn="lo" type="button"><span class="attn-icon">LO</span><span><b>${p1NoLo.length}</b><span>P1 tanpa LO</span><small>${p1NoLo.length?'Perlu penetapan':'Seluruh P1 tertangani'}</small></span></button>
+  </div>
 
   <div class="panel"><div class="metric-grid">
     <div class="metric-card"><b>${total}</b><span>Total Peserta</span><small>${vip} VIP terdaftar · ${raker} peserta Raker terdaftar · ${rakerOfficial} headcount resmi</small></div>
@@ -725,156 +863,73 @@ function viewHome(){
   <div class="panel" style="margin-top:14px"><h3>Status Operasional</h3><div class="stats"><div class="stat"><b>${items.length}</b><span>Total Items</span></div><div class="stat ${over?'bad':''}"><b>${over}</b><span>Overdue</span></div><div class="stat ${blocked?'bad':''}"><b>${blocked}</b><span>Blocked</span></div><div class="stat ${hi.length?'warn':''}"><b>${hi.length}</b><span>Isu Prioritas</span></div></div><div class="kv"><span>Menunggu EO</span><b>${tbc} item bertanda TBC</b></div><div class="kv"><span>Isu terbuka</span><b>${iss.length} isu · ${hi.length} prioritas tinggi</b></div></div>`;
 
   $$('#v-home [data-acara]').forEach(b=>b.addEventListener('click',()=>{go('chk');const sel=$('#fAcara');if(sel){sel.value=b.dataset.acara;drawChk();}}));
+  $$('#v-home [data-attn]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.attn;if(k==='issues'){go('isu');return;}if(k==='lo'){go('lo');return;}go('chk');if(k==='blocked'&&$('#fStatus')){$('#fStatus').value='Blocked';drawChk();}}));
+  bindPersistentDetails('#v-home details[data-state-key]','home');
   const more=$('#deadlineMore');if(more){let open=false;more.addEventListener('click',()=>{open=!open;$$('#v-home .deadline-extra').forEach((el,i)=>{if(i>=3)el.hidden=!open;});more.textContent=open?'Tampilkan lebih sedikit':`Tampilkan ${Math.max(0,soon.length-3)} lainnya`;});}
 }
 
 /* ---------- Checklist ---------- */
 function viewChk(){
-  const items=CH();
-  const uq=a=>[...new Set(a.filter(has))].sort();
-  const orderedEvents=AC();
+  const items=CH(),uq=a=>[...new Set(a.filter(has))].sort(),orderedEvents=AC();
   const opt=(a,l)=>`<option value="">${l}</option>`+a.map(v=>`<option>${esc(v)}</option>`).join('');
-  $('#v-chk').innerHTML = ph('Checklist','Daftar kesiapan dikelompokkan per acara dan ditangani langsung oleh PIC. Item lewat deadline dan blocked tampil di atas.') + demoNote() + `
-    <div class="filters">
-      <input id="fCari" type="search" placeholder="Cari item, PIC, venue…" autocomplete="off">
-      <select id="fAcara">${opt(orderedEvents,'Semua acara')}</select>
-      <select id="fPIC">${opt(uq(items.map(r=>f(r,'PIC'))),'Semua PIC')}</select>
-      <select id="fStatus">${opt(['Not Started','In Progress','Done','Blocked','N/A'],'Semua status')}</select>
-      <select id="fOwner">${opt(uq(items.map(r=>f(r,'Owner'))),'Semua owner')}</select>
-    </div>
-    <div class="count" id="cChk"></div><div class="panel" id="listChk"></div>`;
-  ['fCari','fAcara','fPIC','fStatus','fOwner'].forEach(id=>
-    $('#'+id).addEventListener(id==='fCari'?'input':'change',drawChk));
-  drawChk();
+  const controls=`<input id="fCari" type="search" placeholder="Cari item, PIC, venue…" autocomplete="off"><select id="fAcara">${opt(orderedEvents,'Semua acara')}</select><select id="fPIC">${opt(uq(items.map(r=>f(r,'PIC'))),'Semua PIC')}</select><select id="fStatus">${opt(['Not Started','In Progress','Done','Blocked','N/A'],'Semua status')}</select><select id="fOwner">${opt(uq(items.map(r=>f(r,'Owner'))),'Semua owner')}</select>`;
+  $('#v-chk').innerHTML=ph('Checklist','Daftar kesiapan dikelompokkan per acara. Hierarki informasi menempatkan PIC dan deadline sebagai informasi operasional utama.')+demoNote()+filterBox('Filter checklist',controls,'Cari dan saring')+`<div class="count" id="cChk"></div><div class="panel" id="listChk"></div>`;
+  ['fCari','fAcara','fPIC','fStatus','fOwner'].forEach(id=>$('#'+id).addEventListener(id==='fCari'?'input':'change',drawChk));drawChk();
 }
 function drawChk(){
-  const q=($('#fCari')?.value||'').toLowerCase().trim();
-  const fa=$('#fAcara')?.value||'',fp=$('#fPIC')?.value||'';
-  const fs=$('#fStatus')?.value||'',fo=$('#fOwner')?.value||'';
-  let list=CH().filter(r=>{
-    if(fa&&f(r,'Acara')!==fa) return false;
-    if(fp&&f(r,'PIC')!==fp) return false;
-    if(fs&&f(r,'Status')!==fs) return false;
-    if(fo&&f(r,'Owner')!==fo) return false;
-    if(q){ const h=[f(r,'Item'),f(r,'PIC'),f(r,'Venue'),f(r,'Acara'),f(r,'Owner'),f(r,'ID'),f(r,'Catatan')].join(' ').toLowerCase();
-      if(!h.includes(q)) return false; }
-    return true;
-  });
-  const rank=r=>isOver(f(r,'Deadline'),f(r,'Status'))?0:(f(r,'Status').toLowerCase()==='blocked'?1:2);
-  const eventRank=r=>{const i=EVENT_ORDER.indexOf(f(r,'Acara'));return i<0?999:i;};
-  list.sort((a,b)=>eventRank(a)-eventRank(b)||rank(a)-rank(b)||f(a,'ID').localeCompare(f(b,'ID')));
-  $('#cChk').textContent=list.length+' dari '+CH().length+' item';
-  if(!list.length){ $('#listChk').innerHTML='<div class="empty"><b>Tidak ada item yang cocok</b>Ubah kata kunci atau kosongkan filter.</div>'; return; }
-  let h='',g='';
-  for(const r of list){
-    const acara=f(r,'Acara')||'Tanpa kategori'; if(acara!==g){g=acara;h+=`<div class="grp">${esc(acara)}</div>`;}
-    const dl=f(r,'Deadline'),st=f(r,'Status'),ov=isOver(dl,st),own=f(r,'Owner'),pic=f(r,'PIC'),cat=f(r,'Catatan'),venue=f(r,'Venue');
-    h+=`<div class="item">
-      <div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div>
-      <div class="l2">${stTag(st)}
-        ${dl?`<i class="tag ${ov?'over':'due'}">${ov?'Lewat ':''}${fmtD(dl)}</i>`:''}
-        ${own?`<i class="tag ${own.toUpperCase().includes('TBC')?'tbc':''}">${esc(own)}</i>`:''}
-        ${pic?`<i class="tag">PIC: ${esc(pic)}</i>`:''}
-        ${venue?`<i class="tag">${esc(venue)}</i>`:''}</div>
-      ${cat?`<div class="sub">${esc(cat)}</div>`:''}</div>`;
-  }
-  $('#listChk').innerHTML=h;
+  const q=($('#fCari')?.value||'').toLowerCase().trim(),fa=$('#fAcara')?.value||'',fp=$('#fPIC')?.value||'',fs=$('#fStatus')?.value||'',fo=$('#fOwner')?.value||'';
+  let list=CH().filter(r=>{if(fa&&f(r,'Acara')!==fa)return false;if(fp&&f(r,'PIC')!==fp)return false;if(fs&&f(r,'Status')!==fs)return false;if(fo&&f(r,'Owner')!==fo)return false;if(q){const text=[f(r,'Item'),f(r,'PIC'),f(r,'Venue'),f(r,'Acara'),f(r,'Owner'),f(r,'ID'),f(r,'Catatan')].join(' ').toLowerCase();if(!text.includes(q))return false;}return true;});
+  const rank=r=>isOver(f(r,'Deadline'),f(r,'Status'))?0:(f(r,'Status').toLowerCase()==='blocked'?1:2),eventRank=r=>{const i=EVENT_ORDER.indexOf(f(r,'Acara'));return i<0?999:i;};
+  list.sort((a,b)=>eventRank(a)-eventRank(b)||rank(a)-rank(b)||f(a,'ID').localeCompare(f(b,'ID')));$('#cChk').textContent=list.length+' dari '+CH().length+' item';
+  if(!list.length){$('#listChk').innerHTML='<div class="empty"><b>Tidak ada item yang cocok</b>Ubah kata kunci atau kosongkan filter.</div>';return;}
+  let h='',g='';for(const r of list){const acara=f(r,'Acara')||'Tanpa kategori';if(acara!==g){g=acara;h+=`<div class="grp">${esc(acara)}</div>`;}const dl=f(r,'Deadline'),st=f(r,'Status'),ov=isOver(dl,st),own=f(r,'Owner'),pic=f(r,'PIC'),cat=f(r,'Catatan'),venue=f(r,'Venue');h+=`<article class="item check-item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx check-title">${esc(f(r,'Item'))}</span></div><div class="check-pic"><span class="pic-mark">PIC</span><span>${pic?`<b>${esc(pic)}</b>`:'<b style="color:var(--st-block)">Belum ditetapkan</b>'}</span></div><div class="l2 check-meta">${stTag(st)}${dl?`<i class="tag ${ov?'over':'due'}">${ov?'Lewat ':''}${fmtD(dl)}</i>`:''}${venue?`<i class="tag">${esc(venue)}</i>`:''}${own?`<i class="tag ${own.toUpperCase().includes('TBC')?'tbc':''}">Owner: ${esc(own)}</i>`:''}</div>${cat?`<div class="sub">${esc(cat)}</div>`:''}</article>`;}$('#listChk').innerHTML=h;
 }
-
 /* ---------- Rundown ---------- */
+let RUN_MODE='list';
 function viewRun(){
-  const rd=RD();
-  const days=[...new Set(rd.map(r=>f(r,'Tanggal')).filter(has))].sort();
-  const lanes=[...new Set(rd.map(r=>f(r,'Jalur')).filter(has))];
-  const tISO=eventClock().date;
-  $('#v-run').innerHTML = ph('Rundown','Jadwal per hari dan per jalur, lengkap dengan lokasi kegiatan.') + demoNote() + `
-    <div class="filters">
-      <select id="rDay">${days.map(d=>{const o=rd.find(r=>f(r,'Tanggal')===d);
-        return `<option value="${esc(d)}">${esc(f(o||{},'Hari'))} ${fmtD(d)}</option>`;}).join('')||'<option>—</option>'}</select>
-      <select id="rLane"><option value="">Semua jalur</option>${lanes.map(l=>`<option>${esc(l)}</option>`).join('')}</select>
-    </div>
-    <div class="panel" id="listRun"></div>`;
-  if(days.includes(tISO)) $('#rDay').value=tISO;
-  $('#rDay').addEventListener('change',drawRun); $('#rLane').addEventListener('change',drawRun);
-  drawRun();
+  const rd=RD(),days=[...new Set(rd.map(r=>f(r,'Tanggal')).filter(has))].sort(),lanes=[...new Set(rd.map(r=>f(r,'Jalur')).filter(has))],tISO=eventClock().date;
+  const controls=`<select id="rDay">${days.map(d=>{const row=rd.find(r=>f(r,'Tanggal')===d);return `<option value="${esc(d)}">${esc(f(row||{},'Hari'))} ${fmtD(d)}</option>`}).join('')||'<option>—</option>'}</select><select id="rLane"><option value="">Semua jalur</option>${lanes.map(l=>`<option>${esc(l)}</option>`).join('')}</select>`;
+  $('#v-run').innerHTML=ph('Rundown','Gunakan daftar agenda untuk briefing detail atau timeline untuk melihat susunan kegiatan secara visual.')+demoNote()+`<div class="run-toolbar">${filterBox('Filter rundown',controls,'Hari dan jalur')}<div class="segmented" aria-label="Mode rundown"><button id="runListMode" type="button" aria-pressed="true">Daftar Agenda</button><button id="runTimelineMode" type="button" aria-pressed="false">Timeline Hari</button></div></div><div class="panel" id="listRun"></div>`;
+  if(days.includes(tISO))$('#rDay').value=tISO;$('#rDay').addEventListener('change',drawRun);$('#rLane').addEventListener('change',drawRun);
+  $('#runListMode').addEventListener('click',()=>{RUN_MODE='list';drawRun();});$('#runTimelineMode').addEventListener('click',()=>{RUN_MODE='timeline';drawRun();});drawRun();
 }
 function drawRun(){
-  const d=$('#rDay')?.value||'',ln=$('#rLane')?.value||'';
-  let list=RD().filter(r=>(!d||f(r,'Tanggal')===d)&&(!ln||f(r,'Jalur')===ln));
+  const d=$('#rDay')?.value||'',ln=$('#rLane')?.value||'';let list=RD().filter(r=>(!d||f(r,'Tanggal')===d)&&(!ln||f(r,'Jalur')===ln));
   list.sort((a,b)=>f(a,'Mulai').localeCompare(f(b,'Mulai'))||f(a,'Jalur').localeCompare(f(b,'Jalur'))||f(a,'ID').localeCompare(f(b,'ID')));
-  if(!list.length){ $('#listRun').innerHTML='<div class="empty"><b>Belum ada kegiatan</b>Pilih hari lain.</div>'; return; }
-  const clock=eventClock(), nISO=clock.date, nowHM=clock.hm;
-  let h=ln?`<div class="grp">${esc(ln)}</div>`:'';
-  for(const r of list){
-    const lj=f(r,'Jalur');
-    const fmtHM=t=>String(t||'').slice(0,5);
-    const s=fmtHM(f(r,'Mulai')),e=fmtHM(f(r,'Selesai')),v=f(r,'Venue');
-    const live=f(r,'Tanggal')===nISO && s<=nowHM && (!e||nowHM<e);
-    h+=`<div class="rd${live?' now':''}">
-      <div class="tm">${esc(s)}<small>${esc(e)}</small></div>
-      <div style="flex:1;min-width:0">
-        <div class="kg">${esc(f(r,'Kegiatan'))}</div>
-        <div class="l2">
-          ${!ln?`<i class="tag lane-tag">${esc(lj)}</i>`:''}
-          ${v?`<i class="tag">${esc(v)}</i>`:'<i class="tag over">Lokasi belum diisi</i>'}
-          ${has(f(r,'Durasi'))?`<i class="tag">Durasi ${esc(fmtHM(f(r,'Durasi')))}</i>`:''}
-          ${has(f(r,'PIC'))?`<i class="tag">${esc(f(r,'PIC'))}</i>`:''}
-        </div>
-      </div></div>`;
-  }
-  $('#listRun').innerHTML=h;
+  $('#runListMode')?.setAttribute('aria-pressed',RUN_MODE==='list');$('#runTimelineMode')?.setAttribute('aria-pressed',RUN_MODE==='timeline');
+  $('#listRun').innerHTML=RUN_MODE==='timeline'?runDayTimeline(list,d):runListHtml(list,ln);
 }
-
 /* ---------- Tamu ---------- */
 const PRI={P1:['p1','Prioritas utama'],P2:['p2','Prioritas tinggi'],
   P3:['p3','Prioritas menengah'],P4:['p4','Peserta umum / pendamping']};
 function guestType(r){const explicit=f(r,'Tipe Record');if(explicit)return explicit;const text=[f(r,'Nama'),f(r,'Jabatan'),f(r,'Catatan')].join(' ').toLowerCase();if(/nama\s+menyusul|belum\s+dikonfirmasi|nama\s+belum|\btbc\b/.test(text))return'Placeholder';if(/^(perangkat|protokol|pendamping|staf|staff|sekretariat|ajudan|driver|pengemudi|tim|rombongan|delegasi)\b|\bperangkat\b|\bprotokol\b/.test(text.trim()))return'Generic';return'Named';}
 function normalizeGenericName(name){return String(name||'Nama menyusul').replace(/[\s_-]*(?:no\.?\s*)?\d{1,3}\s*$/i,'').replace(/\s+/g,' ').trim()||'Nama menyusul';}
 function guestOperationalSignature(r){return [f(r,'Perusahaan'),f(r,'Flight Manifest Datang')||f(r,'Tiba di Lhokseumawe'),f(r,'Flight Manifest Pulang')||f(r,'Berangkat dari Lhokseumawe'),f(r,'Akomodasi'),f(r,'No Kamar'),f(r,'LO'),f(r,'Status Flight')].join('|');}
-function updateGuestSummary(list,all){const total=list.length,vip=list.filter(isVIP).length,raker=list.filter(isRaker).length,both=list.filter(isVIPRaker).length,p1=list.filter(r=>f(r,'Prioritas')==='P1').length;const vipOnly=Math.max(0,vip-both),rakerOnly=Math.max(0,raker-both);$('#gsTotal').textContent=total;$('#gsVip').textContent=vip;$('#gsRaker').textContent=raker;$('#gsBoth').textContent=both;$('#gsP1').textContent=p1;$('#gsVipBar').style.width=pctWidth(vipOnly,total)+'%';$('#gsBothBar').style.width=pctWidth(both,total)+'%';$('#gsRakerBar').style.width=pctWidth(rakerOnly,total)+'%';const active=list.length!==all.length;$('#guestSummaryLabel').textContent=active?`Ringkasan hasil filter · ${list.length} dari ${all.length} peserta`:`Ringkasan seluruh roster · ${all.length} peserta`;}
+function updateGuestSummary(list,all){const total=list.length,vip=list.filter(isVIP).length,raker=list.filter(isRaker).length,both=list.filter(isVIPRaker).length,p1=list.filter(r=>f(r,'Prioritas')==='P1').length;const vipOnly=Math.max(0,vip-both),rakerOnly=Math.max(0,raker-both);$('#gsTotal').textContent=total;$('#gsVip').textContent=vip;$('#gsRaker').textContent=raker;$('#gsBoth').textContent=both;$('#gsP1').textContent=p1;$('#gsVipBar').style.width=pctWidth(vipOnly,total)+'%';$('#gsBothBar').style.width=pctWidth(both,total)+'%';$('#gsRakerBar').style.width=pctWidth(rakerOnly,total)+'%';const active=list.length!==all.length;$('#guestSummaryLabel').textContent=active?`Ringkasan hasil filter · ${list.length} dari ${all.length} peserta`:`Ringkasan seluruh peserta terdaftar · ${all.length} peserta`;}
 function viewTamu(){
-  const tm=rows('TAMU'),comp=[...new Set(tm.map(r=>f(r,'Perusahaan')).filter(has))].sort(),romb=[...new Set(tm.map(r=>f(r,'Rombongan')).filter(has))];
-  const rakerOfficial=officialHeadcount(/headcount resmi raker rkap/i,tm.filter(isRaker).length),plenaryOfficial=officialHeadcount(/headcount resmi plenary session/i,0);
-  $('#v-tamu').innerHTML=ph('Tamu','Tamu bernama ditampilkan sebagai card; record generic dan placeholder diringkas berdasarkan nama dasar dan penugasan operasional.')+demoNote()+`
-    <div class="panel"><div class="section-head"><h3>Ringkasan Tamu</h3><small id="guestSummaryLabel">Ringkasan seluruh roster</small></div><div class="metric-grid"><div class="metric-card"><b id="gsTotal">0</b><span>Total Peserta</span></div><div class="metric-card bad"><b id="gsVip">0</b><span>VIP di Roster</span></div><div class="metric-card"><b id="gsRaker">0</b><span>Raker di Roster</span><small>${rakerOfficial} headcount resmi</small></div><div class="metric-card warn"><b id="gsBoth">0</b><span>VIP + Raker</span><small><span id="gsP1">0</span> P1 · Plenary resmi ${plenaryOfficial||'—'}</small></div></div><div class="visual-bar"><i id="gsVipBar" style="background:#9A3B35"></i><i id="gsBothBar" style="background:#F0A500"></i><i id="gsRakerBar" style="background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja</span><span><i style="background:#F0A500"></i>Overlap</span><span><i style="background:#2F6D89"></i>Raker saja</span></div></div>
-    <div class="filters"><input id="tCari" type="search" placeholder="Cari nama, jabatan, perusahaan, atau kategori…" autocomplete="off"><select id="tJoin"><option value="">Semua keikutsertaan</option><option value="VIP">VIP</option><option value="RAKER">Raker</option><option value="BOTH">VIP &amp; Raker</option></select><select id="tPri"><option value="">Semua prioritas</option><option value="P1">P1 — Prioritas utama</option><option value="P2">P2 — Prioritas tinggi</option><option value="P3">P3 — Prioritas menengah</option><option value="P4">P4 — Peserta umum</option></select><select id="tRomb"><option value="">Semua rombongan</option>${romb.map(r=>`<option>${esc(r)}</option>`).join('')}</select><select id="tComp"><option value="">Semua perusahaan</option>${comp.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div>
-    <div class="count" id="cTamu"></div><div class="guest-grid" id="listTamu"></div><div class="generic-list" id="listGeneric"></div>`;
+  const tm=rows('TAMU'),comp=[...new Set(tm.map(r=>f(r,'Perusahaan')).filter(has))].sort(),romb=[...new Set(tm.map(r=>f(r,'Rombongan')).filter(has))],rakerOfficial=officialHeadcount(/headcount resmi raker rkap/i,tm.filter(isRaker).length),plenaryOfficial=officialHeadcount(/headcount resmi plenary session/i,0);
+  const controls=`<input id="tCari" type="search" placeholder="Cari nama, jabatan, perusahaan, atau kategori…" autocomplete="off"><select id="tJoin"><option value="">Semua keikutsertaan</option><option value="VIP">VIP</option><option value="RAKER">Raker</option><option value="BOTH">VIP &amp; Raker</option></select><select id="tPri"><option value="">Semua prioritas</option><option value="P1">P1 — Prioritas utama</option><option value="P2">P2 — Prioritas tinggi</option><option value="P3">P3 — Prioritas menengah</option><option value="P4">P4 — Peserta umum</option></select><select id="tRomb"><option value="">Semua rombongan</option>${romb.map(r=>`<option>${esc(r)}</option>`).join('')}</select><select id="tComp"><option value="">Semua perusahaan</option>${comp.map(c=>`<option>${esc(c)}</option>`).join('')}</select>`;
+  $('#v-tamu').innerHTML=ph('Tamu','Tamu bernama ditampilkan sebagai card. Informasi sekunder dapat dibuka saat diperlukan; generic dan placeholder diringkas per kelompok operasional.')+demoNote()+`<div class="panel"><div class="section-head"><h3>Ringkasan Tamu</h3><small id="guestSummaryLabel">Ringkasan seluruh peserta terdaftar</small></div><div class="metric-grid"><div class="metric-card"><b id="gsTotal">0</b><span>Total Peserta</span></div><div class="metric-card bad"><b id="gsVip">0</b><span>VIP Terdaftar</span></div><div class="metric-card"><b id="gsRaker">0</b><span>Raker Terdaftar</span><small>${rakerOfficial} headcount resmi</small></div><div class="metric-card warn"><b id="gsBoth">0</b><span>VIP + Raker</span><small><span id="gsP1">0</span> P1 · Plenary resmi ${plenaryOfficial||'—'}</small></div></div><div class="visual-bar" aria-label="Komposisi peserta"><i id="gsVipBar" style="background:#9A3B35"></i><i id="gsBothBar" style="background:#F0A500"></i><i id="gsRakerBar" style="background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja</span><span><i style="background:#F0A500"></i>Overlap</span><span><i style="background:#2F6D89"></i>Raker saja</span></div></div>${filterBox('Filter tamu',controls,'Cari dan saring')}<div class="count" id="cTamu"></div><div class="guest-grid" id="listTamu"></div><div class="generic-list" id="listGeneric"></div>`;
   ['tCari','tJoin','tPri','tRomb','tComp'].forEach(id=>$('#'+id).addEventListener(id==='tCari'?'input':'change',drawTamu));drawTamu();
 }
 function filteredGuestRows(){const q=($('#tCari')?.value||'').toLowerCase().trim(),join=$('#tJoin')?.value||'',pr=$('#tPri')?.value||'',rb=$('#tRomb')?.value||'',cp=$('#tComp')?.value||'',all=rows('TAMU');return all.filter(r=>{if(join==='VIP'&&!isVIP(r))return false;if(join==='RAKER'&&!isRaker(r))return false;if(join==='BOTH'&&!isVIPRaker(r))return false;if(pr&&f(r,'Prioritas')!==pr)return false;if(rb&&f(r,'Rombongan')!==rb)return false;if(cp&&f(r,'Perusahaan')!==cp)return false;if(q){const h=[f(r,'Nama'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Akomodasi'),f(r,'LO'),f(r,'Rombongan'),f(r,'Keikutsertaan'),guestType(r)].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});}
 function drawTamu(){
-  const all=rows('TAMU'),list=filteredGuestRows();updateGuestSummary(list,all);
-  const pr=$('#tPri')?.value||'',named=list.filter(r=>guestType(r)==='Named'),generic=list.filter(r=>guestType(r)!=='Named');
-  const ord={P1:0,P2:1,P3:2,P4:3};named.sort((a,b)=>(ord[f(a,'Prioritas')]??9)-(ord[f(b,'Prioritas')]??9)||f(a,'Perusahaan').localeCompare(f(b,'Perusahaan'))||f(a,'Nama').localeCompare(f(b,'Nama')));
+  const all=rows('TAMU'),list=filteredGuestRows();updateGuestSummary(list,all);const pr=$('#tPri')?.value||'',named=list.filter(r=>guestType(r)==='Named'),generic=list.filter(r=>guestType(r)!=='Named'),ord={P1:0,P2:1,P3:2,P4:3};
+  named.sort((a,b)=>(ord[f(a,'Prioritas')]??9)-(ord[f(b,'Prioritas')]??9)||f(a,'Perusahaan').localeCompare(f(b,'Perusahaan'))||f(a,'Nama').localeCompare(f(b,'Nama')));
   const vip=list.filter(isVIP).length,raker=list.filter(isRaker).length,both=list.filter(isVIPRaker).length;$('#cTamu').textContent=`${list.length} dari ${all.length} peserta · ${named.length} bernama · ${generic.length} generic/placeholder · VIP ${vip} · Raker ${raker}${both?` · overlap ${both}`:''}`;
-  let h='',g='';for(const r of named){const p=f(r,'Prioritas')||'P4';if(!pr&&p!==g){g=p;h+=`<div class="grp">${esc(p)} · ${esc((PRI[p]||['','Lainnya'])[1])}</div>`;}const nm=f(r,'Nama'),ak=f(r,'Akomodasi'),km=f(r,'No Kamar'),lo=f(r,'LO'),cat=f(r,'Catatan'),arrival=compactFlightMoment(f(r,'Flight Manifest Datang')||f(r,'Tiba di Lhokseumawe')),departure=compactFlightMoment(f(r,'Flight Manifest Pulang')||f(r,'Berangkat dari Lhokseumawe')),rmb=f(r,'Rombongan'),joinVal=f(r,'Keikutsertaan');
-    h+=`<article class="guest-card ${p.toLowerCase()}c"><div class="guest-head"><span class="pri ${(PRI[p]||['p4'])[0]}">${esc(p)}</span><span class="tx"><b>${esc(nm)}</b><span class="sub" style="margin-top:2px;display:block;color:var(--ink-2);font-size:12.5px">${esc(f(r,'Jabatan'))}</span></span><span class="id">${esc(f(r,'ID'))}</span></div><div class="l2">${has(f(r,'Perusahaan'))?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}${joinVal?`<i class="tag lane-tag">${esc(joinVal)}</i>`:''}${rmb?`<i class="tag">${esc(rmb)}</i>`:''}${ak?`<i class="tag">${esc(ak)}${km?' · kamar '+esc(km):''}</i>`:'<i class="tag over">Akomodasi belum diisi</i>'}${lo?`<i class="tag">LO: ${esc(lo)}</i>`:'<i class="tag over">LO belum ditetapkan</i>'}</div>${(arrival||departure)?`<div class="l2">${arrival?`<i class="tag fly">↓ ${esc(arrival)}</i>`:''}${departure?`<i class="tag fly">↑ ${esc(departure)}</i>`:''}</div>`:''}${cat?`<div class="sub">${esc(cat)}</div>`:''}</article>`;
+  let h='',g='';for(const r of named){const p=f(r,'Prioritas')||'P4';if(!pr&&p!==g){g=p;h+=`<div class="grp">${esc(p)} · ${esc((PRI[p]||['','Lainnya'])[1])}</div>`;}const nm=f(r,'Nama'),ak=f(r,'Akomodasi'),km=f(r,'No Kamar'),lo=f(r,'LO'),cat=f(r,'Catatan'),arrival=compactFlightMoment(f(r,'Flight Manifest Datang')||f(r,'Tiba di Lhokseumawe')),departure=compactFlightMoment(f(r,'Flight Manifest Pulang')||f(r,'Berangkat dari Lhokseumawe')),rmb=f(r,'Rombongan'),joinVal=f(r,'Keikutsertaan'),loMissing=p==='P1'&&(!has(lo)||/tbc|belum/i.test(lo));
+    h+=`<article class="guest-card ${p.toLowerCase()}c"><div class="guest-head"><span class="pri ${(PRI[p]||['p4'])[0]}">${esc(p)}</span><span class="tx"><b>${esc(nm)}</b><span class="sub" style="margin-top:2px;display:block;color:var(--ink-2);font-size:12.5px">${esc(f(r,'Jabatan'))}</span></span><span class="id">${esc(f(r,'ID'))}</span></div><div class="l2 guest-primary-tags">${has(f(r,'Perusahaan'))?`<i class="tag">${esc(f(r,'Perusahaan'))}</i>`:''}${joinVal?`<i class="tag lane-tag">${esc(joinVal)}</i>`:''}${loMissing?'<i class="tag over">P1 tanpa LO</i>':''}</div><details class="guest-more"><summary aria-label="Buka detail tamu"></summary><div class="guest-more-body"><div class="l2">${rmb?`<i class="tag">${esc(rmb)}</i>`:''}${ak?`<i class="tag">${esc(ak)}${km?' · kamar '+esc(km):''}</i>`:'<i class="tag over">Akomodasi belum diisi</i>'}${lo?`<i class="tag">LO: ${esc(lo)}</i>`:'<i class="tag over">LO belum ditetapkan</i>'}</div>${(arrival||departure)?`<div class="l2">${arrival?`<i class="tag fly">↓ ${esc(arrival)}</i>`:''}${departure?`<i class="tag fly">↑ ${esc(departure)}</i>`:''}</div>`:''}${cat?`<div class="sub">${esc(cat)}</div>`:''}</div></details></article>`;
   }$('#listTamu').innerHTML=h||'<div class="empty"><b>Tamu bernama tidak ditemukan</b>Coba filter lain.</div>';
-  const groups=new Map();generic.forEach(r=>{const base=normalizeGenericName(f(r,'Nama'));const key=[base,guestOperationalSignature(r),guestType(r)].join('||');if(!groups.has(key))groups.set(key,{base,rows:[]});groups.get(key).rows.push(r);});
-  const gh=[...groups.values()].sort((a,b)=>a.base.localeCompare(b.base)).map(({base,rows:rs})=>{const company=f(rs[0],'Perusahaan')||guestType(rs[0]);const arr=compactFlightMoment(f(rs[0],'Flight Manifest Datang')||f(rs[0],'Tiba di Lhokseumawe')),dep=compactFlightMoment(f(rs[0],'Flight Manifest Pulang')||f(rs[0],'Berangkat dari Lhokseumawe'));const ops=[arr?'↓ '+arr:'',dep?'↑ '+dep:'',f(rs[0],'Akomodasi'),f(rs[0],'LO')&&f(rs[0],'LO')!=='Tidak perlu LO'?'LO: '+f(rs[0],'LO'):''].filter(has).join(' · ');const detail=rs.map(r=>esc(f(r,'ID'))).join(', ');return `<details class="generic-table"><summary class="generic-row"><b>${esc(base)}</b><span>${esc(company)}</span><i>${rs.length} orang</i></summary><div class="generic-detail">${ops?esc(ops)+'<br>':''}<b>Record:</b> ${detail}</div></details>`}).join('');
+  const groups=new Map();generic.forEach(r=>{const base=normalizeGenericName(f(r,'Nama')),key=[base,guestOperationalSignature(r),guestType(r)].join('||');if(!groups.has(key))groups.set(key,{base,rows:[]});groups.get(key).rows.push(r);});
+  const gh=[...groups.values()].sort((a,b)=>a.base.localeCompare(b.base)).map(({base,rows:rs})=>{const company=f(rs[0],'Perusahaan')||guestType(rs[0]),arr=compactFlightMoment(f(rs[0],'Flight Manifest Datang')||f(rs[0],'Tiba di Lhokseumawe')),dep=compactFlightMoment(f(rs[0],'Flight Manifest Pulang')||f(rs[0],'Berangkat dari Lhokseumawe')),ops=[arr?'↓ '+arr:'',dep?'↑ '+dep:'',f(rs[0],'Akomodasi'),f(rs[0],'LO')&&f(rs[0],'LO')!=='Tidak perlu LO'?'LO: '+f(rs[0],'LO'):''].filter(has).join(' · '),detail=rs.map(r=>esc(f(r,'ID'))).join(', ');return `<details class="generic-table"><summary class="generic-row"><b>${esc(base)}</b><span>${esc(company)}</span><i>${rs.length} orang</i></summary><div class="generic-detail">${ops?esc(ops)+'<br>':''}<b>Record:</b> ${detail}</div></details>`}).join('');
   $('#listGeneric').innerHTML=generic.length?`<div class="section-head" style="margin-top:18px"><h3>Generic & Placeholder</h3><small>${generic.length} record · ${groups.size} kelompok operasional</small></div>${gh}`:'';
 }
-
 /* ---------- Akomodasi ---------- */
 function viewAkm(){
-  const allAkm=rows('AKOMODASI'),ak=allAkm.filter(isMess),tbcRows=allAkm.filter(isAccommodationTBC),mess=ak.filter(r=>accommodationKind(r)==='Mess'),houses=ak.filter(r=>accommodationKind(r)==='Rumah Kompleks');
-  const loc=[...new Set(ak.map(r=>f(r,'Lokasi')).filter(has))].sort(),filled=ak.filter(roomFilled).length,ready=ak.filter(roomReady).length,free=Math.max(0,ak.length-filled);
-  const stats=list=>({total:list.length,filled:list.filter(roomFilled).length,ready:list.filter(roomReady).length});
-  const ms=stats(mess),hs=stats(houses);
-  const locData=loc.map(l=>[l,ak.filter(r=>f(r,'Lokasi')===l&&roomFilled(r)).length,ak.filter(r=>f(r,'Lokasi')===l).length]);
-  const messLoc=locData.filter(([l])=>!/^rumah\b/i.test(l)),houseLoc=locData.filter(([l])=>/^rumah\b/i.test(l));
-  const barBlock=(title,data,st)=>`<div class="panel"><div class="section-head"><h3>${esc(title)}</h3><small>${st.filled}/${st.total} terisi · ${st.total-st.filled} tersedia</small></div><div class="mini-bars">${data.map(([l,v,t])=>`<div class="mini-row"><span title="${esc(l)}">${esc(l)}</span><div class="mini-track"><i style="width:${pctWidth(v,t)}%"></i></div><b>${v}/${t}</b></div>`).join('')||'<div class="empty">Belum ada data lokasi.</div>'}</div></div>`;
-  $('#v-akm').innerHTML=ph('Akomodasi Mess & Rumah Kompleks','Perhitungan mencakup seluruh kamar/slot di mess dan rumah kompleks. Data hotel tidak dimasukkan.')+demoNote()+`
-    <div class="panel"><div class="metric-grid">
-      <div class="metric-card"><b>${ak.length}</b><span>Total Kamar/Slot</span><small>${ms.total} mess · ${hs.total} rumah kompleks</small></div>
-      <div class="metric-card good"><b>${filled}</b><span>Terisi</span><small>${ms.filled} mess · ${hs.filled} rumah kompleks</small></div>
-      <div class="metric-card"><b>${free}</b><span>Tersedia</span><small>${ms.total-ms.filled} mess · ${hs.total-hs.filled} rumah kompleks</small></div>
-      <div class="metric-card ${ready<ak.length?'warn':'good'}"><b>${ready}</b><span>Siap</span><small>${ak.length-ready} masih perlu perhatian</small></div>
-      <div class="metric-card ${tbcRows.length?'warn':'good'}"><b>${tbcRows.length}</b><span>Belum Teralokasi</span><small>status TBC, tidak masuk total kamar</small></div>
-    </div></div>
-    <div class="grid g2" style="margin-top:14px">${barBlock('Mess',messLoc,ms)}${barBlock('Rumah Kompleks',houseLoc,hs)}</div>
-    ${tbcRows.length?`<details class="panel fold"><summary>Tamu Belum Teralokasi <span>${tbcRows.length} orang</span></summary>${tbcRows.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Tamu'))}</span></div><div class="l2"><i class="tag tbc">TBC</i><i class="tag">${esc(f(r,'Perusahaan'))}</i></div><div class="sub">${esc(f(r,'Jabatan'))}</div></div>`).join('')}</details>`:''}
-    <div class="filters"><input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan…" autocomplete="off"><select id="aJenis"><option value="">Mess &amp; rumah kompleks</option><option value="Mess">Hanya mess</option><option value="Rumah Kompleks">Hanya rumah kompleks</option></select><select id="aLok"><option value="">Semua lokasi</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select></div><div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
+  const allAkm=rows('AKOMODASI'),ak=allAkm.filter(isMess),tbcRows=allAkm.filter(isAccommodationTBC),mess=ak.filter(r=>accommodationKind(r)==='Mess'),houses=ak.filter(r=>accommodationKind(r)==='Rumah Kompleks'),loc=[...new Set(ak.map(r=>f(r,'Lokasi')).filter(has))].sort(),filled=ak.filter(roomFilled).length,ready=ak.filter(roomReady).length,free=Math.max(0,ak.length-filled),stats=list=>({total:list.length,filled:list.filter(roomFilled).length,ready:list.filter(roomReady).length}),ms=stats(mess),hs=stats(houses),locData=loc.map(l=>[l,ak.filter(r=>f(r,'Lokasi')===l&&roomFilled(r)).length,ak.filter(r=>f(r,'Lokasi')===l).length]),messLoc=locData.filter(([l])=>!/^rumah\b/i.test(l)),houseLoc=locData.filter(([l])=>/^rumah\b/i.test(l));
+  const barBlock=(title,data,st)=>`<div class="panel"><div class="section-head"><h3>${esc(title)}</h3><small>${st.filled}/${st.total} terisi · ${st.total-st.filled} tersedia</small></div><div class="mini-bars">${data.map(([l,v,t])=>`<div class="mini-row"><span title="${esc(l)}">${esc(l)} <i class="occupancy-state ${v>=t&&t?'full':'open'}">${v>=t&&t?'Penuh':t-v+' kosong'}</i></span><div class="mini-track"><i style="width:${pctWidth(v,t)}%"></i></div><b>${v}/${t}</b></div>`).join('')||'<div class="empty">Belum ada data lokasi.</div>'}</div></div>`;
+  const controls=`<input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan…" autocomplete="off"><select id="aJenis"><option value="">Mess &amp; rumah kompleks</option><option value="Mess">Hanya mess</option><option value="Rumah Kompleks">Hanya rumah kompleks</option></select><select id="aLok"><option value="">Semua lokasi</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select>`;
+  $('#v-akm').innerHTML=ph('Akomodasi Mess & Rumah Kompleks','Perhitungan mencakup seluruh kamar/slot di mess dan rumah kompleks. Data hotel tidak dimasukkan.')+demoNote()+`<div class="panel"><div class="metric-grid"><div class="metric-card"><b>${ak.length}</b><span>Total Kamar/Slot</span><small>${ms.total} mess · ${hs.total} rumah kompleks</small></div><div class="metric-card good"><b>${filled}</b><span>Terisi</span><small>${ms.filled} mess · ${hs.filled} rumah kompleks</small></div><div class="metric-card"><b>${free}</b><span>Tersedia</span><small>${ms.total-ms.filled} mess · ${hs.total-hs.filled} rumah kompleks</small></div><div class="metric-card ${ready<ak.length?'warn':'good'}"><b>${ready}</b><span>Siap</span><small>${ak.length-ready} masih perlu perhatian</small></div><div class="metric-card ${tbcRows.length?'warn':'good'}"><b>${tbcRows.length}</b><span>Belum Teralokasi</span><small>status TBC, tidak masuk total kamar</small></div></div></div><div class="grid g2" style="margin-top:14px">${barBlock('Mess',messLoc,ms)}${barBlock('Rumah Kompleks',houseLoc,hs)}</div>${tbcRows.length?`<details class="panel fold"><summary>Tamu Belum Teralokasi <span>${tbcRows.length} orang</span></summary>${tbcRows.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Tamu'))}</span></div><div class="l2"><i class="tag tbc">TBC</i><i class="tag">${esc(f(r,'Perusahaan'))}</i></div><div class="sub">${esc(f(r,'Jabatan'))}</div></div>`).join('')}</details>`:''}${filterBox('Filter akomodasi',controls,'Lokasi dan okupansi')}<div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
   ['aCari','aJenis','aLok','aIsi'].forEach(id=>$('#'+id).addEventListener(id==='aCari'?'input':'change',drawAkm));drawAkm();
 }
 function drawAkm(){
@@ -886,35 +941,30 @@ function drawAkm(){
 
 /* ---------- LO ---------- */
 function viewLO(){
-  const all=rows('LO'),confirmed=all.filter(r=>f(r,'Status').toLowerCase()==='confirmed').length,pending=all.filter(r=>f(r,'Status').toLowerCase()==='pending').length;
-  $('#v-lo').innerHTML=ph('Liaison Officer','Penugasan resmi LO per delegasi dan status konfirmasinya.')+demoNote()+`<div class="panel"><div class="metric-grid"><div class="metric-card good"><b>${confirmed}</b><span>Confirmed</span></div><div class="metric-card warn"><b>${pending}</b><span>Pending</span></div></div></div><div class="filters"><input id="lCari" type="search" placeholder="Cari nama LO, VIP, atau perusahaan…" autocomplete="off"><select id="lPos"><option value="">Semua pos</option><option>Lhokseumawe</option><option>Medan</option></select><select id="lStatus"><option value="">Semua status</option><option>Confirmed</option><option>Pending</option></select></div><div class="count" id="cLo"></div><div class="panel" id="listLo"></div>`;
+  const all=rows('LO'),confirmed=all.filter(r=>f(r,'Status').toLowerCase()==='confirmed').length,pending=all.filter(r=>f(r,'Status').toLowerCase()==='pending').length,missing=missingP1LO();
+  const controls=`<input id="lCari" type="search" placeholder="Cari nama LO, VIP, atau perusahaan…" autocomplete="off"><select id="lPos"><option value="">Semua pos</option><option>Lhokseumawe</option><option>Medan</option></select><select id="lStatus"><option value="">Semua status</option><option>Confirmed</option><option>Pending</option></select>`;
+  $('#v-lo').innerHTML=ph('Liaison Officer','Penugasan resmi LO per delegasi, dengan perhatian khusus pada tamu prioritas P1 yang belum memiliki LO.')+demoNote()+`${missing.length?`<div class="lo-alert"><h3>${missing.length} tamu P1 belum memiliki LO</h3><p>Penetapan perlu diselesaikan sebelum briefing dan mobilisasi tamu.</p><div class="lo-alert-list">${missing.slice(0,12).map(r=>`<i class="tag over">${esc(f(r,'Nama'))}</i>`).join('')}${missing.length>12?`<i class="tag">+${missing.length-12} lainnya</i>`:''}</div></div>`:''}<div class="panel"><div class="metric-grid"><div class="metric-card"><b>${all.length}</b><span>Total Penugasan</span></div><div class="metric-card good"><b>${confirmed}</b><span>Confirmed</span></div><div class="metric-card warn"><b>${pending}</b><span>Pending</span></div><div class="metric-card ${missing.length?'bad':'good'}"><b>${missing.length}</b><span>P1 Tanpa LO</span></div></div></div>${filterBox('Filter LO',controls,'Nama, pos, status')}<div class="count" id="cLo"></div><div class="panel" id="listLo"></div>`;
   ['lCari','lPos','lStatus'].forEach(id=>$('#'+id).addEventListener(id==='lCari'?'input':'change',drawLO));drawLO();
 }
 function drawLO(){
-  const q=($('#lCari')?.value||'').toLowerCase().trim(),p=$('#lPos')?.value||'',st=$('#lStatus')?.value||'';let list=rows('LO').filter(r=>{if(p&&f(r,'Pos')!==p)return false;if(st&&f(r,'Status')!==st)return false;if(q){const h=[f(r,'Nama LO'),f(r,'Nama VIP'),f(r,'Delegasi / Perusahaan','Delegasi'),f(r,'Kategori VIP'),f(r,'No Badge')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
+  const q=($('#lCari')?.value||'').toLowerCase().trim(),p=$('#lPos')?.value||'',st=$('#lStatus')?.value||'';let list=rows('LO').filter(r=>{if(p&&f(r,'Pos')!==p)return false;if(st&&f(r,'Status')!==st)return false;if(q){const text=[f(r,'Nama LO'),f(r,'Nama VIP'),f(r,'Delegasi / Perusahaan','Delegasi'),f(r,'Kategori VIP'),f(r,'No Badge')].join(' ').toLowerCase();if(!text.includes(q))return false;}return true;});
   $('#cLo').textContent=list.length+' dari '+rows('LO').length+' penugasan';if(!list.length){$('#listLo').innerHTML='<div class="empty"><b>Penugasan tidak ditemukan</b>Coba nama lain.</div>';return;}
-  let h='',c='';for(const r of list){const cc=f(r,'Delegasi / Perusahaan','Delegasi');if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}const status=f(r,'Status')||'Pending',vip=esc(f(r,'Nama VIP')).replace(/\n/g,'<br>');h+=`<div class="item"><div class="l1"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx"><b>${esc(f(r,'Nama LO'))}</b></span><span class="status-pill ${status.toLowerCase()==='confirmed'?'ok':'wait'}">${esc(status)}</span></div><div class="l2"><i class="tag">${esc(f(r,'Kategori VIP'))}</i>${has(f(r,'Pos'))?`<i class="tag">${esc(f(r,'Pos'))}</i>`:''}${has(f(r,'Kontak'))?`<i class="tag">${esc(f(r,'Kontak'))}</i>`:''}</div>${vip?`<div class="sub"><b>Menangani:</b><br>${vip}</div>`:''}</div>`;}$('#listLo').innerHTML=h;
+  let h='',c='';for(const r of list){const cc=f(r,'Delegasi / Perusahaan','Delegasi')||'Tanpa delegasi';if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}const status=f(r,'Status')||'Pending',vip=esc(f(r,'Nama VIP','Tamu yang Ditangani','Menangani')).replace(/\n/g,'<br>');h+=`<article class="item lo-card"><div class="lo-name-row"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx"><b>${esc(f(r,'Nama LO'))}</b></span><span class="status-pill ${status.toLowerCase()==='confirmed'?'ok':'wait'}">${esc(status)}</span></div><div class="l2"><i class="tag">${esc(f(r,'Kategori VIP'))}</i>${has(f(r,'Pos'))?`<i class="tag">${esc(f(r,'Pos'))}</i>`:''}${has(f(r,'Kontak'))?`<i class="tag">${esc(f(r,'Kontak'))}</i>`:''}</div><div class="lo-relation"><b>Menangani</b><br>${vip||'<span style="color:var(--st-block)">Belum ada tamu/delegasi yang ditetapkan</span>'}</div></article>`;}$('#listLo').innerHTML=h;
 }
-
 /* ---------- Issues ---------- */
 function viewIsu(){
-  const all=rows('ISSUES');
-  const open=all.filter(r=>f(r,'Status').toLowerCase()!=='closed');
-  const rank=r=>({tinggi:0,sedang:1,rendah:2}[f(r,'Prioritas').toLowerCase()]??3);
-  open.sort((a,b)=>rank(a)-rank(b));
-  const card=r=>{
-    const pri=f(r,'Prioritas'),hi=pri.toLowerCase()==='tinggi';
-    return `<div class="item">
-      <div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Isu / Keputusan yang dibutuhkan','Isu'))}</span></div>
-      <div class="l2"><i class="tag ${hi?'hi':''}">${esc(pri||'—')}</i>
-        <i class="tag">${esc(f(r,'Bidang'))}</i>
-        ${has(f(r,'PIC'))?`<i class="tag">${esc(f(r,'PIC'))}</i>`:''}
-        ${has(f(r,'Target Tutup'))?`<i class="tag due">${fmtD(f(r,'Target Tutup'))}</i>`:''}</div>
-      ${has(f(r,'Sumber'))?`<div class="sub">Sumber: ${esc(f(r,'Sumber'))}</div>`:''}</div>`;
-  };
-  $('#v-isu').innerHTML = ph('Issues','Keputusan yang masih tertunda, diurutkan dari prioritas tertinggi.') + demoNote() + `
-    <div class="count">${open.length} isu terbuka${all.length-open.length?` · ${all.length-open.length} selesai`:''}</div>
-    <div class="panel">${open.length?open.map(card).join(''):'<div class="empty"><b>Tidak ada isu terbuka</b>Semua keputusan sudah ditutup.</div>'}</div>`;
+  const all=rows('ISSUES'),priorities=[...new Set(all.map(r=>f(r,'Prioritas')).filter(has))].sort(),statuses=[...new Set(all.map(r=>f(r,'Status')).filter(has))].sort();
+  const controls=`<input id="iCari" type="search" placeholder="Cari isu, keputusan, dampak, atau PIC…" autocomplete="off"><select id="iPri"><option value="">Semua prioritas</option>${priorities.map(v=>`<option>${esc(v)}</option>`).join('')}</select><select id="iStatus"><option value="">Semua status</option>${statuses.map(v=>`<option>${esc(v)}</option>`).join('')}</select>`;
+  $('#v-isu').innerHTML=ph('Issues','Setiap card menunjukkan keputusan yang dibutuhkan, dampak operasional, PIC, target tanggal, dan status.')+demoNote()+filterBox('Filter issues',controls,'Prioritas dan status')+`<div class="count" id="cIsu"></div><div class="issue-grid" id="listIsu"></div>`;
+  ['iCari','iPri','iStatus'].forEach(id=>$('#'+id).addEventListener(id==='iCari'?'input':'change',drawIsu));drawIsu();
+}
+function drawIsu(){
+  const all=rows('ISSUES'),q=($('#iCari')?.value||'').toLowerCase().trim(),pri=$('#iPri')?.value||'',status=$('#iStatus')?.value||'';
+  const rank=r=>({tinggi:0,high:0,sedang:1,medium:1,rendah:2,low:2}[f(r,'Prioritas').toLowerCase()]??3);
+  let list=all.filter(r=>{if(pri&&f(r,'Prioritas')!==pri)return false;if(status&&f(r,'Status')!==status)return false;if(q){const text=[issueVal(r,'Isu / Keputusan yang dibutuhkan','Isu'),issueVal(r,'Keputusan yang Dibutuhkan','Keputusan','Tindakan'),issueVal(r,'Dampak','Implikasi','Catatan'),issueVal(r,'PIC','Owner','Penanggung Jawab'),issueVal(r,'Bidang','Acara'),issueVal(r,'Sumber')].join(' ').toLowerCase();if(!text.includes(q))return false;}return true;});
+  list.sort((a,b)=>{const ac=/closed|done|selesai/i.test(f(a,'Status')),bc=/closed|done|selesai/i.test(f(b,'Status'));return Number(ac)-Number(bc)||rank(a)-rank(b)||String(issueVal(a,'Target Tutup','Target Tanggal','Deadline')).localeCompare(String(issueVal(b,'Target Tutup','Target Tanggal','Deadline')));});
+  const open=list.filter(r=>!/closed|done|selesai/i.test(f(r,'Status'))).length;$('#cIsu').textContent=`${list.length} dari ${all.length} isu · ${open} masih terbuka`;
+  $('#listIsu').innerHTML=list.length?list.map(r=>{const p=f(r,'Prioritas'),pc=/tinggi|high/i.test(p)?'high':/sedang|medium/i.test(p)?'medium':'',decision=issueVal(r,'Keputusan yang Dibutuhkan','Keputusan','Tindakan yang Dibutuhkan')||issueVal(r,'Isu / Keputusan yang dibutuhkan','Isu'),impact=issueVal(r,'Dampak','Implikasi','Catatan')||'Dampak belum dijelaskan pada workbook.',pic=issueVal(r,'PIC','Owner','Penanggung Jawab')||'Belum ditetapkan',target=issueVal(r,'Target Tutup','Target Tanggal','Target Keputusan','Deadline')||'Belum ditetapkan',source=issueVal(r,'Sumber'),field=issueVal(r,'Bidang','Acara'),st=f(r,'Status')||'Open';return `<article class="issue-card ${pc}"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="status-pill ${/closed|done|selesai/i.test(st)?'ok':'wait'}">${esc(st)}</span></div><h3>${esc(issueVal(r,'Isu / Keputusan yang dibutuhkan','Isu'))}</h3><div class="issue-fields"><div class="issue-field wide"><span>Keputusan dibutuhkan</span><b>${esc(decision)}</b></div><div class="issue-field wide"><span>Dampak operasional</span><p>${esc(impact)}</p></div><div class="issue-field"><span>PIC</span><b>${esc(pic)}</b></div><div class="issue-field"><span>Target keputusan</span><b>${esc(target==='Belum ditetapkan'?target:fmtD(target))}</b></div></div><div class="issue-actions"><i class="tag ${/tinggi|high/i.test(p)?'hi':''}">${esc(p||'Prioritas belum diisi')}</i>${field?`<i class="tag">${esc(field)}</i>`:''}${source?`<i class="tag">Sumber: ${esc(source)}</i>`:''}</div></article>`}).join(''):'<div class="empty"><b>Isu tidak ditemukan</b>Ubah filter atau kata kunci.</div>';
 }
 
 /* ============================================================
@@ -923,7 +973,11 @@ function viewIsu(){
 
 /* ---------- Reports ---------- */
 const REPORT_SECTIONS=[['TAMU','Tamu'],['KONSUMSI','Konsumsi'],['AKOMODASI','Akomodasi'],['KENDARAAN','Kendaraan'],['RUNDOWN','Rundown'],['CHECKLIST','Checklist'],['LO','Liaison Officer'],['ISSUES','Issues']];
-function openReport(){const box=$('#reportOptions');box.innerHTML=REPORT_SECTIONS.map(([k,l],i)=>`<div class="report-option"><label><input type="checkbox" data-report="${k}" ${i<3?'checked':''}> ${l}</label></div>`).join('');$('#reportMeta').textContent=`Data ${DEMO?'demo':FETCHED?'sinkron '+relTime(FETCHED):'belum dimuat'} · Excel berisi detail operasional. PDF tersedia sebagai Ringkas Direksi atau Lengkap Internal.`;$('#reportModal').classList.add('on');$('#reportModal').setAttribute('aria-hidden','false');}
+function openReport(){
+  const box=$('#reportOptions');box.innerHTML=REPORT_SECTIONS.map(([k,l])=>`<div class="report-option"><label><input type="checkbox" data-report="${k}" checked> ${l}</label></div>`).join('');
+  $('#reportMeta').textContent=`Data ${DEMO?'demo':FETCHED?'sinkron '+relTime(FETCHED):'belum dimuat'} · Checkbox hanya mengatur sheet Excel; struktur PDF selalu lengkap.`;
+  $('#reportModal').classList.add('on');$('#reportModal').setAttribute('aria-hidden','false');$('#reportClose')?.focus();
+}
 function closeReport(){$('#reportModal').classList.remove('on');$('#reportModal').setAttribute('aria-hidden','true');}
 function selectedReports(){return [...document.querySelectorAll('[data-report]:checked')].map(x=>x.dataset.report);}
 function cleanRows(tab){return rows(tab).filter(r=>r&&typeof r==='object'&&Object.values(r).some(has));}
@@ -961,14 +1015,20 @@ function pdfBars(title,items){const max=Math.max(1,...items.map(x=>x[1]));return
 function maskContact(v){const t=String(v||'');return t.replace(/\b(\d{3,4})[-\s]?(\d{3,4})[-\s]?(\d{3,5})\b/g,(m,a,b,c)=>a+'••••'+c.slice(-2)).replace(/\b08\d{8,11}\b/g,m=>m.slice(0,4)+'••••'+m.slice(-2));}
 function reportPage(n,title,sub,body){return `<section class="page"><div class="page-head"><span>${String(n).padStart(2,'0')}</span><div><h2>${title}</h2><p>${sub}</p></div></div>${body}</section>`;}
 function pdfRundown(n=3){const data=RD(),days=[...new Set(data.map(r=>f(r,'Tanggal')).filter(has))].sort();return reportPage(n,'Master Rundown','Agenda utama per hari, kelompok peserta, venue, dan mobilisasi',days.map(d=>{const list=summaryTimelineItems(data.filter(r=>f(r,'Tanggal')===d));return `<div class="report-day"><h3>${fmtDayDate(d)}</h3>${list.map(r=>`<div class="agenda-line ${timelineClass(r.lane)}"><time>${esc(String(r.start||'').slice(0,5))}${r.end?'–'+esc(String(r.end).slice(0,5)):''}</time><div><b>${esc(r.label)}</b><span>${esc(r.lane)} · ${esc(placeTag(r.venue,r.label))}${r.venue?' · '+esc(r.venue):''}</span></div></div>`).join('')}</div>`}).join(''));}
-function pdfLo(n){const data=cleanRows('LO'),items=data.slice(0,60).map(r=>`<tr><td>${esc(f(r,'Nama LO'))}</td><td>${esc(f(r,'Delegasi / Perusahaan','Tamu yang Ditangani','Menangani'))}</td><td>${esc(f(r,'Pos'))}</td><td>${esc(f(r,'Status'))}</td></tr>`).join('');return reportPage(n,'Liaison Officer','Penugasan LO dan kelompok tamu yang ditangani',`${pdfKpis([[data.length,'LO terdaftar'],[data.filter(r=>/confirm/i.test(f(r,'Status'))).length,'Confirmed'],[data.filter(r=>/pending/i.test(f(r,'Status'))).length,'Pending'],[new Set(data.map(r=>f(r,'Pos')).filter(has)).size,'Pos operasional']])}<table class="report-table"><thead><tr><th>Nama LO</th><th>Menangani</th><th>Pos</th><th>Status</th></tr></thead><tbody>${items}</tbody></table><p class="note-report">Nomor kontak tidak ditampilkan penuh dalam PDF. Detail kontak tersedia pada sistem operasional.</p>`);}
-function pdfIssues(n){const data=cleanRows('ISSUES').filter(r=>!['Closed','Done'].includes(f(r,'Status')));return reportPage(n,'Isu & Keputusan Terbuka','Hal yang belum diputuskan, PIC, dampak, dan target tanggal keputusan',`<div class="issue-list">${data.map(r=>{const target=f(r,'Target Tanggal','Deadline','Target Keputusan')||'Belum ditetapkan';return `<article><b>${esc(f(r,'Isu / Keputusan yang dibutuhkan','Isu'))}</b><p>${esc(f(r,'Dampak','Catatan','Sumber'))}</p><span>PIC: ${esc(f(r,'PIC','Owner','Penanggung Jawab')||'Belum ditetapkan')} · Target: ${esc(target)} · Status: ${esc(f(r,'Status'))}</span></article>`}).join('')||'<p>Tidak ada isu terbuka.</p>'}</div>`);}
+function pdfLo(n){
+  const data=cleanRows('LO'),items=data.slice(0,60).map(r=>`<tr><td>${esc(f(r,'Nama LO'))}</td><td>${esc(f(r,'Nama VIP','Delegasi / Perusahaan','Tamu yang Ditangani','Menangani'))}</td><td>${esc(f(r,'Pos'))}</td><td>${esc(f(r,'Status'))}</td></tr>`).join('');
+  return reportPage(n,'Liaison Officer','Penugasan LO dan kelompok tamu yang ditangani',`${pdfKpis([[data.length,'LO terdaftar'],[data.filter(r=>/confirm/i.test(f(r,'Status'))).length,'Confirmed'],[data.filter(r=>/pending/i.test(f(r,'Status'))).length,'Pending'],[missingP1LO().length,'P1 tanpa LO']])}<table class="report-table"><thead><tr><th>Nama LO</th><th>Menangani</th><th>Pos</th><th>Status</th></tr></thead><tbody>${items}</tbody></table><p class="note-report">Nomor kontak tidak ditampilkan penuh dalam PDF. Detail kontak tersedia pada sistem operasional.</p>`);
+}
+function pdfIssues(n){
+  const data=cleanRows('ISSUES').filter(r=>!/(closed|done|selesai)/i.test(f(r,'Status')));
+  return reportPage(n,'Isu & Keputusan Terbuka','Hal yang belum diputuskan, dampak, PIC, dan target tanggal keputusan',`<div class="issue-list">${data.map(r=>{const target=f(r,'Target Tutup','Target Tanggal','Deadline','Target Keputusan')||'Belum ditetapkan',impact=f(r,'Dampak','Implikasi','Catatan','Sumber')||'Dampak belum dijelaskan.',decision=f(r,'Keputusan yang Dibutuhkan','Keputusan','Tindakan yang Dibutuhkan')||f(r,'Isu / Keputusan yang dibutuhkan','Isu');return `<article><b>${esc(f(r,'Isu / Keputusan yang dibutuhkan','Isu'))}</b><p><strong>Keputusan:</strong> ${esc(decision)}<br><strong>Dampak:</strong> ${esc(impact)}</p><span>PIC: ${esc(f(r,'PIC','Owner','Penanggung Jawab')||'Belum ditetapkan')} · Target: ${esc(target)} · Status: ${esc(f(r,'Status'))}</span></article>`}).join('')||'<p>Tidak ada isu terbuka.</p>'}</div>`);
+}
 function pdfPlantTour(n){const rd=RD().filter(r=>/plant tour/i.test(f(r,'Kegiatan'))),chk=rows('CHECKLIST').filter(r=>/plant tour/i.test(f(r,'Acara')+' '+f(r,'Item')));return reportPage(n,'Plant Tour — Tentative','Rute dan kesiapan operasional masih berstatus tentative',`${pdfKpis([[rd.length,'Agenda rundown'],[chk.length,'Item kesiapan'],[chk.filter(r=>f(r,'Status')==='Done').length,'Selesai'],[chk.filter(r=>f(r,'Status')==='Blocked').length,'Blocked']])}<div class="callout"><b>Rute tentative</b><p>Gedung Pertemuan → Plant Gate → Drop Point #1 NPK Plant → Plant Gate → Gedung Pertemuan. Estimasi antar titik mengikuti bahan referensi Plant Tour dan harus dikonfirmasi sebelum pelaksanaan.</p></div><div class="two-col">${pdfBars('Status kesiapan',countBy(chk,'Status',6))}<div class="viz"><h3>Kebutuhan utama</h3><ul>${chk.slice(0,10).map(r=>`<li><b>${esc(f(r,'Item'))}</b> — ${esc(f(r,'PIC'))} · ${esc(f(r,'Status'))}</li>`).join('')}</ul></div></div>`);}
 function pdfOperations(n){const ak=cleanRows('AKOMODASI'),veh=cleanRows('KENDARAAN'),cons=cleanRows('KONSUMSI'),totalCons=cons.reduce((a,r)=>a+num(f(r,'Jumlah Final')),0);return reportPage(n,'Pelaksanaan Operasional','Akomodasi, kendaraan, dan konsumsi yang mendukung seluruh rangkaian',`${pdfKpis([[ak.filter(r=>f(r,'Tipe')==='Rumah Komplek').length,'Slot rumah/mess'],[ak.filter(r=>f(r,'Tipe')==='TBC').length,'Akomodasi TBC'],[veh.reduce((a,r)=>a+num(f(r,'Jumlah Unit')),0),'Unit kendaraan'],[totalCons.toLocaleString('id-ID'),'Porsi final']])}<div class="two-col">${pdfBars('Konsumsi per jenis',countBy(cons,'Jenis Konsumsi',6))}${pdfBars('Kendaraan per perusahaan',countBy(veh,'Perusahaan',8))}</div>`);}
 function pdfGuests(n){const data=cleanRows('TAMU'),named=data.filter(r=>guestType(r)==='Named'),generic=data.length-named.length;return reportPage(n,'Peserta & Manifest','Komposisi peserta terdaftar serta kepastian perjalanan',`${pdfKpis([[data.length,'Total terdaftar'],[named.length,'Tamu bernama'],[generic,'Generic / placeholder'],[data.filter(r=>f(r,'Status Flight')==='Confirmed').length,'Flight confirmed']])}<div class="two-col">${pdfBars('Perusahaan terbanyak',countBy(data,'Perusahaan',8))}${pdfBars('Status penerbangan',countBy(data,'Status Flight',6))}</div>`);}
 function pdfReadiness(n){const chk=rows('CHECKLIST');return reportPage(n,'Readiness & PIC','Kesiapan per acara dan item yang memerlukan perhatian',`${pdfKpis([[chk.length,'Checklist'],[chk.filter(r=>f(r,'Status')==='Done').length,'Selesai'],[chk.filter(r=>f(r,'Status')==='In Progress').length,'In progress'],[chk.filter(r=>f(r,'Status')==='Blocked').length,'Blocked']])}<div class="two-col">${pdfBars('Checklist per acara',countBy(chk,'Acara',10))}<div class="viz"><h3>Perlu perhatian</h3><ul>${chk.filter(r=>['Blocked','Not Started'].includes(f(r,'Status'))).slice(0,12).map(r=>`<li><b>${esc(f(r,'Item'))}</b><br><span>${esc(f(r,'Acara'))} · PIC ${esc(f(r,'PIC'))} · ${esc(f(r,'Deadline'))}</span></li>`).join('')}</ul></div></div>`);}
 function pdfContacts(n){const lo=cleanRows('LO');return reportPage(n,'Kontak Operasional','Nama koordinator dan PIC; nomor kontak disamarkan',`<table class="report-table"><thead><tr><th>Fungsi</th><th>Nama/PIC</th><th>Kontak</th></tr></thead><tbody>${lo.slice(0,25).map(r=>`<tr><td>${esc(f(r,'Delegasi / Perusahaan','Pos'))}</td><td>${esc(f(r,'Nama LO'))}</td><td>${esc(maskContact(f(r,'Kontak','No HP','No Badge'))||'Tersedia di sistem')}</td></tr>`).join('')}</tbody></table>`);}
-function buildAndExportPdf(){const type=selectedPdfType(),tm=rows('TAMU'),chk=rows('CHECKLIST'),issues=rows('ISSUES').filter(r=>!['Closed','Done'].includes(f(r,'Status'))),rakerOfficial=236,plenaryOfficial=500;let n=1;const sections=[];sections.push(reportPage(n++,'Executive Overview','Gambaran ringkas rangkaian acara dan kesiapan pelaksanaan',`${pdfKpis([[tm.length,'Peserta terdaftar'],[rakerOfficial,'Raker resmi'],[plenaryOfficial,'Plenary resmi'],[issues.length,'Isu terbuka']])}<div class="two-col">${pdfBars('Readiness per acara',countBy(chk,'Acara',10))}${pdfBars('Status checklist',countBy(chk,'Status',6))}</div><div class="callout"><b>Rangkaian utama</b><p>Rakor Dirut, Raker RKAP 2027, Plenary Session, Rapat Konsultasi & Pengawasan, Olimpiade PI Group, serta Plant Tour. Day 0 dimulai 9 Agustus 2026.</p></div>`));sections.push(pdfRundown(n++));sections.push(pdfGuests(n++));sections.push(pdfLo(n++));sections.push(pdfOperations(n++));sections.push(pdfReadiness(n++));sections.push(pdfIssues(n++));sections.push(pdfPlantTour(n++));if(type==='internal')sections.push(pdfContacts(n++));const title=type==='director'?'Ringkas Direksi':'Laporan Lengkap Internal';const reportHtml=`<!doctype html><html><head><meta charset="utf-8"><title>PIM Event Control — ${title}</title><style>@page{size:A4 landscape;margin:9mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#14243a;margin:0;background:#fff}.cover,.page{min-height:190mm;page-break-after:always;padding:13mm 15mm;position:relative}.cover{display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(135deg,#0d2747 0%,#164f73 58%,#0b7894 100%);color:#fff;overflow:hidden}.cover:before{content:'';position:absolute;width:150mm;height:150mm;border:25mm solid rgba(255,255,255,.055);border-radius:50%;right:-45mm;top:-55mm}.cover h1{font-size:35pt;line-height:1;margin:5mm 0 3mm}.cover h2{font-size:18pt;margin:0 0 13mm;color:#bfe8f3}.eyebrow{font-size:9pt;letter-spacing:.2em;text-transform:uppercase;opacity:.75}.theme{font-size:16pt;font-weight:bold}.theme span{display:block;font-size:10pt;font-weight:normal;letter-spacing:.18em;margin-top:3mm}.meta{margin-top:14mm;font-size:9pt;opacity:.82}.page-head{display:flex;align-items:center;gap:6mm;border-bottom:1px solid #c7d3df;padding-bottom:4mm;margin-bottom:7mm}.page-head>span{font-size:23pt;font-weight:bold;color:#0b7894}.page-head h2{font-size:22pt;margin:0}.page-head p{margin:1mm 0 0;color:#657489;font-size:9pt}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin-bottom:7mm}.kpi{border:1px solid #d8e0e8;border-radius:4mm;padding:4mm;background:#f8fafc;border-left:2mm solid #0b7894}.kpi b{display:block;font-size:22pt}.kpi span{font-size:8pt;text-transform:uppercase;letter-spacing:.07em;color:#657489}.kpi small{display:block;margin-top:2mm;color:#657489}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:6mm}.viz{border:1px solid #d8e0e8;border-radius:4mm;padding:5mm}.viz h3{margin:0 0 4mm;font-size:12pt}.bar-row{display:grid;grid-template-columns:43mm 1fr 10mm;gap:3mm;align-items:center;margin:3mm 0;font-size:8pt}.bar-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-row i{height:3mm;background:#e7edf3;border-radius:99px;overflow:hidden}.bar-row i b{display:block;height:100%;background:linear-gradient(90deg,#0b7894,#2f9ab0)}.bar-row strong{text-align:right}.report-day{margin-bottom:5mm}.report-day h3{font-size:11pt;margin:0 0 2mm;color:#0d4f70}.agenda-line{--c:#2878B5;display:grid;grid-template-columns:28mm 1fr;gap:4mm;border-left:2mm solid var(--c);padding:2.4mm 4mm;margin:1.6mm 0;background:#f8fafc}.agenda-line.vip{--c:#A67C00}.agenda-line.undangan{--c:#2878B5}.agenda-line.gabungan{--c:#6B4FA1}.agenda-line.dirut{--c:#17365D}.agenda-line.raker{--c:#23836B}.agenda-line.konsultasi{--c:#9A3B35}.agenda-line.olimpiade{--c:#D97916}.agenda-line time{font-weight:bold;color:var(--c)}.agenda-line b{display:block}.agenda-line span{font-size:8pt;color:#657489}.issue-list{display:grid;grid-template-columns:1fr 1fr;gap:4mm}.issue-list article{border:1px solid #d8e0e8;border-radius:3mm;padding:4mm;background:#f8fafc}.issue-list b{font-size:9pt}.issue-list p{font-size:8pt;margin:2mm 0;color:#657489}.issue-list span{display:block;font-size:8pt;color:#9a3b35}.report-table{width:100%;border-collapse:collapse;font-size:8pt}.report-table th{background:#17365d;color:#fff;text-align:left;padding:2.5mm}.report-table td{border-bottom:1px solid #d8e0e8;padding:2.3mm;vertical-align:top}.callout{margin-top:6mm;border-left:2mm solid #f0a400;background:#fff8e8;padding:4mm 5mm}.callout b{font-size:10pt}.callout p{font-size:8.5pt;line-height:1.45;margin:2mm 0 0}.note-report{font-size:8pt;color:#657489}.viz ul{padding-left:5mm;margin:0}.viz li{font-size:8pt;margin:2.2mm 0}.footer{position:fixed;bottom:2.5mm;left:0;right:0;text-align:center;font-size:7pt;color:#708095}</style></head><body><section class="cover"><div class="eyebrow">PT Pupuk Iskandar Muda · PI Group</div><h1>PIM EVENT CONTROL 2026</h1><h2>${title}</h2><div class="theme">A Global Player in the Making<span>TRANSFORM · INTEGRATE · ACCELERATE</span></div><div class="meta">9–12 Agustus 2026 · Dibuat ${reportTimestamp()}<br>Sumber operasional: Google Sheets/PWA · Referensi: materi PI Group, akomodasi, dan rute Plant Tour</div></section>${sections.join('')}<div class="footer">PIM Event Control 2026 · A Global Player in the Making · Transform, Integrate, Accelerate</div></body></html>`;const btn=$('#reportPdf');const oldText=btn?.textContent||'Generate PDF';try{if(btn){btn.disabled=true;btn.textContent='Menyiapkan PDF…';}let frame=document.getElementById('pdfPrintFrame');if(frame)frame.remove();frame=document.createElement('iframe');frame.id='pdfPrintFrame';frame.setAttribute('aria-hidden','true');frame.style.position='fixed';frame.style.right='0';frame.style.bottom='0';frame.style.width='1px';frame.style.height='1px';frame.style.border='0';frame.style.opacity='0';frame.style.pointerEvents='none';document.body.appendChild(frame);const doc=frame.contentDocument||frame.contentWindow?.document;if(!doc)throw new Error('Dokumen print tidak dapat dibuat.');doc.open();doc.write(reportHtml);doc.close();const triggerPrint=()=>{try{frame.contentWindow.focus();frame.contentWindow.print();closeReport();}catch(err){console.error('Print PDF gagal',err);alert('Preview PDF gagal dibuka. Coba gunakan Chrome desktop dan pastikan halaman sudah selesai dimuat.');}finally{if(btn){btn.disabled=false;btn.textContent=oldText;}setTimeout(()=>frame.remove(),30000);}};if(doc.readyState==='complete')setTimeout(triggerPrint,600);else frame.onload=()=>setTimeout(triggerPrint,600);}catch(err){console.error('Generate PDF gagal',err);alert('PDF gagal dibuat: '+(err?.message||'error tidak diketahui'));if(btn){btn.disabled=false;btn.textContent=oldText;}}}
+function buildAndExportPdf(){const type=selectedPdfType(),tm=rows('TAMU'),chk=rows('CHECKLIST'),issues=rows('ISSUES').filter(r=>!['Closed','Done'].includes(f(r,'Status'))),rakerOfficial=236,plenaryOfficial=500;let n=1;const sections=[];sections.push(reportPage(n++,'Executive Overview','Gambaran ringkas rangkaian acara dan kesiapan pelaksanaan',`${pdfKpis([[tm.length,'Peserta terdaftar'],[rakerOfficial,'Raker resmi'],[plenaryOfficial,'Plenary resmi'],[issues.length,'Isu terbuka']])}<div class="two-col">${pdfBars('Readiness per acara',countBy(chk,'Acara',10))}${pdfBars('Status checklist',countBy(chk,'Status',6))}</div><div class="callout"><b>Rangkaian utama</b><p>Rakor Dirut, Raker RKAP 2027, Plenary Session, Rapat Konsultasi & Pengawasan, Olimpiade PI Group, serta Plant Tour. Day 0 dimulai 9 Agustus 2026. P1 tanpa LO: ${missingP1LO().length} orang.</p></div>`));sections.push(pdfRundown(n++));sections.push(pdfGuests(n++));sections.push(pdfLo(n++));sections.push(pdfOperations(n++));sections.push(pdfReadiness(n++));sections.push(pdfIssues(n++));sections.push(pdfPlantTour(n++));if(type==='internal')sections.push(pdfContacts(n++));const title=type==='director'?'Ringkas Direksi':'Laporan Lengkap Internal';const reportHtml=`<!doctype html><html><head><meta charset="utf-8"><title>PIM Event Control — ${title}</title><style>@page{size:A4 landscape;margin:9mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#14243a;margin:0;background:#fff}.cover,.page{min-height:190mm;page-break-after:always;padding:13mm 15mm;position:relative}.cover{display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(135deg,#0d2747 0%,#164f73 58%,#0b7894 100%);color:#fff;overflow:hidden}.cover:before{content:'';position:absolute;width:150mm;height:150mm;border:25mm solid rgba(255,255,255,.055);border-radius:50%;right:-45mm;top:-55mm}.cover h1{font-size:35pt;line-height:1;margin:5mm 0 3mm}.cover h2{font-size:18pt;margin:0 0 13mm;color:#bfe8f3}.eyebrow{font-size:9pt;letter-spacing:.2em;text-transform:uppercase;opacity:.75}.theme{font-size:16pt;font-weight:bold}.theme span{display:block;font-size:10pt;font-weight:normal;letter-spacing:.18em;margin-top:3mm}.meta{margin-top:14mm;font-size:9pt;opacity:.82}.page-head{display:flex;align-items:center;gap:6mm;border-bottom:1px solid #c7d3df;padding-bottom:4mm;margin-bottom:7mm}.page-head>span{font-size:23pt;font-weight:bold;color:#0b7894}.page-head h2{font-size:22pt;margin:0}.page-head p{margin:1mm 0 0;color:#657489;font-size:9pt}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin-bottom:7mm}.kpi{border:1px solid #d8e0e8;border-radius:4mm;padding:4mm;background:#f8fafc;border-left:2mm solid #0b7894}.kpi b{display:block;font-size:22pt}.kpi span{font-size:8pt;text-transform:uppercase;letter-spacing:.07em;color:#657489}.kpi small{display:block;margin-top:2mm;color:#657489}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:6mm}.viz{border:1px solid #d8e0e8;border-radius:4mm;padding:5mm}.viz h3{margin:0 0 4mm;font-size:12pt}.bar-row{display:grid;grid-template-columns:43mm 1fr 10mm;gap:3mm;align-items:center;margin:3mm 0;font-size:8pt}.bar-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-row i{height:3mm;background:#e7edf3;border-radius:99px;overflow:hidden}.bar-row i b{display:block;height:100%;background:linear-gradient(90deg,#0b7894,#2f9ab0)}.bar-row strong{text-align:right}.report-day{margin-bottom:5mm}.report-day h3{font-size:11pt;margin:0 0 2mm;color:#0d4f70}.agenda-line{--c:#2878B5;display:grid;grid-template-columns:28mm 1fr;gap:4mm;border-left:2mm solid var(--c);padding:2.4mm 4mm;margin:1.6mm 0;background:#f8fafc}.agenda-line.vip{--c:#A67C00}.agenda-line.undangan{--c:#2878B5}.agenda-line.gabungan{--c:#6B4FA1}.agenda-line.dirut{--c:#17365D}.agenda-line.raker{--c:#23836B}.agenda-line.konsultasi{--c:#9A3B35}.agenda-line.olimpiade{--c:#D97916}.agenda-line time{font-weight:bold;color:var(--c)}.agenda-line b{display:block}.agenda-line span{font-size:8pt;color:#657489}.issue-list{display:grid;grid-template-columns:1fr 1fr;gap:4mm}.issue-list article{border:1px solid #d8e0e8;border-radius:3mm;padding:4mm;background:#f8fafc}.issue-list b{font-size:9pt}.issue-list p{font-size:8pt;margin:2mm 0;color:#657489}.issue-list span{display:block;font-size:8pt;color:#9a3b35}.report-table{width:100%;border-collapse:collapse;font-size:8pt}.report-table th{background:#17365d;color:#fff;text-align:left;padding:2.5mm}.report-table td{border-bottom:1px solid #d8e0e8;padding:2.3mm;vertical-align:top}.callout{margin-top:6mm;border-left:2mm solid #f0a400;background:#fff8e8;padding:4mm 5mm}.callout b{font-size:10pt}.callout p{font-size:8.5pt;line-height:1.45;margin:2mm 0 0}.note-report{font-size:8pt;color:#657489}.viz ul{padding-left:5mm;margin:0}.viz li{font-size:8pt;margin:2.2mm 0}.footer{position:fixed;bottom:2.5mm;left:0;right:0;text-align:center;font-size:7pt;color:#708095}</style></head><body><section class="cover"><div class="eyebrow">PT Pupuk Iskandar Muda · PI Group</div><h1>PIM EVENT CONTROL 2026</h1><h2>${title}</h2><div class="theme">A Global Player in the Making<span>TRANSFORM · INTEGRATE · ACCELERATE</span></div><div class="meta">9–12 Agustus 2026 · Dibuat ${reportTimestamp()}<br>Sumber operasional: Google Sheets/PWA · Referensi: materi PI Group, akomodasi, dan rute Plant Tour</div></section>${sections.join('')}<div class="footer">PIM Event Control 2026 · A Global Player in the Making · Transform, Integrate, Accelerate</div></body></html>`;const btn=$('#reportPdf');const oldText=btn?.textContent||'Generate PDF';try{if(btn){btn.disabled=true;btn.textContent='Menyiapkan PDF…';}let frame=document.getElementById('pdfPrintFrame');if(frame)frame.remove();frame=document.createElement('iframe');frame.id='pdfPrintFrame';frame.setAttribute('aria-hidden','true');frame.style.position='fixed';frame.style.right='0';frame.style.bottom='0';frame.style.width='1px';frame.style.height='1px';frame.style.border='0';frame.style.opacity='0';frame.style.pointerEvents='none';document.body.appendChild(frame);const doc=frame.contentDocument||frame.contentWindow?.document;if(!doc)throw new Error('Dokumen print tidak dapat dibuat.');doc.open();doc.write(reportHtml);doc.close();const triggerPrint=()=>{try{frame.contentWindow.focus();frame.contentWindow.print();closeReport();}catch(err){console.error('Print PDF gagal',err);alert('Preview PDF gagal dibuka. Coba gunakan Chrome desktop dan pastikan halaman sudah selesai dimuat.');}finally{if(btn){btn.disabled=false;btn.textContent=oldText;}setTimeout(()=>frame.remove(),30000);}};if(doc.readyState==='complete')setTimeout(triggerPrint,600);else frame.onload=()=>setTimeout(triggerPrint,600);}catch(err){console.error('Generate PDF gagal',err);alert('PDF gagal dibuat: '+(err?.message||'error tidak diketahui'));if(btn){btn.disabled=false;btn.textContent=oldText;}}}
 function exportPdf(){
   try{
     buildAndExportPdf();
@@ -979,8 +1039,10 @@ function exportPdf(){
     if(btn){btn.disabled=false;btn.textContent='Generate PDF';}
   }
 }
-function initReports(){$('#reportBtnSide')?.addEventListener('click',openReport);$('#reportClose')?.addEventListener('click',closeReport);$('#reportExcel')?.addEventListener('click',exportExcel);$('#reportPdf')?.addEventListener('click',exportPdf);$('#reportModal')?.addEventListener('click',e=>{if(e.target.id==='reportModal')closeReport();});}
-
+function initReports(){
+  $('#reportBtnSide')?.addEventListener('click',openReport);$('#reportClose')?.addEventListener('click',closeReport);$('#reportExcel')?.addEventListener('click',exportExcel);$('#reportPdf')?.addEventListener('click',exportPdf);$('#reportModal')?.addEventListener('click',e=>{if(e.target.id==='reportModal')closeReport();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#reportModal')?.classList.contains('on'))closeReport();});
+}
 const DEMO_DATA={tabs:{
  ACARA:[
   {'Acara':'Plenary'},{'Acara':'Olimpiade'},{'Acara':'Raker RKAP'},{'Acara':'Rakor Dirut'},
