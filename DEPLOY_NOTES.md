@@ -1,16 +1,15 @@
-# PIM Event Control v9.2
+# PIM Event Control v9.3
 
 ## Perubahan
-- Desktop top bar disembunyikan; mobile header tetap dipertahankan.
-- Detail Konsumsi pada mobile menjadi accordion per hari.
-- Istilah roster diganti menjadi peserta terdaftar.
-- PDF report memiliki dua tipe: Ringkas Direksi dan Lengkap Internal.
-- PDF mencakup rundown, peserta/manifest, nama LO, akomodasi, kendaraan, konsumsi, readiness, isu terbuka beserta target tanggal, dan Plant Tour berlabel Tentative.
-- Kontak dalam PDF disamarkan; detail tetap tersedia pada sistem operasional.
-- Workbook dan Code.gs tidak berubah dari base v9.1/v8.9 berbasis ACARA.
+- Memperbaiki preview PDF yang sebelumnya membuka tab `about:blank`.
+- Preview report sekarang menggunakan Blob URL agar kompatibel dengan Chrome dan GitHub Pages.
+- Tombol Generate Report pada area dashboard dihapus.
+- Tombol Generate Report tetap tersedia pada sidebar desktop.
+- Frontend/localStorage cache dan service-worker cache dinaikkan ke v9.3.
 
 ## Deployment
-1. Unggah `index.html`, `sw.js`, dan `manifest.webmanifest` ke GitHub Pages.
-2. Tidak perlu mengganti workbook.
-3. Tidak perlu memperbarui Code.gs apabila sudah memakai backend ACARA.
-4. Lakukan hard refresh agar cache v9.2 aktif.
+1. Unggah seluruh isi repository ke GitHub.
+2. Tidak perlu mengganti workbook atau `Code.gs`.
+3. Tunggu GitHub Pages selesai melakukan deployment.
+4. Lakukan hard refresh atau hapus site data agar cache v9.3 aktif.
+5. Izinkan pop-up ketika browser meminta izin untuk membuka preview PDF.
