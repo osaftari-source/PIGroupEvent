@@ -1,4 +1,4 @@
-# PIM Event Control v9.0
+# PIM Event Control v9.1
 
 ## Fitur baru
 - Generate Report: ekspor Excel multi-sheet dan Complete PDF melalui print preview.
@@ -6,13 +6,13 @@
 - Ringkasan Rundown mobile menggunakan agenda cards tanpa horizontal scrolling.
 - Tamu bernama tetap berupa cards; generic/placeholder tampil sebagai daftar ringkas.
 - Workbook memerlukan kolom `Tipe Record` pada sheet TAMU: Named, Generic, Placeholder.
-- Cache frontend/service worker: v9.0.
+- Cache frontend/service worker: v9.1.
 
 ## Deployment
 1. Upload seluruh isi repository ke GitHub Pages.
-2. Gunakan workbook base v9.0 yang disertakan dan import/replace sheet TAMU bila diperlukan.
+2. Gunakan workbook base v9.1 yang disertakan dan import/replace sheet TAMU bila diperlukan.
 3. Deploy Apps Script sebagai New version. `Code.gs` tidak memerlukan perubahan struktur tambahan karena membaca header secara dinamis.
-4. Hard refresh atau tutup-buka PWA agar service worker v9.0 aktif.
+4. Hard refresh atau tutup-buka PWA agar service worker v9.1 aktif.
 
 # PIM Event Control PWA — v8.9
 
@@ -63,3 +63,10 @@ Setelah GitHub Pages selesai membangun, buka aplikasi dan lakukan refresh. Servi
 - `sw.js`: sintaks valid dan cache `pim-event-v8-9`.
 - `manifest.webmanifest`: JSON valid.
 - Waktu rundown tetap mempertahankan komponen jam yang terlihat di Google Sheets.
+
+## v9.1 changes
+- Mobile rundown uses collapsible day accordions and guest-group color coding.
+- Generic/placeholder guests are grouped by normalized base name and identical operational assignment.
+- Removed Kategori Sumber filter; guest KPIs and composition update with active filters/search.
+- Removed the Report button from the mobile top header; Generate Report remains in the main navigation/dashboard access.
+- Complete PDF is now a presentation-ready management report with cover, KPI cards, visual summaries, event timeline, and critical issues.
