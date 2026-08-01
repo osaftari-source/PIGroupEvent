@@ -1,3 +1,19 @@
+# PIM Event Control v9.0
+
+## Fitur baru
+- Generate Report: ekspor Excel multi-sheet dan Complete PDF melalui print preview.
+- Tema resmi: **A Global Player in the Making: Transform, Integrate, Accelerate**.
+- Ringkasan Rundown mobile menggunakan agenda cards tanpa horizontal scrolling.
+- Tamu bernama tetap berupa cards; generic/placeholder tampil sebagai daftar ringkas.
+- Workbook memerlukan kolom `Tipe Record` pada sheet TAMU: Named, Generic, Placeholder.
+- Cache frontend/service worker: v9.0.
+
+## Deployment
+1. Upload seluruh isi repository ke GitHub Pages.
+2. Gunakan workbook base v9.0 yang disertakan dan import/replace sheet TAMU bila diperlukan.
+3. Deploy Apps Script sebagai New version. `Code.gs` tidak memerlukan perubahan struktur tambahan karena membaca header secara dinamis.
+4. Hard refresh atau tutup-buka PWA agar service worker v9.0 aktif.
+
 # PIM Event Control PWA — v8.9
 
 ## Perubahan utama

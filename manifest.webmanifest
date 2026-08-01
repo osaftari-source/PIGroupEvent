@@ -1,7 +1,7 @@
 {
-  "name": "PIM Event Control 2026",
+  "name": "PIM Event Control 2026 — A Global Player in the Making",
   "short_name": "PIM Event",
-  "description": "Papan kesiapan per acara rangkaian PI Group di PT Pupuk Iskandar Muda, 9-12 Agustus 2026",
+  "description": "PIM Event Control 2026 · Transform, Integrate, Accelerate",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
