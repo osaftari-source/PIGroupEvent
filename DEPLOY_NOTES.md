@@ -1,70 +1,49 @@
-# PIM Event Control PWA — v8.8
+# PIM Event Control PWA — v8.9
 
-## Perbaikan utama
+## Perubahan utama
 
-Versi ini memperbaiki pergeseran waktu pada data Google Sheets:
+- Backend mengekspor sheet `ACARA` dan tidak lagi meminta `BIDANG`.
+- Readiness Board pada Beranda dihitung langsung dari `CHECKLIST` dan dikelompokkan per acara.
+- Klik card acara membuka halaman Checklist dengan filter acara yang sesuai.
+- Halaman Checklist menggunakan filter: pencarian, acara, PIC, status, dan owner.
+- Checklist dikelompokkan berdasarkan urutan acara operasional, bukan bidang.
+- Label dan logika `Ketua Bidang` dihapus dari frontend.
+- ID checklist dengan suffix huruf tetap didukung tanpa perlakuan khusus.
+- Normalisasi waktu spreadsheet tetap memakai `GMT`; jangan dikembalikan ke `Asia/Jakarta`.
+- `generatedAt` tetap mengikuti timezone spreadsheet.
+- Cache frontend dan service worker dinaikkan seragam ke v8.9.
 
-- `08:45` sebelumnya terbaca `15:45`
-- `12:30` sebelumnya terbaca `19:30`
-- `19:30` sebelumnya terbaca `02:30`
-- durasi `01:10` sebelumnya terbaca `08:17`
+## File yang harus diperbarui
 
-Penyebabnya adalah sel tanggal/waktu spreadsheet diformat kembali menggunakan
-zona `Asia/Jakarta`. Nilai serial Google Sheets kemudian mendapat tambahan
-tujuh jam, dan durasi lama juga dapat terkena offset historis tujuh menit.
+1. **Google Apps Script:** ganti isi `Code.gs`, simpan, lalu buat versi deployment baru.
+2. **GitHub Pages/repository:** unggah `index.html`, `sw.js`, dan `manifest.webmanifest` dari rilis ini.
+3. Pastikan Google Sheets memakai base workbook terbaru dengan sheet `ACARA` dan header `CHECKLIST`:
+   `ID, Acara, Item, Venue, Owner, PIC, Deadline, Status, Progress %, Catatan, Update Terakhir`.
 
-`Code.gs` v8.8 sekarang:
+## Deployment Apps Script
 
-- memakai `GMT` hanya untuk membaca komponen tanggal/waktu dari sel spreadsheet;
-- tetap memakai zona waktu spreadsheet untuk `generatedAt`;
-- mempertahankan waktu rundown sesuai yang terlihat di workbook;
-- menyediakan fungsi `testSundayTimes()` untuk pengecekan cepat.
+1. Buka Google Sheet → **Extensions → Apps Script**.
+2. Ganti isi `Code.gs` dengan file rilis v8.9.
+3. Pastikan `SHEET_ID` benar.
+4. Pilih **Deploy → Manage deployments**.
+5. Edit deployment aktif dan pilih **New version**.
+6. Pastikan akses Web App tetap **Anyone**.
+7. URL `/exec` tidak perlu diubah apabila deployment yang sama diperbarui.
 
-Nilai yang diharapkan untuk Minggu, 9 Agustus:
+## Deployment GitHub Pages
 
-- RD-029: 08:45–09:55
-- RD-030: 12:30–13:30
-- RD-030B: 19:30–20:30
-
-## File yang perlu diterapkan
-
-### Google Apps Script
-
-Ganti seluruh isi `Code.gs`, lalu:
-
-1. **Deploy**
-2. **Manage deployments**
-3. Edit deployment web app
-4. Pilih **New version**
-5. **Deploy**
-
-Menyimpan script tanpa membuat versi deployment baru tidak memperbarui API `/exec`.
-
-### GitHub Pages / PWA
-
-Unggah seluruh file dan folder berikut:
+Unggah seluruh isi folder repository atau minimal file perubahan berikut:
 
 - `index.html`
 - `sw.js`
 - `manifest.webmanifest`
-- folder `icons/`
 
-`index.html` dan `sw.js` sudah dinaikkan ke v8.8. Kunci cache data juga berubah,
-sehingga payload v8.7 yang memiliki waktu salah tidak digunakan kembali.
+Setelah GitHub Pages selesai membangun, buka aplikasi dan lakukan refresh. Service worker v8.9 akan menghapus cache shell versi lama secara otomatis.
 
-## Verifikasi setelah deployment
+## Pemeriksaan rilis
 
-1. Jalankan `testSundayTimes()` dari Apps Script editor.
-2. Buka URL `/exec` dan cari `RD-029`, `RD-030`, serta `RD-030B`.
-3. Pastikan API mengirim:
-   - `08:45`, `09:55`
-   - `12:30`, `13:30`
-   - `19:30`, `20:30`
-4. Upload file GitHub.
-5. Hard refresh browser atau tutup dan buka ulang PWA.
-6. Bila masih melihat data lama, hapus site data/cache satu kali lalu buka kembali.
-
-## Catatan
-
-Workbook tidak perlu diubah untuk masalah waktu ini. Perbaikannya berada pada
-normalisasi tanggal/waktu di backend Apps Script dan pembaruan cache PWA.
+- `Code.gs`: sintaks JavaScript valid; `TABS.ACARA` tersedia.
+- `index.html`: JavaScript valid; tidak ada referensi runtime ke `BIDANG`, `Ketua Bidang`, atau `fBidang`.
+- `sw.js`: sintaks valid dan cache `pim-event-v8-9`.
+- `manifest.webmanifest`: JSON valid.
+- Waktu rundown tetap mempertahankan komponen jam yang terlihat di Google Sheets.

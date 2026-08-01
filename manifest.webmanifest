@@ -1,7 +1,7 @@
 {
   "name": "PIM Event Control 2026",
   "short_name": "PIM Event",
-  "description": "Papan kesiapan rangkaian acara PI Group di PT Pupuk Iskandar Muda, 9-12 Agustus 2026",
+  "description": "Papan kesiapan per acara rangkaian PI Group di PT Pupuk Iskandar Muda, 9-12 Agustus 2026",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -1,5 +1,5 @@
 /**
- * PIM EVENT CONTROL 2026 — Backend API
+ * PIM EVENT CONTROL 2026 — Backend API v8.9
  * Serves the control workbook as JSON for the PWA frontend.
  *
  * SETUP
@@ -24,7 +24,7 @@ var CELL_SERIAL_TIMEZONE = 'GMT';
 // Tab name -> row number that holds the column headers
 var TABS = {
   CHECKLIST: 4,
-  BIDANG: 4,
+  ACARA: 4,
   ISSUES: 4,
   LO: 4,
   TAMU: 4,

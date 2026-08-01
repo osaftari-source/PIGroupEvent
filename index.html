@@ -346,7 +346,7 @@ footer{text-align:center;font-size:11px;color:var(--ink-3);padding:22px 16px 6px
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.8
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>Frontend v8.9
   </footer>
 </div></main>
 
@@ -360,7 +360,7 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-09',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v8-8'
+  CACHE_KEY: 'pim-event-cache-v8-9'
 };
 
 /* ============================================================
@@ -386,7 +386,12 @@ const isVIP = r => joinText(r).includes('VIP') || (!joinText(r) && f(r,'Rombonga
 const isRaker = r => joinText(r).includes('RAKER');
 const isVIPRaker = r => isVIP(r) && isRaker(r);
 const CH = () => rows('CHECKLIST').filter(r=>has(f(r,'ID')));
-const BD = () => rows('BIDANG').filter(r=>has(f(r,'Bidang')) && f(r,'Bidang').toUpperCase()!=='TOTAL');
+const EVENT_ORDER=['Plenary','Olimpiade','Raker RKAP','Rakor Dirut','Rapat Konsultasi','Akomodasi','Transportasi','Konsumsi','Plant Tour','Umum/Panitia'];
+const AC = () => {
+  const source=rows('ACARA').filter(r=>has(f(r,'Acara')) && f(r,'Acara').toUpperCase()!=='TOTAL').map(r=>f(r,'Acara'));
+  const actual=CH().map(r=>f(r,'Acara')).filter(has);
+  return [...new Set([...EVENT_ORDER,...source,...actual])].filter(n=>actual.includes(n)||source.includes(n));
+};
 const RD = () => rows('RUNDOWN').filter(r=>/^RD-/i.test(f(r,'ID')));
 
 const ST={'not started':['st-none','Not Started'],'in progress':['st-prog','In Progress'],
@@ -622,7 +627,7 @@ const VENUES=[
   ['Gedung Pertemuan','Plenary & Olimpiade']
 ];
 function viewHome(){
-  const items=CH(), bidang=BD();
+  const items=CH(), acara=AC();
   const c=s=>items.filter(r=>f(r,'Status').toLowerCase()===s).length;
   const done=c('done'), na=c('n/a'), prog=c('in progress'), blocked=c('blocked');
   const denom=Math.max(1,items.length-na), pct=Math.round(done/denom*100);
@@ -638,12 +643,11 @@ function viewHome(){
   const soon=items.filter(r=>{const dl=parseD(f(r,'Deadline')),st=f(r,'Status').toLowerCase();if(!dl||st==='done'||st==='n/a')return false;const diff=(dl-today())/86400000;return diff>=0&&diff<=7;}).sort((a,b)=>f(a,'Deadline').localeCompare(f(b,'Deadline')));
   const crit=[...items.filter(r=>isOver(f(r,'Deadline'),f(r,'Status'))),...items.filter(r=>f(r,'Status').toLowerCase()==='blocked')].slice(0,8);
 
-  const board=bidang.map(b=>{
-    const nm=f(b,'Bidang'),mine=items.filter(r=>f(r,'Bidang')===nm),cc=s=>mine.filter(r=>f(r,'Status').toLowerCase()===s).length;
+  const board=acara.map(nm=>{
+    const mine=items.filter(r=>f(r,'Acara')===nm),cc=s=>mine.filter(r=>f(r,'Status').toLowerCase()===s).length;
     const dd=cc('done'),pp=cc('in progress'),bb=cc('blocked'),nn=cc('n/a'),tot=mine.length,dn=tot-nn,q=dn>0?Math.round(dd/dn*100):0,ww=v=>tot?(v/tot*100):0;
-    const ket=f(b,'Ketua Bidang');
-    return `<button class="bd" data-bidang="${esc(nm)}"><div class="top"><span class="nm">${esc(nm)}</span><span class="pc">${q}%</span></div><div class="bar2"><i style="width:${ww(dd)}%;background:var(--st-done)"></i><i style="width:${ww(pp)}%;background:var(--st-prog)"></i><i style="width:${ww(bb)}%;background:var(--st-block)"></i></div><div class="meta">${dd}/${dn} selesai${bb?' · '+bb+' blocked':''}${ket?' · '+esc(ket):''}</div></button>`;
-  }).join('')||'<div class="empty">Belum ada bidang.</div>';
+    return `<button class="bd" data-acara="${esc(nm)}"><div class="top"><span class="nm">${esc(nm)}</span><span class="pc">${q}%</span></div><div class="bar2"><i style="width:${ww(dd)}%;background:var(--st-done)"></i><i style="width:${ww(pp)}%;background:var(--st-prog)"></i><i style="width:${ww(bb)}%;background:var(--st-block)"></i></div><div class="meta">${dd}/${dn} selesai${pp?' · '+pp+' in progress':''}${bb?' · '+bb+' blocked':''}</div></button>`;
+  }).join('')||'<div class="empty">Belum ada kategori acara.</div>';
 
   const tamu=rows('TAMU'),total=tamu.length,p1=tamu.filter(r=>f(r,'Prioritas')==='P1').length,vip=tamu.filter(isVIP).length,raker=tamu.filter(isRaker).length,overlap=tamu.filter(isVIPRaker).length;
   const rakerOfficial=officialHeadcount(/headcount resmi raker rkap/i,raker);
@@ -674,7 +678,7 @@ function viewHome(){
   const vehicleTypes=aggregateVehicles('Jenis Mobil').filter(([t])=>!/belum terdata|tbc|belum diisi/i.test(t));
   const vehicleCompanies=aggregateVehicles('Perusahaan');
 
-  const deadlineHtml=soon.length?soon.map((r,i)=>`<div class="item deadline-extra" ${i>=3?'hidden':''}><div class="l1"><span class="id">${fmtD(f(r,'Deadline'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2"><i class="tag">${esc(f(r,'Bidang'))}</i>${f(r,'Owner').toUpperCase().includes('TBC')?'<i class="tag tbc">TBC</i>':`<i class="tag">${esc(f(r,'Owner'))}</i>`}</div></div>`).join(''):'<div class="empty">Tidak ada deadline dalam 7 hari.</div>';
+  const deadlineHtml=soon.length?soon.map((r,i)=>`<div class="item deadline-extra" ${i>=3?'hidden':''}><div class="l1"><span class="id">${fmtD(f(r,'Deadline'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2"><i class="tag">${esc(f(r,'Acara'))}</i>${f(r,'Owner').toUpperCase().includes('TBC')?'<i class="tag tbc">TBC</i>':`<i class="tag">${esc(f(r,'Owner'))}</i>`}</div></div>`).join(''):'<div class="empty">Tidak ada deadline dalam 7 hari.</div>';
 
   $('#v-home').innerHTML=demoNote()+`
   <div class="hero"><div class="row"><div class="cd"><b>${cdN}</b><i>${cdL}</i></div><div class="meta"><b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>PT Pupuk Iskandar Muda, Lhokseumawe</div></div><div class="ring"><div class="bar"><i style="width:${w(done)}%;background:var(--st-done)"></i><i style="width:${w(prog)}%;background:var(--amber)"></i><i style="width:${w(blocked)}%;background:var(--st-block)"></i></div><b>${pct}%</b></div></div>
@@ -694,7 +698,7 @@ function viewHome(){
       <details class="panel fold" open><summary>Deadline 7 Hari ke Depan <span>${soon.length} item</span></summary>${deadlineHtml}${soon.length>3?`<button class="show-more" id="deadlineMore" type="button">Tampilkan ${soon.length-3} lainnya</button>`:''}</details>
     </div>
     <div>
-      <div class="panel"><h3>Perlu Perhatian</h3>${crit.length?crit.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2">${stTag(f(r,'Status'))}${isOver(f(r,'Deadline'),f(r,'Status'))?`<i class="tag over">Lewat ${fmtD(f(r,'Deadline'))}</i>`:''}<i class="tag">${esc(f(r,'Bidang'))}</i></div></div>`).join(''):'<div class="empty">Tidak ada item lewat deadline atau blocked.</div>'}</div>
+      <div class="panel"><h3>Perlu Perhatian</h3>${crit.length?crit.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2">${stTag(f(r,'Status'))}${isOver(f(r,'Deadline'),f(r,'Status'))?`<i class="tag over">Lewat ${fmtD(f(r,'Deadline'))}</i>`:''}<i class="tag">${esc(f(r,'Acara'))}</i></div></div>`).join(''):'<div class="empty">Tidak ada item lewat deadline atau blocked.</div>'}</div>
       <div class="panel"><h3>Peserta</h3><div class="visual-bar"><i style="width:${pctWidth(vipOnly,total)}%;background:#9A3B35"></i><i style="width:${pctWidth(overlap,total)}%;background:#F0A500"></i><i style="width:${pctWidth(rakerOnly,total)}%;background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja ${vipOnly}</span><span><i style="background:#F0A500"></i>VIP + Raker ${overlap}</span><span><i style="background:#2F6D89"></i>Raker saja ${rakerOnly}</span></div><div class="kv"><span>Headcount resmi Raker</span><b>${rakerOfficial} peserta</b></div><div class="kv"><span>Headcount resmi Plenary</span><b>${plenaryOfficial||'—'} peserta</b></div><div class="kv"><span>Prioritas P1</span><b>${p1} peserta</b></div><div class="kv"><span>LO</span><b>${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='confirmed').length} confirmed · ${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='pending').length} pending</b></div></div>
       <div class="panel"><h3>Akomodasi Mess &amp; Rumah Kompleks</h3><div class="metric-grid"><div class="metric-card good"><b>${akmFilled}</b><span>Terisi</span><small>${messFilled} mess · ${houseFilled} rumah</small></div><div class="metric-card"><b>${akmFree}</b><span>Tersedia</span></div><div class="metric-card ${akmReady<akm.length?'warn':'good'}"><b>${akmReady}</b><span>Siap</span><small>${akm.length-akmReady} perlu perhatian</small></div><div class="metric-card"><b>${akm.length}</b><span>Total Kamar/Slot</span><small>${mess.length} mess · ${houses.length} rumah</small></div><div class="metric-card ${akmTbc?'warn':'good'}"><b>${akmTbc}</b><span>Belum Teralokasi</span><small>tamu dengan status TBC</small></div></div></div>
     </div>
@@ -707,7 +711,7 @@ function viewHome(){
 
   <div class="panel" style="margin-top:14px"><h3>Status Operasional</h3><div class="stats"><div class="stat"><b>${items.length}</b><span>Total Items</span></div><div class="stat ${over?'bad':''}"><b>${over}</b><span>Overdue</span></div><div class="stat ${blocked?'bad':''}"><b>${blocked}</b><span>Blocked</span></div><div class="stat ${hi.length?'warn':''}"><b>${hi.length}</b><span>Isu Prioritas</span></div></div><div class="kv"><span>Menunggu EO</span><b>${tbc} item bertanda TBC</b></div><div class="kv"><span>Isu terbuka</span><b>${iss.length} isu · ${hi.length} prioritas tinggi</b></div></div>`;
 
-  $$('#v-home [data-bidang]').forEach(b=>b.addEventListener('click',()=>{go('chk');const sel=$('#fBidang');if(sel){sel.value=b.dataset.bidang;drawChk();}}));
+  $$('#v-home [data-acara]').forEach(b=>b.addEventListener('click',()=>{go('chk');const sel=$('#fAcara');if(sel){sel.value=b.dataset.acara;drawChk();}}));
   const more=$('#deadlineMore');if(more){let open=false;more.addEventListener('click',()=>{open=!open;$$('#v-home .deadline-extra').forEach((el,i)=>{if(i>=3)el.hidden=!open;});more.textContent=open?'Tampilkan lebih sedikit':`Tampilkan ${Math.max(0,soon.length-3)} lainnya`;});}
 }
 
@@ -715,48 +719,50 @@ function viewHome(){
 function viewChk(){
   const items=CH();
   const uq=a=>[...new Set(a.filter(has))].sort();
+  const orderedEvents=AC();
   const opt=(a,l)=>`<option value="">${l}</option>`+a.map(v=>`<option>${esc(v)}</option>`).join('');
-  $('#v-chk').innerHTML = ph('Checklist','Daftar persiapan seluruh bidang. Item lewat deadline dan blocked tampil di atas.') + demoNote() + `
+  $('#v-chk').innerHTML = ph('Checklist','Daftar kesiapan dikelompokkan per acara dan ditangani langsung oleh PIC. Item lewat deadline dan blocked tampil di atas.') + demoNote() + `
     <div class="filters">
       <input id="fCari" type="search" placeholder="Cari item, PIC, venue…" autocomplete="off">
-      <select id="fBidang">${opt(uq(items.map(r=>f(r,'Bidang'))),'Semua bidang')}</select>
+      <select id="fAcara">${opt(orderedEvents,'Semua acara')}</select>
+      <select id="fPIC">${opt(uq(items.map(r=>f(r,'PIC'))),'Semua PIC')}</select>
       <select id="fStatus">${opt(['Not Started','In Progress','Done','Blocked','N/A'],'Semua status')}</select>
-      <select id="fAcara">${opt(uq(items.map(r=>f(r,'Acara'))),'Semua acara')}</select>
-      <select id="fOwner">${opt(['PIM','EO','Bersama','TBC (EO?)'],'Semua owner')}</select>
+      <select id="fOwner">${opt(uq(items.map(r=>f(r,'Owner'))),'Semua owner')}</select>
     </div>
     <div class="count" id="cChk"></div><div class="panel" id="listChk"></div>`;
-  ['fCari','fBidang','fStatus','fAcara','fOwner'].forEach(id=>
+  ['fCari','fAcara','fPIC','fStatus','fOwner'].forEach(id=>
     $('#'+id).addEventListener(id==='fCari'?'input':'change',drawChk));
   drawChk();
 }
 function drawChk(){
   const q=($('#fCari')?.value||'').toLowerCase().trim();
-  const fb=$('#fBidang')?.value||'',fs=$('#fStatus')?.value||'';
-  const fa=$('#fAcara')?.value||'',fo=$('#fOwner')?.value||'';
+  const fa=$('#fAcara')?.value||'',fp=$('#fPIC')?.value||'';
+  const fs=$('#fStatus')?.value||'',fo=$('#fOwner')?.value||'';
   let list=CH().filter(r=>{
-    if(fb&&f(r,'Bidang')!==fb) return false;
-    if(fs&&f(r,'Status')!==fs) return false;
     if(fa&&f(r,'Acara')!==fa) return false;
+    if(fp&&f(r,'PIC')!==fp) return false;
+    if(fs&&f(r,'Status')!==fs) return false;
     if(fo&&f(r,'Owner')!==fo) return false;
-    if(q){ const h=[f(r,'Item'),f(r,'PIC'),f(r,'Venue'),f(r,'Bidang'),f(r,'ID'),f(r,'Catatan')].join(' ').toLowerCase();
+    if(q){ const h=[f(r,'Item'),f(r,'PIC'),f(r,'Venue'),f(r,'Acara'),f(r,'Owner'),f(r,'ID'),f(r,'Catatan')].join(' ').toLowerCase();
       if(!h.includes(q)) return false; }
     return true;
   });
   const rank=r=>isOver(f(r,'Deadline'),f(r,'Status'))?0:(f(r,'Status').toLowerCase()==='blocked'?1:2);
-  list.sort((a,b)=>rank(a)-rank(b)||f(a,'ID').localeCompare(f(b,'ID')));
+  const eventRank=r=>{const i=EVENT_ORDER.indexOf(f(r,'Acara'));return i<0?999:i;};
+  list.sort((a,b)=>eventRank(a)-eventRank(b)||rank(a)-rank(b)||f(a,'ID').localeCompare(f(b,'ID')));
   $('#cChk').textContent=list.length+' dari '+CH().length+' item';
   if(!list.length){ $('#listChk').innerHTML='<div class="empty"><b>Tidak ada item yang cocok</b>Ubah kata kunci atau kosongkan filter.</div>'; return; }
   let h='',g='';
   for(const r of list){
-    const b=f(r,'Bidang'); if(b!==g){g=b;h+=`<div class="grp">${esc(b)}</div>`;}
-    const dl=f(r,'Deadline'),st=f(r,'Status'),ov=isOver(dl,st),own=f(r,'Owner'),pic=f(r,'PIC'),cat=f(r,'Catatan');
+    const acara=f(r,'Acara')||'Tanpa kategori'; if(acara!==g){g=acara;h+=`<div class="grp">${esc(acara)}</div>`;}
+    const dl=f(r,'Deadline'),st=f(r,'Status'),ov=isOver(dl,st),own=f(r,'Owner'),pic=f(r,'PIC'),cat=f(r,'Catatan'),venue=f(r,'Venue');
     h+=`<div class="item">
       <div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div>
       <div class="l2">${stTag(st)}
         ${dl?`<i class="tag ${ov?'over':'due'}">${ov?'Lewat ':''}${fmtD(dl)}</i>`:''}
         ${own?`<i class="tag ${own.toUpperCase().includes('TBC')?'tbc':''}">${esc(own)}</i>`:''}
-        ${pic?`<i class="tag">${esc(pic)}</i>`:''}
-        <i class="tag">${esc(f(r,'Venue')||f(r,'Acara'))}</i></div>
+        ${pic?`<i class="tag">PIC: ${esc(pic)}</i>`:''}
+        ${venue?`<i class="tag">${esc(venue)}</i>`:''}</div>
       ${cat?`<div class="sub">${esc(cat)}</div>`:''}</div>`;
   }
   $('#listChk').innerHTML=h;
@@ -896,12 +902,15 @@ function viewIsu(){
    6. Demo data + boot
    ============================================================ */
 const DEMO_DATA={tabs:{
- BIDANG:[{'Kode':'ACR','Bidang':'Tempat & Acara','Ketua Bidang':'Zulfajri Ery Syahputra','Sumber / Status':'SK Rakor Dirut'},
-   {'Kode':'KNS','Bidang':'Konsumsi','Ketua Bidang':'','Sumber / Status':'USULAN — belum ada di SK'}],
+ ACARA:[
+  {'Acara':'Plenary'},{'Acara':'Olimpiade'},{'Acara':'Raker RKAP'},{'Acara':'Rakor Dirut'},
+  {'Acara':'Rapat Konsultasi'},{'Acara':'Akomodasi'},{'Acara':'Transportasi'},{'Acara':'Konsumsi'},
+  {'Acara':'Plant Tour'},{'Acara':'Umum/Panitia'}],
  CHECKLIST:[
-  {'ID':'ACR-001','Bidang':'Tempat & Acara','Item':'Finalisasi rundown terpadu','Acara':'Semua','Venue':'Semua','Owner':'PIM','Deadline':'2026-07-29','Status':'In Progress'},
-  {'ID':'ACR-003','Bidang':'Tempat & Acara','Item':'Pemasangan tenda Raker','Acara':'Raker RKAP','Venue':'Tenda samping Gedung Pertemuan','Owner':'TBC (EO?)','Deadline':'2026-08-04','Status':'Not Started'},
-  {'ID':'KNS-001','Bidang':'Konsumsi','Item':'Konfirmasi headcount final','Acara':'Semua','Venue':'Semua','Owner':'PIM','Deadline':'2026-07-29','Status':'Blocked','Catatan':'Menunggu konfirmasi anper'}],
+  {'ID':'ACR-002','Acara':'Rakor Dirut','Item':'Layout & seating plan Rakor Dirut','Venue':'Ruang Keupula','Owner':'PIM','PIC':'Teuku Alfianda','Deadline':'2026-08-04','Status':'In Progress'},
+  {'ID':'AKM-001','Acara':'Akomodasi','Item':'Penyelesaian pengisian furnitur kamar','Venue':'Rumah Komplek dan Mess','Owner':'PIM','PIC':'Fakhrul Aman','Deadline':'2026-08-04','Status':'Not Started'},
+  {'ID':'KNS-001','Acara':'Konsumsi','Item':'Konfirmasi menu dan jumlah makanan','Venue':'Seluruh venue konsumsi','Owner':'PIM','PIC':'Dita Roswita','Deadline':'2026-07-29','Status':'Blocked','Catatan':'Menunggu konfirmasi final'},
+  {'ID':'KAM-004B','Acara':'Plant Tour','Item':'APD Plant Tour','Venue':'Area Pabrik','Owner':'PIM','PIC':'Hasanuddin','Deadline':'2026-08-07','Status':'Not Started'}],
  RUNDOWN:[
   {'ID':'RD-029','Hari':'Minggu','Tanggal':'2026-08-09','Mulai':'08:45','Selesai':'09:55','Durasi':'01:10','Jalur':'TAMU UNDANGAN','Kegiatan':'Flight KNO–LSW — Batch 1 Tamu Undangan','Venue':'Bandara Kualanamu (KNO) → Malikussaleh (LSW)'},
   {'ID':'RD-030B','Hari':'Minggu','Tanggal':'2026-08-09','Mulai':'19:30','Selesai':'20:30','Durasi':'01:00','Jalur':'TAMU UNDANGAN','Kegiatan':'Makan malam Batch 1 Tamu Undangan','Venue':'TBC'},
