@@ -373,7 +373,7 @@ body{font-size:15.5px}
 .check-item{padding:13px 15px}.check-item .check-title{font-size:13.5px;font-weight:700;line-height:1.4}.check-pic{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:12px}.check-pic b{color:var(--signal)}.check-pic .pic-mark{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#eaf3f7;color:var(--signal);font-size:10px;font-weight:800;flex:none}.check-meta{margin-top:7px}
 
 /* Rundown mode switch */
-.run-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.segmented{display:inline-flex;border:1px solid var(--rule);border-radius:10px;padding:3px;background:var(--panel)}.segmented button{border:0;background:transparent;color:var(--ink-2);min-height:36px;padding:6px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer}.segmented button[aria-pressed="true"]{background:var(--ink);color:#fff}.day-timeline{padding:14px;overflow-x:auto}.day-timeline .timeline-chart{min-width:880px;--tl-label:270px}
+.run-days{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:thin}.run-days button{flex:none;min-height:40px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);color:var(--ink-2);padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer}.run-days button[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:#fff}.run-days button small{display:block;font-size:9px;font-weight:500;opacity:.78;margin-top:2px}.run-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.segmented{display:inline-flex;border:1px solid var(--rule);border-radius:10px;padding:3px;background:var(--panel)}.segmented button{border:0;background:transparent;color:var(--ink-2);min-height:36px;padding:6px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer}.segmented button[aria-pressed="true"]{background:var(--ink);color:#fff}.day-timeline{padding:14px;overflow-x:auto}.day-timeline .timeline-chart{min-width:880px;--tl-label:270px}
 
 /* Guest cards: primary information first, secondary details expandable */
 .guest-primary-tags{margin-top:10px}.guest-more{margin-top:9px;border-top:1px solid var(--rule-2);padding-top:8px}.guest-more>summary{list-style:none;cursor:pointer;font-size:11px;font-weight:700;color:var(--signal);min-height:32px;display:flex;align-items:center}.guest-more>summary::-webkit-details-marker{display:none}.guest-more>summary:after{content:'Lihat detail';}.guest-more[open]>summary:after{content:'Tutup detail'}.guest-more-body{padding-top:7px}.guest-more-body .tag{white-space:normal}
@@ -442,7 +442,7 @@ body{font-size:15.5px}
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.6
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.7
   </footer>
 </div></main>
 
@@ -459,7 +459,7 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-09',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v9-6'
+  CACHE_KEY: 'pim-event-data-cache-v1'
 };
 
 /* ============================================================
@@ -681,7 +681,18 @@ function navBadges(){
 /* ============================================================
    4. Load
    ============================================================ */
-const readCache=()=>{try{return JSON.parse(localStorage.getItem(CONFIG.CACHE_KEY))}catch(e){return null}};
+const LEGACY_DATA_CACHE_KEYS=['pim-event-cache-v9-6','pim-event-cache-v9-5','pim-event-cache-v9-4','pim-event-cache-v9-3','pim-event-cache-v9-2','pim-event-cache-v9-1','pim-event-cache-v9-0'];
+const readCache=()=>{
+  for(const key of [CONFIG.CACHE_KEY,...LEGACY_DATA_CACHE_KEYS]){
+    try{
+      const raw=localStorage.getItem(key);if(!raw)continue;
+      const parsed=JSON.parse(raw);if(!parsed?.payload)continue;
+      if(key!==CONFIG.CACHE_KEY)localStorage.setItem(CONFIG.CACHE_KEY,raw);
+      return parsed;
+    }catch(e){}
+  }
+  return null;
+};
 const writeCache=(p,w)=>{try{localStorage.setItem(CONFIG.CACHE_KEY,JSON.stringify({payload:p,when:w}))}catch(e){}};
 function setSync(state,text){
   [['#dot','#syncTx'],['#dot2','#syncTx2']].forEach(([d,t])=>{
@@ -698,24 +709,27 @@ function relTime(iso){
 }
 async function load(){
   const c=readCache();
-  if(c && !DATA){ DATA=c.payload; FETCHED=c.when; render(); setSync('stale','Cached · '+relTime(c.when)); }
-  if(!CONFIG.API_URL){ DEMO=true; DATA=DEMO_DATA; FETCHED=new Date().toISOString(); render(); setSync('stale','Demo data'); return; }
-  setSync('','Loading…'); $$('.sync').forEach(b=>b.disabled=true);
+  if(c&&!DATA){
+    try{DATA=c.payload;FETCHED=c.when;render();setSync('stale','Cached · '+relTime(c.when));}
+    catch(err){console.error('Cached data render gagal',err);DATA=null;FETCHED=null;}
+  }
+  if(!CONFIG.API_URL){DEMO=true;DATA=DEMO_DATA;FETCHED=new Date().toISOString();render();setSync('stale','Demo data');return;}
+  setSync('','Loading…');$$('.sync').forEach(b=>b.disabled=true);
   try{
-    const res=await fetch(CONFIG.API_URL+(CONFIG.API_URL.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    const res=await fetch(CONFIG.API_URL+(CONFIG.API_URL.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store',redirect:'follow'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
     const j=await res.json();
-    if(j.ok===false) throw new Error(j.error||'Sheet menolak permintaan');
-    DATA=j; FETCHED=new Date().toISOString(); DEMO=false;
-    writeCache(j,FETCHED); render(); setSync('','Updated '+relTime(FETCHED));
+    if(j.ok===false)throw new Error(j.error||'Sheet menolak permintaan');
+    const previous={data:DATA,fetched:FETCHED,demo:DEMO};
+    DATA=j;FETCHED=new Date().toISOString();DEMO=false;
+    try{render();}
+    catch(renderErr){DATA=previous.data;FETCHED=previous.fetched;DEMO=previous.demo;if(DATA)render();throw new Error('Data diterima tetapi gagal ditampilkan: '+(renderErr?.message||renderErr));}
+    writeCache(j,FETCHED);setSync('','Updated '+relTime(FETCHED));
   }catch(err){
-    if(DATA) setSync('off','Offline · '+relTime(FETCHED));
-    else { setSync('off','Gagal memuat');
-      $('#v-home').innerHTML=`<div class="panel"><div class="empty"><b>Data belum bisa dimuat</b>
-        Periksa sambungan, lalu ketuk status di kanan atas untuk mencoba lagi.
-        <div style="margin-top:10px;font-size:11px;font-family:'IBM Plex Mono',monospace">${esc(err.message||err)}</div>
-      </div></div>`; }
-  }finally{ $$('.sync').forEach(b=>b.disabled=false); }
+    console.error('Load data gagal',err);
+    if(DATA)setSync('off','Offline · '+relTime(FETCHED));
+    else{setSync('off','Gagal memuat');$('#v-home').innerHTML=`<div class="panel"><div class="empty"><b>Data belum bisa dimuat</b>Periksa sambungan, lalu ketuk status di kanan atas untuk mencoba lagi.<div style="margin-top:10px;font-size:11px;font-family:'IBM Plex Mono',monospace">${esc(err.message||err)}</div></div></div>`;}
+  }finally{$$('.sync').forEach(b=>b.disabled=false);}
 }
 
 /* ============================================================
@@ -725,8 +739,8 @@ function render(){ viewHome(); viewChk(); viewRun(); viewTamu(); viewAkm(); view
 const demoNote = () => DEMO ? `<div class="note"><b>Demo data</b>
   Isi CONFIG.API_URL di index.html dengan URL Apps Script agar aplikasi membaca Google Sheet yang sebenarnya.</div>` : '';
 function ph(t,s){ return `<div class="ph"><h2>${t}</h2>${s?`<p>${s}</p>`:''}</div>`; }
-function filterBox(label,controls,hint='Ketuk untuk membuka'){
-  return `<details class="filter-box"><summary>${esc(label)}<span class="filter-count">${esc(hint)}</span></summary><div class="filter-body"><div class="filters">${controls}</div></div></details>`;
+function filterBox(label,controls,hint='Ketuk untuk membuka',isOpen=true){
+  return `<details class="filter-box" ${isOpen?'open':''}><summary>${esc(label)}<span class="filter-count">${esc(hint)}</span></summary><div class="filter-body"><div class="filters">${controls}</div></div></details>`;
 }
 function missingP1LO(){
   return rows('TAMU').filter(r=>{
@@ -888,15 +902,25 @@ function drawChk(){
 let RUN_MODE='list';
 function viewRun(){
   const rd=RD(),days=[...new Set(rd.map(r=>f(r,'Tanggal')).filter(has))].sort(),lanes=[...new Set(rd.map(r=>f(r,'Jalur')).filter(has))],tISO=eventClock().date;
-  const controls=`<select id="rDay">${days.map(d=>{const row=rd.find(r=>f(r,'Tanggal')===d);return `<option value="${esc(d)}">${esc(f(row||{},'Hari'))} ${fmtD(d)}</option>`}).join('')||'<option>—</option>'}</select><select id="rLane"><option value="">Semua jalur</option>${lanes.map(l=>`<option>${esc(l)}</option>`).join('')}</select>`;
-  $('#v-run').innerHTML=ph('Rundown','Gunakan daftar agenda untuk briefing detail atau timeline untuk melihat susunan kegiatan secara visual.')+demoNote()+`<div class="run-toolbar">${filterBox('Filter rundown',controls,'Hari dan jalur')}<div class="segmented" aria-label="Mode rundown"><button id="runListMode" type="button" aria-pressed="true">Daftar Agenda</button><button id="runTimelineMode" type="button" aria-pressed="false">Timeline Hari</button></div></div><div class="panel" id="listRun"></div>`;
-  if(days.includes(tISO))$('#rDay').value=tISO;$('#rDay').addEventListener('change',drawRun);$('#rLane').addEventListener('change',drawRun);
-  $('#runListMode').addEventListener('click',()=>{RUN_MODE='list';drawRun();});$('#runTimelineMode').addEventListener('click',()=>{RUN_MODE='timeline';drawRun();});drawRun();
+  const selectedDay=days.includes(tISO)?tISO:(days[0]||'');
+  const dayButtons=`<div class="run-days" role="tablist" aria-label="Pilih hari rundown">${days.map(d=>{const row=rd.find(r=>f(r,'Tanggal')===d),day=f(row||{},'Hari')||fmtDayDate(d).split(',')[0];return `<button type="button" role="tab" data-run-day="${esc(d)}" aria-selected="${d===selectedDay}">${esc(day)}<small>${fmtD(d)}</small></button>`}).join('')||'<span class="empty">Belum ada tanggal rundown.</span>'}</div>`;
+  const controls=`<select id="rDay" aria-label="Pilih tanggal rundown">${days.map(d=>{const row=rd.find(r=>f(r,'Tanggal')===d);return `<option value="${esc(d)}">${esc(f(row||{},'Hari'))} ${fmtD(d)}</option>`}).join('')||'<option>—</option>'}</select><select id="rLane" aria-label="Pilih jalur rundown"><option value="">Semua jalur</option>${lanes.map(l=>`<option>${esc(l)}</option>`).join('')}</select>`;
+  $('#v-run').innerHTML=ph('Rundown','Pilih hari secara langsung. Gunakan daftar agenda untuk briefing detail atau timeline untuk melihat susunan kegiatan secara visual.')+demoNote()+dayButtons+`<div class="run-toolbar">${filterBox('Filter rundown',controls,'Hari dan jalur')}<div class="segmented" aria-label="Mode rundown"><button id="runListMode" type="button" aria-pressed="true">Daftar Agenda</button><button id="runTimelineMode" type="button" aria-pressed="false">Timeline Hari</button></div></div><div class="panel" id="listRun"></div>`;
+  if(selectedDay&&$('#rDay'))$('#rDay').value=selectedDay;
+  $('#rDay')?.addEventListener('change',()=>{drawRun();});
+  $('#rLane')?.addEventListener('change',drawRun);
+  $$('[data-run-day]').forEach(btn=>btn.addEventListener('click',()=>{if($('#rDay'))$('#rDay').value=btn.dataset.runDay;drawRun();}));
+  $('#runListMode')?.addEventListener('click',()=>{RUN_MODE='list';drawRun();});
+  $('#runTimelineMode')?.addEventListener('click',()=>{RUN_MODE='timeline';drawRun();});
+  drawRun();
 }
 function drawRun(){
-  const d=$('#rDay')?.value||'',ln=$('#rLane')?.value||'';let list=RD().filter(r=>(!d||f(r,'Tanggal')===d)&&(!ln||f(r,'Jalur')===ln));
+  const d=$('#rDay')?.value||'',ln=$('#rLane')?.value||'';
+  let list=RD().filter(r=>(!d||f(r,'Tanggal')===d)&&(!ln||f(r,'Jalur')===ln));
   list.sort((a,b)=>f(a,'Mulai').localeCompare(f(b,'Mulai'))||f(a,'Jalur').localeCompare(f(b,'Jalur'))||f(a,'ID').localeCompare(f(b,'ID')));
-  $('#runListMode')?.setAttribute('aria-pressed',RUN_MODE==='list');$('#runTimelineMode')?.setAttribute('aria-pressed',RUN_MODE==='timeline');
+  $$('[data-run-day]').forEach(btn=>btn.setAttribute('aria-selected',String(btn.dataset.runDay===d)));
+  $('#runListMode')?.setAttribute('aria-pressed',RUN_MODE==='list');
+  $('#runTimelineMode')?.setAttribute('aria-pressed',RUN_MODE==='timeline');
   $('#listRun').innerHTML=RUN_MODE==='timeline'?runDayTimeline(list,d):runListHtml(list,ln);
 }
 /* ---------- Tamu ---------- */
@@ -1077,6 +1101,7 @@ const DEMO_DATA={tabs:{
 
 buildNav();
 initReports();
+$$('.sync').forEach(btn=>btn.addEventListener('click',()=>load()));
 load();
 setInterval(()=>{ if(FETCHED&&!DEMO) setSync(navigator.onLine?'':'off',(navigator.onLine?'Updated ':'Offline · ')+relTime(FETCHED)); },60000);
 window.addEventListener('online',load);
