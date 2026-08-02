@@ -2,10 +2,10 @@
   "name": "PIM Event Control 2026 — A Global Player in the Making",
   "short_name": "PIM Event",
   "description": "PIM Event Control 2026 · Transform, Integrate, Accelerate",
-  "start_url": "./index.html",
+  "start_url": "./index.html#home",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#16233A",
   "theme_color": "#16233A",
   "lang": "id",
@@ -31,5 +31,46 @@
   "categories": [
     "business",
     "productivity"
+  ],
+  "shortcuts": [
+    {
+      "name": "Checklist kesiapan",
+      "short_name": "Checklist",
+      "description": "Item kesiapan per acara, PIC, dan deadline",
+      "url": "./index.html#chk",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Rundown harian",
+      "short_name": "Rundown",
+      "description": "Jadwal kegiatan per hari dan per jalur",
+      "url": "./index.html#run",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Isu terbuka",
+      "short_name": "Issues",
+      "description": "Keputusan yang masih tertunda",
+      "url": "./index.html#isu",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }

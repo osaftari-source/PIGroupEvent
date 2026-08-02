@@ -3,7 +3,7 @@
  * Bump CACHE_VERSION every time you change index.html, otherwise phones
  * that already installed the app keep serving the old file.
  */
-const CACHE_VERSION = 'pim-event-v9-5';
+const CACHE_VERSION = 'pim-event-v9-13';
 const SHELL = [
   './',
   './index.html',
@@ -14,9 +14,16 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
+  // {cache:'reload'} forces each shell file to come from the network rather than
+  // the browser's own HTTP cache. Without it a new worker can happily re-cache
+  // the stale index.html the browser was already holding, and the version bump
+  // achieves nothing. This runs in the background after the page has painted, so
+  // it never delays opening the app.
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then((cache) => cache.addAll(SHELL))
+      .then((cache) => cache.addAll(
+        SHELL.map((url) => new Request(url, { cache: 'reload' }))
+      ))
       .then(() => self.skipWaiting())
   );
 });
