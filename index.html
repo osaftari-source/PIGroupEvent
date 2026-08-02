@@ -406,7 +406,8 @@ footer{text-align:center;font-size:var(--fs-3);color:var(--ink-3);padding:22px 1
 .guest-head .tx{min-width:0;overflow:hidden}
 .guest-head .tx b,.guest-head .tx .sub,.guest-card>.sub{overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:759px){
-  #v-tamu,.guest-grid{width:100%;max-width:100%;overflow-x:hidden}
+  #v-tamu{width:100%;max-width:100%;overflow:visible}
+  .guest-grid{width:100%;max-width:100%;overflow-x:clip}
   .guest-card{padding:12px 12px 13px}
   .guest-card .l2{width:100%;overflow:hidden}
   .guest-card .tag{
@@ -515,7 +516,7 @@ footer{text-align:center;font-size:var(--fs-3);color:var(--ink-3);padding:22px 1
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.15
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.16
   </footer>
 </div></main>
 
@@ -542,7 +543,7 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-09',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v9-15',
+  CACHE_KEY: 'pim-event-cache-v9-16',
   CACHE_STABLE_KEY: 'pim-event-cache-latest',
   FETCH_TIMEOUT_MS: 60000
 };
