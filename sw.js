@@ -3,14 +3,17 @@
  * Bump CACHE_VERSION every time you change index.html, otherwise phones
  * that already installed the app keep serving the old file.
  */
-const CACHE_VERSION = 'pim-event-v9-13';
+const CACHE_VERSION = 'pim-event-v9-14';
 const SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './icons/icon-maskable.png'
+  './icons/icon-maskable.png',
+  './icons/favicon-32.png',
+  './icons/favicon-48.png',
+  './icons/favicon.ico'
 ];
 
 self.addEventListener('install', (event) => {
