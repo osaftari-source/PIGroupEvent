@@ -218,6 +218,14 @@ main{padding:16px 14px calc(26px + env(safe-area-inset-bottom))}
 .ring .bar{flex:1;height:9px;border-radius:5px;background:#2C4A6C;overflow:hidden;display:flex}
 .ring .bar i{display:block;height:100%}
 .ring b{font-family:'IBM Plex Mono',monospace;font-size:var(--fs-5);font-weight:600;color:#fff}
+/* The "is anything on fire" numbers used to sit at the very bottom of Beranda.
+   They belong in the hero, which is already the state-of-the-event block. */
+.hero-stats{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:15px;padding-top:14px;border-top:1px solid #2C4A6C}
+.hs b{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-d1);font-weight:700;line-height:1;display:block;color:#fff}
+.hs span{display:block;margin-top:4px;font-size:var(--fs-1);letter-spacing:.1em;text-transform:uppercase;color:#93A6C4}
+.hs.bad b{color:#FF8A7E} .hs.warn b{color:var(--amber)}
+/* A zero here is good news, so it should not shout as loudly as a nine. */
+.hs.zero b{color:#5E7595}
 @media(max-width:520px){ .hero .meta{margin-left:0;text-align:left;width:100%} }
 
 .stat.bad b{color:var(--st-block)} .stat.warn b{color:var(--st-prog)} .stat.good b{color:var(--st-done)}
@@ -322,6 +330,7 @@ footer{text-align:center;font-size:var(--fs-3);color:var(--ink-3);padding:22px 1
 /* ============ QUICK DASHBOARD ============ */
 .metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px}
 @media(min-width:700px){.metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.metric-grid>.metric-card:last-child:nth-child(4n+1){grid-column:1/-1}
 .metric-card{position:relative;overflow:hidden;background:linear-gradient(145deg,#fff,#f7f9fc);border:1px solid var(--rule-2);border-radius:12px;padding:13px 14px;min-height:92px}
 .metric-card:before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:var(--signal)}
 .metric-card.warn:before{background:var(--amber)}.metric-card.bad:before{background:var(--st-block)}.metric-card.good:before{background:var(--st-done)}
@@ -445,7 +454,7 @@ footer{text-align:center;font-size:var(--fs-3);color:var(--ink-3);padding:22px 1
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.9
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.10
   </footer>
 </div></main>
 
@@ -589,8 +598,8 @@ function summaryTimelineItems(dayRows){
   const findAll=re=>dayRows.filter(r=>re.test(f(r,'Kegiatan')));
 
   dayRows.filter(r=>/\bflight\b/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
-  dayRows.filter(r=>/^(VIP Dinner|Welcoming Dinner)$/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
-  dayRows.filter(r=>/^Makan (siang|malam) Batch 1/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
+  dayRows.filter(r=>/^(VIP Dinner|Welcoming Dinner|Gala Dinner)\b/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
+  dayRows.filter(r=>/^Makan\s+(siang|malam)\b/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
   const rakor=find(/Rakor Direktur Utama/i);if(rakor)add(timelineBlock(rakor));
   dayRows.filter(r=>/^Sarapan/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
 
@@ -599,7 +608,7 @@ function summaryTimelineItems(dayRows){
   if(plenaryStart&&plenaryEnd)add({label:'Kedatangan VIP & Plenary Session',lane:'TAMU VIP + TAMU UNDANGAN',venue:'Gedung Pertemuan',start:f(plenaryStart,'Mulai'),end:f(plenaryEnd,'Selesai')});
 
   const plant=find(/^Plant Tour/i);if(plant)add(timelineBlock(plant));
-  dayRows.filter(r=>/^Ishoma$/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
+  dayRows.filter(r=>/^Ishoma\b/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
 
   const rakerRows=dayRows.filter(r=>f(r,'Jalur').toUpperCase()==='TAMU UNDANGAN'&&/tenda di sebelah gedung pertemuan/i.test(f(r,'Venue')));
   add(aggregateBlock(rakerRows,'Raker RKAP 2027 PI Group','RAKER RKAP','Tenda di sebelah Gedung Pertemuan'));
@@ -638,7 +647,7 @@ function rundownChart(){
       let end=em===null?start+15:em;if(end<sm)end+=1440;end=Math.max(start+12,Math.min(1440,end));
       const left=(start-360)/1080*100,width=Math.max(1.5,(end-start)/1080*100);
       const loc=placeTag(r.venue,r.label),barText=`${r.lane} · ${loc}`;
-      return `<div class="tl-row"><div class="tl-label" title="${esc(r.label)} · ${esc(r.venue)}"><span class="tl-activity"><span class="tl-time">${esc(String(r.start).slice(0,5))}</span> ${esc(r.label)}</span><span class="tl-location"><i class="tl-place">${esc(loc)}</i><span class="tl-venue">${esc(r.venue)}</span></span></div><div class="tl-track"><div class="tl-bar ${timelineClass(r.lane)}" style="left:${left}%;width:${width}%" title="${esc(r.label)} · ${esc(r.lane)} · ${esc(r.venue)}">${esc(barText)}</div></div></div>`;
+      return `<div class="tl-row"><div class="tl-label" title="${esc(r.label)} · ${esc(r.venue)}"><span class="tl-activity"><span class="tl-time">${esc(String(r.start).slice(0,5))}${r.end?'–'+esc(String(r.end).slice(0,5)):''}</span> ${esc(r.label)}</span><span class="tl-location"><i class="tl-place">${esc(loc)}</i><span class="tl-venue">${esc(r.venue)}</span></span></div><div class="tl-track"><div class="tl-bar ${timelineClass(r.lane)}" style="left:${left}%;width:${width}%" title="${esc(r.label)} · ${esc(r.lane)} · ${esc(r.venue)}">${esc(barText)}</div></div></div>`;
     }).join('');
     // During the event itself, mark where "now" falls on the day being viewed.
     const clock=eventClock();
@@ -976,7 +985,14 @@ function viewHome(){
 
   $('#v-home').innerHTML=demoNote()+`
   <div class="stale-banner" id="staleBanner" role="status" hidden></div>
-  <div class="hero"><div class="row"><div class="cd"><b>${cdN}</b><i>${cdL}</i></div><div class="meta"><b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>PT Pupuk Iskandar Muda, Lhokseumawe</div></div><div class="ring"><div class="bar"><i style="width:${w(done)}%;background:var(--st-done)"></i><i style="width:${w(prog)}%;background:var(--amber)"></i><i style="width:${w(blocked)}%;background:var(--st-block)"></i></div><b>${pct}%</b></div></div>
+  <div class="hero"><div class="row"><div class="cd"><b>${cdN}</b><i>${cdL}</i></div><div class="meta"><b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>PT Pupuk Iskandar Muda, Lhokseumawe</div></div><div class="ring"><div class="bar"><i style="width:${w(done)}%;background:var(--st-done)"></i><i style="width:${w(prog)}%;background:var(--amber)"></i><i style="width:${w(blocked)}%;background:var(--st-block)"></i></div><b>${pct}%</b></div>
+    <div class="hero-stats">
+      <div class="hs ${over?'bad':'zero'}"><b>${over}</b><span>Overdue</span></div>
+      <div class="hs ${blocked?'bad':'zero'}"><b>${blocked}</b><span>Blocked</span></div>
+      <div class="hs ${hi.length?'warn':'zero'}"><b>${hi.length}</b><span>Isu Prioritas</span></div>
+      <div class="hs ${tbc?'warn':'zero'}"><b>${tbc}</b><span>Menunggu EO</span></div>
+      <div class="hs"><b>${items.length}</b><span>Total Item</span></div>
+    </div></div>
 
   <div class="panel"><div class="metric-grid">
     <div class="metric-card"><b>${total}</b><span>Total Peserta</span><small>${vip} VIP terdaftar · ${raker} peserta Raker terdaftar · ${rakerOfficial} headcount resmi</small></div>
@@ -999,8 +1015,7 @@ function viewHome(){
     </div>
   </div>
 
-
-  <div class="panel" style="margin-top:14px"><h3>Status Operasional</h3><div class="metric-grid"><div class="metric-card"><b>${items.length}</b><span>Total Items</span></div><div class="metric-card ${over?'bad':''}"><b>${over}</b><span>Overdue</span></div><div class="metric-card ${blocked?'bad':''}"><b>${blocked}</b><span>Blocked</span></div><div class="metric-card ${hi.length?'warn':''}"><b>${hi.length}</b><span>Isu Prioritas</span></div></div><div class="kv"><span>Menunggu EO</span><b>${tbc} item bertanda TBC</b></div><div class="kv"><span>Isu terbuka</span><b>${iss.length} isu · ${hi.length} prioritas tinggi</b></div></div>`;
+`;
 
   $$('#v-home [data-acara]').forEach(b=>b.addEventListener('click',()=>{go('chk');const sel=$('#fAcara');if(sel){sel.value=b.dataset.acara;drawChk();}}));
   const more=$('#deadlineMore');if(more){let open=false;more.addEventListener('click',()=>{open=!open;$$('#v-home .deadline-extra').forEach((el,i)=>{if(i>=3)el.hidden=!open;});more.textContent=open?'Tampilkan lebih sedikit':`Tampilkan ${Math.max(0,soon.length-3)} lainnya`;});}

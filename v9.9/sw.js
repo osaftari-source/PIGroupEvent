@@ -3,7 +3,7 @@
  * Bump CACHE_VERSION every time you change index.html, otherwise phones
  * that already installed the app keep serving the old file.
  */
-const CACHE_VERSION = 'pim-event-v9-10';
+const CACHE_VERSION = 'pim-event-v9-11';
 const SHELL = [
   './',
   './index.html',
