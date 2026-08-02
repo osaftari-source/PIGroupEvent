@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PIM Event Control 2026 · A Global Player in the Making</title>
+<meta name="theme-color" content="#16233A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Type scale. Seven steps for text, three for display numerals — every
+     font-size in the app resolves to one of these. */
+  --fs-1:9.5px; --fs-2:10.5px; --fs-3:11.5px; --fs-4:12.5px;
+  --fs-5:14px;  --fs-6:16px;   --fs-7:20px;
+  --fs-d1:24px; --fs-d2:30px;  --fs-d3:56px;
+  /* Form controls stay at 16px on touch: anything smaller makes iOS Safari
+     zoom the page when a field takes focus. */
+  --fs-control:16px;
+}
+:root{
+  --field:#EDF0F5; --panel:#FFFFFF; --panel-2:#F6F8FB;
+  --ink:#16233A; --ink-2:#4A5A73; --ink-3:#7B8AA1;
+  --rule:#D3DBE6; --rule-2:#E6EBF2;
+  --signal:#0B6E99; --amber:#F0A500;
+  --st-none:#8A93A3; --st-prog:#B26A00; --st-done:#0E7C5A;
+  --st-block:#B3271E; --st-na:#AAB2BF;
+  --r:14px; --r-sm:9px;
+  --shadow:0 1px 2px rgba(22,35,58,.05), 0 10px 26px rgba(22,35,58,.06);
+  --side:246px; --tap:44px;
+  /* Lane identity. One source of truth — the desktop timeline, the mobile
+     agenda and the participant bar all read these. The PDF repeats the same
+     hex values literally because it renders in its own document. */
+  --lane-vip:#A67C00; --lane-undangan:#2878B5; --lane-gabungan:#6B4FA1;
+  --lane-dirut:#17365D; --lane-raker:#23836B; --lane-konsultasi:#9A3B35;
+  --lane-olimpiade:#D97916; --lane-default:#0B6E99;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--field); color:var(--ink);
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-size:var(--fs-5); line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.cond{font-family:'Barlow Condensed','Inter',sans-serif}
+button,input,select{font:inherit}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+
+/* ============ SIDEBAR (desktop) ============ */
+aside{display:none}
+@media(min-width:860px){
+  aside{
+    display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;width:var(--side);
+    background:var(--ink);color:#fff;padding:22px 14px;z-index:50;
+  }
+  .brand{padding:0 8px 18px;border-bottom:1px solid #2C4A6C;margin-bottom:16px}
+  .brand h1{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:var(--fs-d1);line-height:1.02;
+    letter-spacing:.02em;text-transform:uppercase;margin:0;
+  }
+  .brand span{display:block;font-size:var(--fs-2);font-weight:500;letter-spacing:.14em;color:#93A6C4;margin-top:6px}
+  .snav{display:flex;flex-direction:column;gap:2px;flex:1}
+  .snav button{
+    display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+    background:none;border:0;color:#A9BAD4;cursor:pointer;
+    padding:10px 11px;border-radius:var(--r-sm);font-size:var(--fs-5);font-weight:500;
+  }
+  .snav button:hover{background:#1E3050;color:#fff}
+  .snav button[aria-selected="true"]{background:#24395E;color:#fff}
+  .snav button svg{flex:none;opacity:.9}
+  .snav .badge{
+    margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:var(--fs-2);
+    background:#2C4A6C;color:#C9D8EC;border-radius:20px;padding:1px 7px;
+  }
+  .snav button[aria-selected="true"] .badge{background:var(--amber);color:#3A2600;font-weight:600}
+  .sfoot{border-top:1px solid #2C4A6C;padding-top:14px;margin-top:12px}
+  main{margin-left:var(--side)}
+  header.mob{display:none}
+}
+
+/* ============ MOBILE HEADER + DRAWER ============ */
+header.mob{
+  background:var(--ink);color:#fff;position:sticky;top:0;z-index:40;
+  padding:calc(8px + env(safe-area-inset-top)) 12px 9px;
+  display:flex;align-items:center;gap:9px;
+}
+.ham{
+  flex:none;width:var(--tap);height:var(--tap);margin-left:-7px;
+  display:flex;align-items:center;justify-content:center;position:relative;
+  background:none;border:0;color:#fff;cursor:pointer;border-radius:var(--r-sm);
+}
+.ham:active{background:#1E3050}
+header.mob h1{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:var(--fs-7);line-height:1.05;
+  letter-spacing:.02em;text-transform:uppercase;margin:0;flex:1;min-width:0;
+}
+header.mob h1 span{
+  display:block;font-family:'Inter',sans-serif;font-size:var(--fs-2);font-weight:500;
+  letter-spacing:.12em;text-transform:uppercase;color:#93A6C4;margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* Slide-in drawer — same navy identity as the desktop sidebar, so the app has
+   one navigation object rather than two that look unrelated. */
+.scrim{
+  position:fixed;inset:0;z-index:60;background:rgba(12,25,44,.55);
+  opacity:0;visibility:hidden;transition:opacity .24s ease,visibility 0s .24s;
+}
+.scrim.on{opacity:1;visibility:visible;transition:opacity .24s ease}
+nav.drawer{
+  position:fixed;top:0;left:0;bottom:0;z-index:61;width:min(302px,84vw);
+  background:var(--ink);color:#fff;display:flex;flex-direction:column;overflow-y:auto;
+  padding:calc(20px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  transform:translateX(-100%);visibility:hidden;
+  transition:transform .24s cubic-bezier(.4,0,.2,1),visibility 0s .24s;
+  box-shadow:0 0 44px rgba(0,0,0,.42);
+}
+nav.drawer.on{
+  transform:none;visibility:visible;
+  transition:transform .24s cubic-bezier(.4,0,.2,1);
+}
+.dbrand{padding:0 8px 16px;border-bottom:1px solid #2C4A6C;margin-bottom:14px}
+.dbrand h2{
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:var(--fs-d1);line-height:1.02;
+  letter-spacing:.02em;text-transform:uppercase;margin:0;
+}
+.dbrand span{display:block;font-size:var(--fs-2);font-weight:500;letter-spacing:.14em;color:#93A6C4;margin-top:6px}
+.dbrand em{
+  display:block;margin-top:10px;font-family:'Barlow Condensed',sans-serif;font-style:normal;
+  font-size:var(--fs-4);line-height:1.2;letter-spacing:.07em;color:#fff;
+}
+.dbrand small{display:block;margin-top:3px;font-size:var(--fs-1);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.62)}
+.dnav{display:flex;flex-direction:column;gap:2px;flex:1}
+.dnav button{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:none;border:0;color:#A9BAD4;cursor:pointer;min-height:var(--tap);
+  padding:10px 11px;border-radius:var(--r-sm);font-size:var(--fs-5);font-weight:500;
+}
+.dnav button:active{background:#1E3050;color:#fff}
+.dnav button[aria-selected="true"]{background:#24395E;color:#fff}
+.dnav button[aria-selected="true"] svg{stroke:var(--amber)}
+.dnav button svg{flex:none;opacity:.9}
+.dnav .ndot{
+  position:static;transform:none;margin-left:auto;flex:none;
+  width:8px;height:8px;border-radius:50%;background:var(--st-block);
+}
+.dfoot{border-top:1px solid #2C4A6C;padding-top:12px;margin-top:12px}
+.dfoot .report-launch{width:calc(100% - 28px);margin:0 14px 10px}
+
+/* Desktop/tablet web layout — keep mobile navigation out of the web view. */
+@media(min-width:860px){
+  header.mob{display:none!important}
+  nav.drawer,.scrim{display:none!important}
+  .panel{margin-bottom:14px}
+}
+
+
+/* ============ SYNC PILL ============ */
+.sync{
+  display:flex;align-items:center;gap:7px;font-size:var(--fs-3);color:#93A6C4;
+  background:none;border:0;cursor:pointer;padding:6px 2px;min-height:var(--tap);
+}
+aside .sync{color:#93A6C4;padding:2px}
+.sync:disabled{opacity:.55}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--st-done);flex:none}
+.dot.stale{background:var(--amber)} .dot.off{background:var(--st-block)}
+
+/* ============ LAYOUT ============ */
+main{padding:16px 14px calc(26px + env(safe-area-inset-bottom))}
+@media(min-width:860px){ main{padding:26px 30px 40px} }
+.wrap{max-width:1480px;margin:0 auto}
+.view{display:none} .view.on{display:block}
+
+.ph{margin:0 2px 14px}
+.ph h2{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-d1);font-weight:700;letter-spacing:.01em;margin:0;text-transform:uppercase}
+.ph p{margin:3px 0 0;font-size:var(--fs-5);color:var(--ink-3)}
+@media(min-width:860px){ .ph h2{font-size:var(--fs-d2)} }
+
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+.panel>h3,.section-head,.panel.fold>summary{
+  font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-5);font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);
+  margin:0;padding:13px 16px;border-bottom:1px solid var(--rule-2);background:var(--panel-2);
+}
+.section-head h3{margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
+.grid{display:grid;gap:14px}
+@media(min-width:860px){
+  .g2{grid-template-columns:1fr 1fr;align-items:start}
+  .grid>div>.panel{margin-bottom:14px}
+}
+
+/* ============ STALE / OFFLINE BANNER ============ */
+.stale-banner{
+  display:block;margin-bottom:12px;border-radius:var(--r-sm);
+  border:1px solid #E6C77A;background:#FFF7E6;color:#6B4E00;
+  padding:10px 13px;font-size:var(--fs-4);line-height:1.45;
+}
+.stale-banner[hidden]{display:none}
+
+/* ============ HERO ============ */
+.hero{
+  background:var(--ink);color:#fff;border-radius:var(--r);padding:20px 20px 18px;
+  margin-bottom:14px;box-shadow:var(--shadow);
+}
+.hero .row{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.hero .cd{display:flex;align-items:baseline;gap:11px}
+.hero .cd b{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-d3);font-weight:700;line-height:.82;color:var(--amber)}
+.hero .cd i{font-style:normal;font-size:var(--fs-3);letter-spacing:.13em;text-transform:uppercase;color:#93A6C4;line-height:1.35}
+.hero .meta{margin-left:auto;text-align:right;font-size:var(--fs-4);color:#A9BAD4;line-height:1.7}
+.hero .meta b{color:#fff;font-weight:600}
+.ring{display:flex;gap:10px;align-items:center;margin-top:16px;padding-top:15px;border-top:1px solid #2C4A6C}
+.ring .bar{flex:1;height:9px;border-radius:5px;background:#2C4A6C;overflow:hidden;display:flex}
+.ring .bar i{display:block;height:100%}
+.ring b{font-family:'IBM Plex Mono',monospace;font-size:var(--fs-5);font-weight:600;color:#fff}
+@media(max-width:520px){ .hero .meta{margin-left:0;text-align:left;width:100%} }
+
+.stat.bad b{color:var(--st-block)} .stat.warn b{color:var(--st-prog)} .stat.good b{color:var(--st-done)}
+
+/* ============ ROWS ============ */
+.bd{display:block;width:100%;text-align:left;background:none;border:0;cursor:pointer;padding:11px 16px;border-bottom:1px solid var(--rule-2);color:inherit}
+.bd:last-child{border-bottom:0}
+.bd:hover{background:var(--panel-2)}
+.bd .top{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.bd .nm{font-weight:600;font-size:var(--fs-5);flex:1;min-width:0}
+.bd .pc{font-family:'IBM Plex Mono',monospace;font-size:var(--fs-5);font-weight:600;color:var(--ink-2)}
+.bar2{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--rule-2)}
+.bar2 i{display:block;height:100%}
+.bd .meta{font-size:var(--fs-3);color:var(--ink-3);margin-top:5px}
+.warn-t{color:var(--st-block)}
+
+.item{padding:12px 16px;border-bottom:1px solid var(--rule-2)}
+.item:last-child{border-bottom:0}
+.l1{display:flex;gap:10px;align-items:flex-start}
+.id{font-family:'IBM Plex Mono',monospace;font-size:var(--fs-2);color:var(--ink-3);padding-top:2px;flex:none}
+.tx{flex:1;min-width:0;font-size:var(--fs-5);line-height:1.42}
+.l2{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{
+  font-size:var(--fs-2);letter-spacing:.04em;padding:2.5px 7px;border-radius:5px;
+  background:var(--panel-2);border:1px solid var(--rule-2);color:var(--ink-2);white-space:nowrap;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;
+}
+.tag.st{color:#fff;border-color:transparent;font-weight:500;text-transform:uppercase;font-size:var(--fs-2);letter-spacing:.06em}
+.st-none{background:var(--st-none)}.st-prog{background:var(--st-prog)}.st-done{background:var(--st-done)}
+.st-block{background:var(--st-block)}.st-na{background:var(--st-na)}
+.tag.due{background:#FFF7E8;border-color:#F0D08A;color:#7A4E00}
+.tag.over,.tag.hi{background:#FDECEA;border-color:#F0B3AD;color:#93211A;font-weight:600}
+.tag.tbc{background:#FDECEA;border-color:#F0B3AD;color:#93211A}
+.tag.fly{background:#EAF3F8;border-color:#B8D6E6;color:#0B4D6B}
+.grp{
+  font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-5);font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-2);background:var(--panel-2);
+  padding:8px 16px;border-bottom:1px solid var(--rule-2);border-top:1px solid var(--rule-2);
+}
+.grp:first-child{border-top:0}
+.sub{font-size:var(--fs-4);color:var(--ink-3);margin-top:7px;line-height:1.5}
+/* Pills are for status and exceptions only. Plain attributes — owner, PIC,
+   venue, company — sit on one quiet line so the pills mean something again. */
+.rowmeta{margin-top:6px;font-size:var(--fs-3);color:var(--ink-3);line-height:1.5}
+
+/* priority chips */
+.pri{flex:none;width:34px;height:34px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:var(--fs-6);color:#fff}
+.p1{background:#B3271E}.p2{background:#B26A00}.p3{background:#1F3864}.p4{background:#7B8AA1}
+.legend{display:flex;flex-wrap:wrap;gap:9px;padding:12px 16px;border-bottom:1px solid var(--rule-2);font-size:var(--fs-3);color:var(--ink-2)}
+.legend div{display:flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:3px;flex:none;display:block}
+
+/* rundown */
+.rd{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--rule-2)}
+.rd:last-child{border-bottom:0}
+.rd .tm{flex:none;width:48px;font-family:'IBM Plex Mono',monospace;font-size:var(--fs-5);font-weight:600;line-height:1.35}
+.rd .tm small{display:block;font-weight:400;font-size:var(--fs-3);color:var(--ink-3)}
+.rd .kg{font-size:var(--fs-5);line-height:1.42}
+.rd.now{background:#FFF9EA;box-shadow:inset 3px 0 0 var(--amber)}
+.rd.now .kg{font-weight:600}
+.lane{font-size:var(--fs-2);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+.rd-note{margin-top:8px;padding:7px 9px;border-left:3px solid var(--amber);background:#FFF9EA;border-radius:0 6px 6px 0;color:#6B4400;font-size:var(--fs-3);line-height:1.45}
+.tag.lane-tag{background:#EAF3F8;border-color:#B8D6E6;color:#0B4D6B;font-weight:600}
+
+/* filters */
+.filters{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;
+  position:sticky;top:var(--hdr-h,0px);z-index:20;
+  padding:9px 2px;margin-left:-2px;margin-right:-2px;
+  background:var(--bg);box-shadow:0 6px 10px -8px rgba(22,35,58,.25);
+}
+.filters select,.filters input{
+  font-size:var(--fs-control);color:var(--ink);background:var(--panel);border:1px solid var(--rule);
+  border-radius:var(--r-sm);padding:10px 11px;min-height:var(--tap);flex:1 1 140px;min-width:0;
+}
+.filters input{flex:1 1 100%}
+@media(min-width:860px){ .filters input{flex:2 1 300px} .filters select,.filters input{font-size:var(--fs-5)} }
+/* A control that is actually narrowing the list should look different from one
+   sitting at its default. */
+.filters .set{border-color:var(--signal);box-shadow:inset 3px 0 0 var(--signal);font-weight:600}
+.f-reset{
+  order:98;flex:0 0 auto;font-size:var(--fs-3);font-weight:600;color:var(--signal);
+  background:none;border:1px solid var(--rule);border-radius:999px;
+  padding:6px 12px;min-height:32px;cursor:pointer;
+}
+.f-reset:hover{background:var(--panel)}
+.count{font-size:var(--fs-3);color:var(--ink-3);margin:0 4px 9px}
+.filters .count{order:99;flex:0 0 auto;margin:0 0 0 auto;padding-left:4px}
+
+.empty{padding:36px 20px;text-align:center;color:var(--ink-3);font-size:var(--fs-5)}
+.empty b{display:block;color:var(--ink-2);font-size:var(--fs-5);margin-bottom:5px;font-weight:600}
+.note{background:#FFF9EA;border:1px solid #F0D08A;border-radius:var(--r-sm);padding:11px 14px;
+  font-size:var(--fs-4);color:#6B4400;margin-bottom:14px;line-height:1.5}
+.note b{display:block;margin-bottom:3px}
+.kv{display:flex;gap:10px;padding:10px 16px;border-bottom:1px solid var(--rule-2);font-size:var(--fs-5)}
+.kv:last-child{border-bottom:0}
+.kv span{color:var(--ink-3);flex:none;width:118px;font-size:var(--fs-4);padding-top:1px}
+.kv b{font-weight:500;flex:1;min-width:0}
+footer{text-align:center;font-size:var(--fs-3);color:var(--ink-3);padding:22px 16px 6px;line-height:1.6}
+
+/* ============ QUICK DASHBOARD ============ */
+.metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px}
+@media(min-width:700px){.metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.metric-card{position:relative;overflow:hidden;background:linear-gradient(145deg,#fff,#f7f9fc);border:1px solid var(--rule-2);border-radius:12px;padding:13px 14px;min-height:92px}
+.metric-card:before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:var(--signal)}
+.metric-card.warn:before{background:var(--amber)}.metric-card.bad:before{background:var(--st-block)}.metric-card.good:before{background:var(--st-done)}
+.metric-card b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-d2);line-height:1;color:var(--ink)}
+.metric-card span{display:block;margin-top:5px;font-size:var(--fs-2);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.metric-card small{display:block;margin-top:5px;color:var(--ink-2);font-size:var(--fs-3);line-height:1.35}
+.visual-bar{height:10px;background:var(--rule-2);border-radius:999px;overflow:hidden;display:flex;margin:12px 16px 8px}
+.visual-bar i{display:block;height:100%}
+.visual-legend{display:flex;flex-wrap:wrap;gap:8px 13px;padding:0 16px 13px;font-size:var(--fs-3);color:var(--ink-2)}
+.visual-legend span{display:flex;align-items:center;gap:5px}.visual-legend i{width:9px;height:9px;border-radius:3px;display:block}
+.mini-bars{padding:11px 16px 14px}.mini-row{display:grid;grid-template-columns:minmax(88px,132px) 1fr auto;align-items:center;gap:9px;margin:8px 0;font-size:var(--fs-3)}
+.mini-row span{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mini-track{height:8px;border-radius:999px;background:var(--rule-2);overflow:hidden}.mini-track i{display:block;height:100%;background:var(--signal);border-radius:999px}.mini-row b{font-family:'IBM Plex Mono',monospace;font-size:var(--fs-3)}
+.vehicle-summary-grid{display:grid;grid-template-columns:1fr;gap:12px;padding:0 12px 12px}.vehicle-summary{border:1px solid var(--rule-2);border-radius:12px;background:var(--panel);overflow:hidden}.vehicle-summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--rule-2);background:var(--panel-2)}.vehicle-summary-head b{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-4);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}.vehicle-summary-head span{font-size:var(--fs-2);color:var(--ink-3)}.vehicle-summary .mini-bars{padding:8px 12px 11px}.vehicle-summary.type .mini-row{grid-template-columns:minmax(120px,190px) 1fr auto}.vehicle-summary.company .mini-row{grid-template-columns:minmax(170px,270px) 1fr auto}@media(min-width:980px){.vehicle-summary-grid{grid-template-columns:.85fr 1.15fr}}@media(max-width:520px){.vehicle-summary.type .mini-row,.vehicle-summary.company .mini-row{grid-template-columns:minmax(110px,145px) 1fr auto}}
+.consumption-overview{grid-template-columns:1fr}.consumption-overview .vehicle-summary .mini-row{grid-template-columns:minmax(110px,170px) 1fr auto}@media(min-width:700px){.consumption-overview{grid-template-columns:1fr 1fr}}
+.consumption-days{padding:0 12px 12px}.cons-day{border:1px solid var(--rule-2);border-radius:12px;overflow:hidden;margin-top:12px;background:var(--panel)}.cons-day:first-child{margin-top:0}.cons-day>summary{list-style:none;cursor:pointer}.cons-day>summary::-webkit-details-marker{display:none}.cons-day-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:var(--panel-2);border-bottom:1px solid var(--rule-2)}.cons-day-head b{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-5);letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}.cons-day-head span{font-size:var(--fs-2);color:var(--ink-3);text-align:right}.cons-day-head:after{content:"−";font-size:var(--fs-7);color:var(--ink-3);margin-left:4px}.cons-day:not([open]) .cons-day-head:after{content:"+"}.cons-day-body{display:block}.cons-day:not([open]) .cons-day-body{display:none}.cons-activity{display:grid;grid-template-columns:74px minmax(180px,1.5fr) minmax(90px,1fr) 60px;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--rule-2)}.cons-activity:last-child{border-bottom:0}.cons-clock b,.cons-qty b{display:block;font-family:'IBM Plex Mono',monospace;font-size:var(--fs-4);color:var(--ink)}.cons-clock span,.cons-qty span{display:block;font-size:var(--fs-1);color:var(--ink-3);line-height:1.3}.cons-desc{min-width:0}.cons-desc b{display:block;font-size:var(--fs-4);line-height:1.35}.cons-desc small{display:block;margin-top:3px;font-size:var(--fs-2);color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cons-track{height:7px;border-radius:4px;background:var(--rule-2);overflow:hidden}.cons-track i{display:block;height:100%;border-radius:4px;background:var(--signal)}.cons-qty{text-align:right}.cons-qty b{font-size:var(--fs-5)}@media(max-width:620px){.cons-activity{grid-template-columns:58px minmax(0,1fr) 52px;gap:8px}.cons-track{grid-column:2/-1}.cons-desc small{white-space:normal}.cons-day-head{align-items:flex-start}}
+.panel.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.panel.fold>summary::-webkit-details-marker{display:none}.panel.fold>summary:after{content:'−';font-family:'Inter',sans-serif;font-size:var(--fs-7);line-height:1;color:var(--ink-3)}.panel.fold:not([open])>summary:after{content:'+'}.panel.fold:not([open])>summary{border-bottom:0}
+.show-more{display:block;width:calc(100% - 32px);margin:10px 16px 14px;border:1px solid var(--rule);background:var(--panel-2);color:var(--ink);border-radius:9px;min-height:40px;cursor:pointer;font-weight:600;font-size:var(--fs-4)}.show-more:hover{background:#eef3f8}
+.deadline-extra[hidden]{display:none}
+.timeline-wrap{overflow-x:auto;padding:12px 14px 16px}.timeline-chart{--tl-label:310px;min-width:1120px}
+.tl-axis{display:grid;grid-template-columns:var(--tl-label) minmax(760px,1fr);gap:12px;align-items:end;margin-bottom:8px}.tl-hours{position:relative;height:12px;font-family:'IBM Plex Mono',monospace;font-size:var(--fs-1);color:var(--ink-3)}.tl-hours span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}.tl-hours span:first-child{transform:none}.tl-hours span:last-child{transform:translateX(-100%)}
+.tl-legend{display:flex;flex-wrap:wrap;gap:7px 13px;padding:0 0 11px var(--tl-label);margin-left:12px;font-size:var(--fs-2);color:var(--ink-2)}.tl-legend span{display:flex;align-items:center;gap:5px}.tl-legend i{display:block;width:10px;height:10px;border-radius:3px}.tl-legend .vip{background:var(--lane-vip)}.tl-legend .undangan{background:var(--lane-undangan)}.tl-legend .gabungan{background:var(--lane-gabungan)}.tl-legend .dirut{background:var(--lane-dirut)}.tl-legend .raker{background:var(--lane-raker)}.tl-legend .konsultasi{background:var(--lane-konsultasi)}.tl-legend .olimpiade{background:var(--lane-olimpiade)}
+.tl-day{margin-top:14px;border-top:1px solid var(--rule-2);padding-top:10px}.tl-day:first-child{margin-top:0}.tl-day-title{display:flex;justify-content:space-between;gap:12px;margin:0 0 8px calc(var(--tl-label) + 12px);font-size:var(--fs-3);color:var(--ink-3)}.tl-day-title b{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-5);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+.tl-row{display:grid;grid-template-columns:var(--tl-label) minmax(760px,1fr);gap:12px;align-items:center;min-height:47px;margin:4px 0}.tl-label{font-size:var(--fs-3);line-height:1.28;color:var(--ink-2);min-width:0;padding-right:4px}.tl-activity{display:block;font-weight:500;white-space:normal;overflow-wrap:anywhere}.tl-time{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--ink);margin-right:4px}.tl-location{display:flex;align-items:center;gap:6px;margin-top:4px;min-width:0;color:var(--ink-3);font-size:var(--fs-2)}.tl-place{flex:none;background:#EEF3F8;border:1px solid #D6E0EA;color:#35506D;border-radius:999px;padding:1px 6px;font-weight:600;letter-spacing:.035em;text-transform:uppercase}.tl-venue{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.tl-track{height:32px;border-radius:7px;background:repeating-linear-gradient(90deg,#f4f6f9 0,#f4f6f9 calc(100%/6 - 1px),#dfe5ed calc(100%/6 - 1px),#dfe5ed calc(100%/6));position:relative;overflow:hidden}.tl-bar{position:absolute;top:5px;height:22px;border-radius:6px;background:var(--signal);color:#fff;font-size:var(--fs-1);line-height:22px;padding:0 7px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:4px;box-shadow:0 1px 3px rgba(22,35,58,.18)}.tl-day-rows{position:relative}
+.tl-now{
+  position:absolute;top:0;bottom:0;pointer-events:none;z-index:2;
+  left:calc(var(--tl-label) + 12px);right:0;
+}
+.tl-now:before{
+  content:'';position:absolute;top:0;bottom:0;left:var(--now);
+  width:2px;background:var(--st-block);opacity:.8;
+}
+.tl-now span{
+  position:absolute;top:-2px;left:var(--now);transform:translateX(-50%);
+  font-family:'IBM Plex Mono',monospace;font-size:var(--fs-1);font-weight:600;
+  background:var(--st-block);color:#fff;border-radius:4px;padding:1px 4px;
+}
+.tl-bar.vip{background:var(--lane-vip)}.tl-bar.undangan{background:var(--lane-undangan)}.tl-bar.gabungan{background:var(--lane-gabungan)}.tl-bar.raker{background:var(--lane-raker)}.tl-bar.konsultasi{background:var(--lane-konsultasi)}.tl-bar.olimpiade{background:var(--lane-olimpiade)}.tl-bar.dirut{background:var(--lane-dirut)}
+@media(max-width:700px){.timeline-chart{--tl-label:270px;min-width:1040px}.tl-row{min-height:51px}.tl-legend{padding-left:var(--tl-label)}}
+.quick-grid{display:grid;gap:14px}@media(min-width:1250px){.quick-grid{grid-template-columns:1.15fr .85fr}}
+.guest-grid,.room-grid{display:grid;grid-template-columns:1fr;gap:10px;background:transparent;border:0;box-shadow:none;overflow:visible}
+@media(min-width:760px){.guest-grid,.room-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1250px){.guest-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.guest-grid .grp,.room-grid .grp{grid-column:1/-1;border:1px solid var(--rule);border-radius:9px;padding:8px 12px;margin-top:4px}
+.guest-card,.room-card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:13px 14px;box-shadow:0 5px 18px rgba(22,35,58,.045)}
+.guest-card{border-left:4px solid var(--ink-3)}.guest-card.p1c{border-left-color:#B3271E}.guest-card.p2c{border-left-color:#B26A00}.guest-card.p3c{border-left-color:#1F3864}.guest-card.p4c{border-left-color:#7B8AA1}
+.guest-head{display:flex;gap:10px;align-items:flex-start}.guest-head .tx{font-size:var(--fs-5)}.guest-head .tx b{font-size:var(--fs-5)}.guest-head .id{margin-left:auto;padding-top:2px}
+.room-card .room-no{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-d1);line-height:1;font-weight:700}.room-card .room-name{font-weight:600;margin-top:5px}.room-card.empty-room{background:#fafbfd;border-style:dashed}
+.status-pill{font-size:var(--fs-2);font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:3px 8px;display:inline-block}.status-pill.ok{background:#E8F5EF;color:#0E6A4D}.status-pill.wait{background:#FFF3D8;color:#845200}.status-pill.bad{background:#FDECEA;color:#93211A}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-head small{font-family:'Inter',sans-serif;font-size:var(--fs-2);font-weight:400;letter-spacing:0;text-transform:none;color:var(--ink-3)}
+
+
+/* Mobile guest cards: prevent long metadata and flight tags from widening the page. */
+.guest-grid,.guest-card,.guest-head,.guest-card .l2{min-width:0;max-width:100%}
+.guest-card{width:100%;overflow:hidden}
+.guest-head .tx{min-width:0;overflow:hidden}
+.guest-head .tx b,.guest-head .tx .sub,.guest-card>.sub{overflow-wrap:anywhere;word-break:break-word}
+@media(max-width:759px){
+  #v-tamu,.guest-grid{width:100%;max-width:100%;overflow-x:hidden}
+  .guest-card{padding:12px 12px 13px}
+  .guest-card .l2{width:100%;overflow:hidden}
+  .guest-card .tag{
+    min-width:0;max-width:100%;white-space:normal;
+    overflow-wrap:anywhere;word-break:break-word;line-height:1.35;
+  }
+  .guest-card .tag.fly{flex:1 1 100%}
+  .guest-head .id{max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+
+
+.brand em{display:block;margin-top:10px;font-family:'Barlow Condensed',sans-serif;font-style:normal;font-size:var(--fs-4);line-height:1.2;letter-spacing:.07em;color:#fff}.brand small{display:block;margin-top:3px;font-size:var(--fs-1);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.62)}
+.report-home{display:flex;justify-content:flex-end;margin:10px 0 14px}.report-home button{border:0;background:var(--signal);color:#fff;border-radius:10px;padding:10px 15px;min-height:42px;font-weight:700;cursor:pointer;box-shadow:0 5px 16px rgba(11,110,153,.2)}.report-home button:hover{filter:brightness(.96)}.report-launch{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.09);color:#fff;border-radius:9px;min-height:39px;padding:7px 11px;font-weight:700;cursor:pointer;margin:10px 14px 0}.report-launch:hover{background:rgba(255,255,255,.16)}.mobile-report{margin:0 6px 0 auto;color:var(--ink);border-color:var(--rule);background:var(--panel);min-height:34px;padding:5px 9px}.report-modal{position:fixed;inset:0;z-index:1000;background:rgba(12,25,44,.58);display:none;align-items:center;justify-content:center;padding:18px}.report-modal.on{display:flex}.report-box{width:min(720px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.3)}.report-head{padding:18px 20px;background:linear-gradient(135deg,#17365D,#0B6E99);color:#fff}.report-head h2{margin:0;font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-d2)}.report-head p{margin:5px 0 0;font-size:var(--fs-4);opacity:.8}.report-body{padding:18px 20px}.report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.report-option{border:1px solid var(--rule);border-radius:10px;padding:11px;background:#fafbfd}.report-option label{display:flex;align-items:center;gap:8px;font-size:var(--fs-4);font-weight:600}.report-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}.report-actions button{min-height:40px;border-radius:9px;padding:8px 14px;border:1px solid var(--rule);background:#fff;font-weight:700;cursor:pointer}.report-actions .primary{background:var(--signal);border-color:var(--signal);color:#fff}.report-meta{font-size:var(--fs-3);color:var(--ink-3);margin-top:12px}.generic-list{grid-column:1/-1}.generic-table{border:1px solid var(--rule);border-radius:12px;overflow:hidden;background:#fff}.generic-row{display:grid;grid-template-columns:minmax(150px,1.4fr) minmax(100px,1fr) 70px;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--rule-2)}.generic-row:last-child{border-bottom:0}.generic-row b{font-size:var(--fs-4)}.generic-row span{font-size:var(--fs-3);color:var(--ink-2)}.generic-row i{font-family:'IBM Plex Mono',monospace;font-style:normal;text-align:right;font-size:var(--fs-4)}.generic-detail{padding:8px 12px;background:#fafbfd;border-bottom:1px solid var(--rule-2);font-size:var(--fs-2);color:var(--ink-3)}
+.mobile-rundown{display:none}.mobile-day{margin:10px 0;border:1px solid var(--rule);border-radius:12px;overflow:hidden;background:#fff}.mobile-day>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;background:var(--panel-2);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.05em;text-transform:uppercase}.mobile-day>summary::-webkit-details-marker{display:none}.mobile-day>summary:after{content:'+';font-family:Inter,sans-serif;font-size:var(--fs-7);color:var(--ink-3)}.mobile-day[open]>summary:after{content:'−'}.mobile-day-summary small{display:block;margin-top:3px;font-family:Inter,sans-serif;font-size:var(--fs-2);font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-3)}.mobile-day-body{padding:2px 9px 9px}.mobile-agenda{--lane:var(--lane-default);border-left:4px solid var(--lane);margin:8px 0;background:color-mix(in srgb,var(--lane) 7%,#fff);border-radius:10px;padding:11px 12px;box-shadow:0 3px 12px rgba(22,35,58,.05)}.mobile-agenda.vip{--lane:var(--lane-vip)}.mobile-agenda.undangan{--lane:var(--lane-undangan)}.mobile-agenda.gabungan{--lane:var(--lane-gabungan)}.mobile-agenda.dirut{--lane:var(--lane-dirut)}.mobile-agenda.raker{--lane:var(--lane-raker)}.mobile-agenda.konsultasi{--lane:var(--lane-konsultasi)}.mobile-agenda.olimpiade{--lane:var(--lane-olimpiade)}.mobile-agenda-time{font-family:'IBM Plex Mono',monospace;font-size:var(--fs-3);font-weight:700;color:var(--lane)}.mobile-agenda-title{font-weight:700;font-size:var(--fs-5);margin-top:4px}.mobile-agenda-meta{font-size:var(--fs-2);color:var(--ink-3);margin-top:6px;line-height:1.45}.mobile-lane-badge{display:inline-block;margin-top:7px;border:1px solid color-mix(in srgb,var(--lane) 35%,#fff);background:color-mix(in srgb,var(--lane) 11%,#fff);color:var(--lane);border-radius:999px;padding:3px 7px;font-size:var(--fs-1);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+@media(max-width:700px){.timeline-wrap{display:none}.mobile-rundown{display:block;padding:6px 12px 14px}.report-grid{grid-template-columns:1fr}.generic-row{grid-template-columns:minmax(0,1fr) 55px}.generic-row span{grid-column:1/-1}}
+
+/* Every grid below keys off the viewport, but on desktop the sidebar and page
+   padding eat ~306px before content starts. Between 860 and 1199 that leaves
+   roughly 650px, so the wide layouts have to step back down a level. */
+@media(min-width:860px) and (max-width:1199px){
+  .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g2{grid-template-columns:1fr}
+  .consumption-overview{grid-template-columns:1fr}
+  .cons-activity{grid-template-columns:66px minmax(0,1.4fr) minmax(80px,1fr) 56px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+</head>
+<body>
+
+<aside>
+  <div class="brand">
+    <h1>PIM Event<br>Control</h1>
+    <span>9&ndash;12 Agustus 2026</span><em>A Global Player in the Making</em><small>Transform · Integrate · Accelerate</small>
+  </div>
+  <div class="snav" id="snav" role="tablist"></div>
+  <button class="report-launch" id="reportBtnSide" type="button">Generate Report</button>
+  <div class="sfoot">
+    <button class="sync" id="sync2" type="button"><i class="dot" id="dot2"></i><span id="syncTx2">Loading</span></button>
+  </div>
+</aside>
+
+<header class="mob">
+  <button class="ham" id="hamBtn" type="button" aria-label="Buka menu" aria-expanded="false" aria-controls="drawer">
+    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <h1>PIM Event Control<span id="pageLabel">Beranda</span></h1>
+  <button class="sync" id="sync" type="button"><i class="dot" id="dot"></i><span id="syncTx">Loading</span></button>
+</header>
+
+<main><div class="wrap">
+  <section class="view on" id="v-home"></section>
+  <section class="view" id="v-chk"></section>
+  <section class="view" id="v-run"></section>
+  <section class="view" id="v-tamu"></section>
+  <section class="view" id="v-akm"></section>
+  <section class="view" id="v-kns"></section>
+  <section class="view" id="v-kdr"></section>
+  <section class="view" id="v-lo"></section>
+  <section class="view" id="v-isu"></section>
+  <footer>
+    Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.9
+  </footer>
+</div></main>
+
+
+<div class="report-modal" id="reportModal" aria-hidden="true"><div class="report-box" role="dialog" aria-modal="true" aria-labelledby="reportTitle"><div class="report-head"><h2 id="reportTitle">Generate Report</h2><p>A Global Player in the Making · Transform · Integrate · Accelerate</p></div><div class="report-body"><div class="report-option" style="margin-bottom:12px"><b style="display:block;margin-bottom:8px">Jenis PDF</b><label style="margin-bottom:7px"><input type="radio" name="pdfType" value="director" checked> Ringkas Direksi</label><label><input type="radio" name="pdfType" value="internal"> Lengkap Internal</label></div><div class="report-grid" id="reportOptions"></div><div class="report-meta" id="reportMeta"></div><div class="report-actions"><button id="reportClose" type="button">Cancel</button><button id="reportExcel" class="primary" type="button">Export Excel</button><button id="reportPdf" class="primary" type="button">Generate PDF</button></div></div></div></div>
+
+<div class="scrim" id="scrim"></div>
+<nav class="drawer" id="drawer" aria-label="Menu utama">
+  <div class="dbrand">
+    <h2>PIM Event<br>Control</h2>
+    <span>9&ndash;12 Agustus 2026</span><em>A Global Player in the Making</em><small>Transform · Integrate · Accelerate</small>
+  </div>
+  <div class="dnav" id="bnav" role="tablist"></div>
+  <div class="dfoot">
+    <button class="report-launch" id="reportBtnDrawer" type="button">Generate Report</button>
+  </div>
+</nav>
+
+<script>
+/* ============================================================
+   1. CONFIG — the only part you edit
+   ============================================================ */
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
+  EVENT_START: '2026-08-09',
+  EVENT_END: '2026-08-12',
+  CACHE_KEY: 'pim-event-cache-v9-5'
+};
+
+/* ============================================================
+   2. Helpers
+   ============================================================ */
+let DATA=null, FETCHED=null, DEMO=false, PAGE='home';
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const has = v => v!==undefined && v!==null && String(v).trim()!=='';
+function f(row,...names){
+  for(const n of names){ if(has(row?.[n])) return String(row[n]).trim(); }
+  const keys=Object.keys(row||{});
+  for(const n of names){
+    const k=keys.find(k=>k.toLowerCase().replace(/\s+/g,'').includes(n.toLowerCase().replace(/\s+/g,'')));
+    if(k && has(row[k])) return String(row[k]).trim();
+  }
+  return '';
+}
+const rows = t => (DATA?.tabs?.[t]) || [];
+const joinText = r => f(r,'Keikutsertaan').toUpperCase();
+const isVIP = r => joinText(r).includes('VIP') || (!joinText(r) && f(r,'Rombongan').toUpperCase().includes('VIP'));
+const isRaker = r => joinText(r).includes('RAKER');
+const isVIPRaker = r => isVIP(r) && isRaker(r);
+const CH = () => rows('CHECKLIST').filter(r=>has(f(r,'ID')));
+const EVENT_ORDER=['Plenary','Olimpiade','Raker RKAP','Rakor Dirut','Rapat Konsultasi','Akomodasi','Transportasi','Konsumsi','Plant Tour','Umum/Panitia'];
+const AC = () => {
+  const source=rows('ACARA').filter(r=>has(f(r,'Acara')) && f(r,'Acara').toUpperCase()!=='TOTAL').map(r=>f(r,'Acara'));
+  const actual=CH().map(r=>f(r,'Acara')).filter(has);
+  return [...new Set([...EVENT_ORDER,...source,...actual])].filter(n=>actual.includes(n)||source.includes(n));
+};
+const RD = () => rows('RUNDOWN').filter(r=>/^RD-/i.test(f(r,'ID')));
+
+const ST={'not started':['st-none','Not Started'],'in progress':['st-prog','In Progress'],
+  'done':['st-done','Done'],'blocked':['st-block','Blocked'],'n/a':['st-na','N/A']};
+const stTag = v => { const m=ST[String(v||'').trim().toLowerCase()]||['st-none',v||'Not Started'];
+  return `<i class="tag st ${m[0]}">${esc(m[1])}</i>`; };
+function eventClock(){
+  const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
+  const p=Object.fromEntries(parts.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
+  return {date:`${p.year}-${p.month}-${p.day}`,hm:`${p.hour}:${p.minute}`};
+}
+const today=()=>parseD(eventClock().date);
+function parseD(s){ if(!has(s)) return null;
+  const m=String(s).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return new Date(+m[1],+m[2]-1,+m[3]);
+  const d=new Date(s); return isNaN(d)?null:d; }
+const MON=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const fmtD=s=>{const d=parseD(s);return d?`${d.getDate()} ${MON[d.getMonth()]}`:esc(s);};
+const isOver=(dl,st)=>{const d=parseD(dl); if(!d) return false;
+  const s=String(st||'').toLowerCase(); return d<today() && s!=='done' && s!=='n/a';};
+const daysTo=()=>Math.round((parseD(CONFIG.EVENT_START)-today())/86400000);
+
+const num=v=>{const n=parseFloat(String(v??'').replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0;};
+const isMess=r=>f(r,'Tipe').trim().toLowerCase()==='rumah komplek';
+const isAccommodationTBC=r=>f(r,'Tipe').trim().toLowerCase()==='tbc';
+const accommodationKind=r=>/^rumah\b/i.test(f(r,'Lokasi').trim())?'Rumah Kompleks':'Mess';
+const roomFilled=r=>has(f(r,'Tamu'))&&!/^(free|kosong|na|n\/a|-)$/i.test(f(r,'Tamu'));
+const roomReady=r=>/^(ready|siap|baik)$/i.test(f(r,'Kesiapan'))||(!/pengisian|belum|proses/i.test(f(r,'Kesiapan'))&&has(f(r,'Kesiapan')));
+function officialHeadcount(pattern,fallback=0){
+  const values=rows('KONSUMSI')
+    .filter(r=>pattern.test(`${f(r,'Dasar Headcount')} ${f(r,'Acara / Rujukan','Acara')}`))
+    .map(r=>num(f(r,'Jumlah Dasar')))
+    .filter(v=>v>0);
+  return values.length?Math.max(...values):fallback;
+}
+function pctWidth(v,total){return Math.max(0,Math.min(100,total?Math.round(v/total*100):0));}
+function miniRows(data,total){return data.map(([label,val])=>`<div class="mini-row"><span title="${esc(label)}">${esc(label)}</span><div class="mini-track"><i style="width:${pctWidth(val,total)}%"></i></div><b>${esc(val)}</b></div>`).join('');}
+function timelineClass(lane){const v=String(lane||'').toLowerCase();if(v.includes('vip')&&v.includes('undangan'))return'gabungan';if(v.includes('vip'))return'vip';if(v.includes('undangan'))return'undangan';if(v.includes('raker'))return'raker';if(v.includes('konsultasi'))return'konsultasi';if(v.includes('olimpiade'))return'olimpiade';if(v.includes('dirut'))return'dirut';return'';}
+function hmMinutes(v){const m=String(v||'').match(/(\d{1,2}):(\d{2})/);return m?(+m[1]*60 + +m[2]):null;}
+function fmtClock(v){const m=String(v||'').match(/(\d{1,2}):(\d{2})/);return m?`${String(+m[1]).padStart(2,'0')}:${m[2]}`:'';}
+function fmtDayDate(s){const d=parseD(s);if(!d)return esc(s);const dn=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];return `${dn[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}`;}
+function compactFlightMoment(value){
+  const raw=String(value||'').trim();
+  if(!raw)return'';
+  if(/^TBC\b/i.test(raw)||/belum terkonfirmasi/i.test(raw))return'TBC';
+  const days={minggu:'Min',min:'Min',senin:'Sen',sen:'Sen',selasa:'Sel',sel:'Sel',rabu:'Rab',rab:'Rab',kamis:'Kam',kam:'Kam',jumat:'Jum',jum:'Jum',sabtu:'Sab',sab:'Sab'};
+  const months={januari:'Jan',jan:'Jan',februari:'Feb',feb:'Feb',maret:'Mar',mar:'Mar',april:'Apr',apr:'Apr',mei:'Mei',juni:'Jun',jun:'Jun',juli:'Jul',jul:'Jul',agustus:'Agu',agu:'Agu',september:'Sep',sep:'Sep',oktober:'Okt',okt:'Okt',november:'Nov',nov:'Nov',desember:'Des',des:'Des'};
+  const dayMatch=raw.match(/\b(Minggu|Min|Senin|Sen|Selasa|Sel|Rabu|Rab|Kamis|Kam|Jumat|Jum|Sabtu|Sab)\b/i);
+  const dateMatch=raw.match(/\b(\d{1,2})\s+(Januari|Jan|Februari|Feb|Maret|Mar|April|Apr|Mei|Juni|Jun|Juli|Jul|Agustus|Agu|September|Sep|Oktober|Okt|November|Nov|Desember|Des)\b/i);
+  const timeMatches=[...raw.matchAll(/\b((?:[01]?\d|2[0-3]):[0-5]\d)(?:\s*[–—-]\s*((?:[01]?\d|2[0-3]):[0-5]\d))?\b/g)];
+  const day=dayMatch?days[dayMatch[1].toLowerCase()]:'';
+  const date=dateMatch?`${+dateMatch[1]} ${months[dateMatch[2].toLowerCase()]}`:'';
+  let time='';
+  if(timeMatches.length){
+    const m=timeMatches[timeMatches.length-1];
+    time=m[2]?`${m[1]}–${m[2]}`:m[1];
+  }
+  const datePart=[day,date].filter(Boolean).join(' ');
+  return [datePart,time].filter(Boolean).join(' · ')||'TBC';
+}
+function placeTag(venue,activity=''){
+  const v=`${venue} ${activity}`.toLowerCase();
+  const kno=v.indexOf('kno'),lsw=v.indexOf('lsw');
+  if((v.includes('cgk')||v.includes('soekarno'))&&(v.includes('kno')||v.includes('kualanamu')))return'Jakarta → Medan';
+  if(kno>=0&&lsw>=0)return kno<lsw?'Medan → Lhokseumawe':'Lhokseumawe → Medan';
+  if(v.includes('medan')||v.includes('kualanamu')||v.includes('palm beach'))return'Medan';
+  if(v.includes('welcoming dinner'))return'Lhokseumawe / PIM';
+  if(v.includes('malikussaleh')||v.includes('lhokseumawe')||v.includes('pupuk iskandar muda')||v.includes('gedung pertemuan')||v.includes('wisma raja lanang')||v.includes('ruang keupula')||v.includes('ruang teuku umar')||v.includes('tenda'))return'Lhokseumawe / PIM';
+  return venue||'Lokasi belum diisi';
+}
+function timelineBlock(row,label=null,lane=null,venue=null){return{label:label||f(row,'Kegiatan'),lane:lane||f(row,'Jalur'),venue:venue||f(row,'Venue'),start:f(row,'Mulai'),end:f(row,'Selesai')};}
+function aggregateBlock(list,label,lane,venue=null){
+  if(!list.length)return null;
+  const starts=list.map(r=>hmMinutes(f(r,'Mulai'))).filter(v=>v!==null),ends=list.map(r=>hmMinutes(f(r,'Selesai'))).filter(v=>v!==null);
+  if(!starts.length)return null;
+  const sm=Math.min(...starts),em=Math.max(...ends);
+  const hm=v=>`${String(Math.floor(v/60)%24).padStart(2,'0')}:${String(v%60).padStart(2,'0')}`;
+  return{label,lane,venue:venue||f(list[0],'Venue'),start:hm(sm),end:hm(em)};
+}
+function summaryTimelineItems(dayRows){
+  const items=[],add=x=>{if(x&&hmMinutes(x.start)!==null)items.push(x);};
+  const find=re=>dayRows.find(r=>re.test(f(r,'Kegiatan')));
+  const findAll=re=>dayRows.filter(r=>re.test(f(r,'Kegiatan')));
+
+  dayRows.filter(r=>/\bflight\b/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
+  dayRows.filter(r=>/^(VIP Dinner|Welcoming Dinner)$/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
+  dayRows.filter(r=>/^Makan (siang|malam) Batch 1/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
+  const rakor=find(/Rakor Direktur Utama/i);if(rakor)add(timelineBlock(rakor));
+  dayRows.filter(r=>/^Sarapan/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
+
+  const plenaryStart=find(/Kedatangan Tamu VIP di Plenary Session/i)||find(/^Plenary Session$/i);
+  const plenaryEnd=find(/Plenary Session selesai/i)||find(/^Plenary Session$/i);
+  if(plenaryStart&&plenaryEnd)add({label:'Kedatangan VIP & Plenary Session',lane:'TAMU VIP + TAMU UNDANGAN',venue:'Gedung Pertemuan',start:f(plenaryStart,'Mulai'),end:f(plenaryEnd,'Selesai')});
+
+  const plant=find(/^Plant Tour/i);if(plant)add(timelineBlock(plant));
+  dayRows.filter(r=>/^Ishoma$/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
+
+  const rakerRows=dayRows.filter(r=>f(r,'Jalur').toUpperCase()==='TAMU UNDANGAN'&&/tenda di sebelah gedung pertemuan/i.test(f(r,'Venue')));
+  add(aggregateBlock(rakerRows,'Raker RKAP 2027 PI Group','RAKER RKAP','Tenda di sebelah Gedung Pertemuan'));
+
+  const consultation=dayRows.filter(r=>/KONSULTASI/i.test(f(r,'Jalur')));
+  add(aggregateBlock(consultation,'Rapat Konsultasi & Pengawasan','RAPAT KONSULTASI','Ruang Teuku Umar'));
+
+  const olympicPrep=find(/Persiapan Final Bulutangkis & makan malam peserta/i);if(olympicPrep)add(timelineBlock(olympicPrep,'Makan Malam & Persiapan Final Olimpiade'));
+  const olympicFinal=dayRows.filter(r=>/OLIMPIADE/i.test(f(r,'Jalur'))&&!/Persiapan Final/i.test(f(r,'Kegiatan')));
+  add(aggregateBlock(olympicFinal,'Final Olimpiade PI Group & Awarding','OLIMPIADE PI GROUP','Gedung Pertemuan'));
+
+  dayRows.filter(r=>/persiapan kepulangan/i.test(f(r,'Kegiatan'))).forEach(r=>add(timelineBlock(r)));
+
+  const dedup=new Map();
+  items.forEach(x=>{const k=[x.label,x.start,x.end,x.lane].join('|');if(!dedup.has(k))dedup.set(k,x);});
+  return [...dedup.values()].sort((a,b)=>(hmMinutes(a.start)||0)-(hmMinutes(b.start)||0)||String(a.lane).localeCompare(String(b.lane)));
+}
+function rundownChart(){
+  const all=RD();
+  const days=[...new Set(all.map(r=>f(r,'Tanggal')).filter(has))].sort();
+  if(!days.length)return'<div class="empty">Rundown belum tersedia.</div>';
+  // Track runs 06:00-24:00 (1080 min). Labels sit at their true fraction of that
+  // span, so a mark lines up with the bar edge underneath it.
+  const marks=[6,9,12,15,18,21,24];
+  const axis='<div class="tl-axis"><span></span><div class="tl-hours">'+
+    marks.map(h=>`<span style="left:${((h-6)/18*100).toFixed(4)}%">${String(h).padStart(2,'0')}:00</span>`).join('')+
+    '</div></div>';
+  const legend='<div class="tl-legend"><span><i class="vip"></i>VIP</span><span><i class="undangan"></i>Tamu Undangan</span><span><i class="gabungan"></i>Gabungan</span><span><i class="dirut"></i>Rakor Dirut</span><span><i class="raker"></i>Raker RKAP</span><span><i class="konsultasi"></i>Rapat Konsultasi</span><span><i class="olimpiade"></i>Olimpiade</span></div>';
+  const body=days.map(day=>{
+    const dayRows=all.filter(r=>f(r,'Tanggal')===day);
+    const list=summaryTimelineItems(dayRows);
+    const rowsHtml=list.map(r=>{
+      const sm=hmMinutes(r.start),em=hmMinutes(r.end);
+      if(sm===null)return'';
+      const start=Math.max(360,Math.min(1440,sm));
+      let end=em===null?start+15:em;if(end<sm)end+=1440;end=Math.max(start+12,Math.min(1440,end));
+      const left=(start-360)/1080*100,width=Math.max(1.5,(end-start)/1080*100);
+      const loc=placeTag(r.venue,r.label),barText=`${r.lane} · ${loc}`;
+      return `<div class="tl-row"><div class="tl-label" title="${esc(r.label)} · ${esc(r.venue)}"><span class="tl-activity"><span class="tl-time">${esc(String(r.start).slice(0,5))}</span> ${esc(r.label)}</span><span class="tl-location"><i class="tl-place">${esc(loc)}</i><span class="tl-venue">${esc(r.venue)}</span></span></div><div class="tl-track"><div class="tl-bar ${timelineClass(r.lane)}" style="left:${left}%;width:${width}%" title="${esc(r.label)} · ${esc(r.lane)} · ${esc(r.venue)}">${esc(barText)}</div></div></div>`;
+    }).join('');
+    // During the event itself, mark where "now" falls on the day being viewed.
+    const clock=eventClock();
+    const nowMin=clock.date===day?hmMinutes(clock.hm):null;
+    const nowPct=(nowMin!==null&&nowMin>=360&&nowMin<=1440)?((nowMin-360)/1080*100):null;
+    const nowLine=nowPct===null?'':`<div class="tl-now" style="--now:${nowPct.toFixed(3)}%"><span>${clock.hm}</span></div>`;
+    return `<div class="tl-day"><div class="tl-day-title"><b>${fmtDayDate(day)}</b><span>${list.length} blok kegiatan</span></div><div class="tl-day-rows">${nowLine}${rowsHtml||'<div class="empty">Tidak ada kegiatan utama pada hari ini.</div>'}</div></div>`;
+  }).join('');
+  const today=new Date().toISOString().slice(0,10);const openDay=days.includes(today)?today:days[0];const mobile=days.map(day=>{const list=summaryTimelineItems(all.filter(r=>f(r,'Tanggal')===day));const starts=list.map(r=>String(r.start||'').slice(0,5)).filter(Boolean),ends=list.map(r=>String(r.end||'').slice(0,5)).filter(Boolean);const span=starts.length?`${starts[0]}–${ends[ends.length-1]||starts[starts.length-1]}`:'';return `<details class="mobile-day" ${day===openDay?'open':''}><summary><span class="mobile-day-summary">${fmtDayDate(day)}<small>${list.length} kegiatan${span?' · '+span:''}</small></span></summary><div class="mobile-day-body">${list.map(r=>{const cls=timelineClass(r.lane);return `<article class="mobile-agenda ${cls}"><div class="mobile-agenda-time">${esc(String(r.start||'').slice(0,5))}${r.end?'–'+esc(String(r.end).slice(0,5)):''}</div><div class="mobile-agenda-title">${esc(r.label)}</div><span class="mobile-lane-badge">${esc(r.lane||'Operasional')}</span><div class="mobile-agenda-meta">${esc(placeTag(r.venue,r.label))} · ${esc(r.venue||'Lokasi belum diisi')}</div></article>`}).join('')||'<div class="empty">Tidak ada kegiatan utama.</div>'}</div></details>`}).join('');
+  return `<div class="timeline-wrap"><div class="timeline-chart">${axis}${legend}${body}</div></div><div class="mobile-rundown">${mobile}</div>`;
+}
+
+
+/* ============================================================
+   3. Navigation
+   ============================================================ */
+const IC={
+  home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  chk:'<path d="M9 5h10M9 12h10M9 19h10"/><path d="M3.5 5 5 6.5 7.5 4"/><path d="M3.5 12 5 13.5 7.5 11"/><path d="M3.5 19 5 20.5 7.5 18"/>',
+  run:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l3.5 2"/>',
+  tamu:'<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6"/>',
+  akm:'<path d="M3 20V9l7-4 7 4"/><path d="M17 20V11h4v9"/><path d="M3 20h18"/><path d="M7.5 12.5h3M7.5 16h3"/>',
+  lo:'<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="12" cy="10" r="2.4"/><path d="M8 17c.6-1.9 2.1-3 4-3s3.4 1.1 4 3"/>',
+  isu:'<path d="M12 3.8 21 19.5H3z"/><path d="M12 10v4.2"/><circle cx="12" cy="17" r=".9" fill="currentColor" stroke="none"/>',
+  kns:'<path d="M3.5 11h17a8.5 8.5 0 0 1-8.5 7.5A8.5 8.5 0 0 1 3.5 11z"/><path d="M3 21h18"/><path d="M9 7.5C9 6.4 10 6 10 4.8M14 7.5C14 6.4 15 6 15 4.8"/>',
+  kdr:'<path d="M3.2 13.2 5 8.4A2 2 0 0 1 6.9 7h10.2a2 2 0 0 1 1.9 1.4l1.8 4.8"/><rect x="3" y="13.2" width="18" height="4.6" rx="1.5"/><circle cx="7.4" cy="17.8" r="1.3"/><circle cx="16.6" cy="17.8" r="1.3"/>'
+};
+const PAGES=[
+  ['home','Beranda','Beranda'],['chk','Checklist','Checklist'],['run','Rundown','Rundown'],
+  ['tamu','Tamu','Tamu'],['akm','Kamar','Akomodasi'],['kns','Konsumsi','Konsumsi'],
+  ['kdr','Kendaraan','Kendaraan'],['lo','LO','Liaison Officer'],['isu','Issues','Issues']
+];
+function svg(k){ return `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`; }
+function buildNav(){
+  $('#bnav').innerHTML = PAGES.map(([k,,long])=>
+    `<button role="tab" data-v="${k}" aria-selected="${k===PAGE}">${svg(k)}<span>${long}</span></button>`).join('');
+  $('#snav').innerHTML = PAGES.map(([k,,long])=>
+    `<button role="tab" data-v="${k}" aria-selected="${k===PAGE}">${svg(k)}<span>${long}</span><i class="badge" data-b="${k}" hidden></i></button>`).join('');
+  $$('#bnav button, #snav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.v)));
+}
+function go(v,opts){
+  PAGE=v;
+  $$('#bnav button, #snav button').forEach(b=>b.setAttribute('aria-selected', b.dataset.v===v));
+  $$('.view').forEach(s=>s.classList.toggle('on', s.id==='v-'+v));
+  const page=PAGES.find(p=>p[0]===v);
+  if(page) $('#pageLabel').textContent=page[2];
+  closeDrawer(true);
+  // The tab is now part of the URL, so a link is shareable and Android back
+  // steps through tabs instead of closing the app.
+  if(!opts?.silent){
+    const h='#'+v;
+    if(location.hash!==h) history.pushState({v},'',h);
+  }
+  window.scrollTo({top:0,behavior:'instant'});
+}
+const pageFromHash=()=>{
+  const v=(location.hash||'').replace(/^#/,'');
+  return PAGES.some(p=>p[0]===v)?v:null;
+};
+function initRouter(){
+  window.addEventListener('popstate',()=>{
+    const v=pageFromHash();
+    if(v&&v!==PAGE) go(v,{silent:true});
+  });
+  const boot=pageFromHash();
+  if(boot) go(boot,{silent:true});
+  history.replaceState({v:PAGE},'','#'+PAGE);
+}
+
+/* ---------- Mobile drawer ---------- */
+const drawerOpen = () => $('#drawer')?.classList.contains('on');
+function openDrawer(){
+  $('#drawer').classList.add('on');
+  $('#scrim').classList.add('on');
+  $('#hamBtn').setAttribute('aria-expanded','true');
+  $('#hamBtn').setAttribute('aria-label','Tutup menu');
+  document.body.style.overflow='hidden';
+  ($('#bnav button[aria-selected="true"]')||$('#bnav button'))?.focus();
+}
+function closeDrawer(focusBack){
+  if(!drawerOpen()) return;              // no-op on desktop, so sidebar clicks keep their focus
+  $('#drawer').classList.remove('on');
+  $('#scrim').classList.remove('on');
+  $('#hamBtn').setAttribute('aria-expanded','false');
+  $('#hamBtn').setAttribute('aria-label','Buka menu');
+  document.body.style.overflow='';
+  if(focusBack) $('#hamBtn').focus();
+}
+function initDrawer(){
+  $('#hamBtn')?.addEventListener('click',()=>drawerOpen()?closeDrawer(true):openDrawer());
+  $('#scrim')?.addEventListener('click',()=>closeDrawer(true));
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Escape'||!drawerOpen()) return;
+    if($('#reportModal')?.classList.contains('on')) return;
+    closeDrawer(true);
+  });
+  // Keep Tab inside the drawer while it is open.
+  $('#drawer')?.addEventListener('keydown',e=>{
+    if(e.key!=='Tab') return;
+    const btns=$$('button',$('#drawer')).filter(b=>b.offsetParent!==null);
+    if(!btns.length) return;
+    const first=btns[0], last=btns[btns.length-1];
+    if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  });
+  // Rotating to a desktop width hides the drawer — release the scroll lock with it.
+  window.matchMedia('(min-width:860px)').addEventListener('change',e=>{ if(e.matches) closeDrawer(); });
+}
+function navBadges(){
+  const over = CH().filter(r=>isOver(f(r,'Deadline'),f(r,'Status'))).length;
+  const blocked = CH().filter(r=>f(r,'Status').toLowerCase()==='blocked').length;
+  const iss = rows('ISSUES').filter(r=>f(r,'Status').toLowerCase()!=='closed').length;
+  const set=(k,n)=>{ const el=$(`#snav [data-b="${k}"]`); if(!el) return;
+    el.hidden = !n; el.textContent = n; };
+  set('chk', over+blocked); set('isu', iss);
+  const d=$('#bnav [data-v="isu"]');
+  if(d && iss && !d.querySelector('.ndot')){ const i=document.createElement('i'); i.className='ndot'; d.appendChild(i); }
+}
+
+/* ============================================================
+   4. Load
+   ============================================================ */
+const readCache=()=>{try{return JSON.parse(localStorage.getItem(CONFIG.CACHE_KEY))}catch(e){return null}};
+const writeCache=(p,w)=>{try{localStorage.setItem(CONFIG.CACHE_KEY,JSON.stringify({payload:p,when:w}))}catch(e){}};
+// A corner pill is easy to miss while the event is running, so an offline or
+// stale state also gets called out on Beranda. viewHome() rebuilds the banner,
+// so the last state is kept here and repainted after every render.
+let SYNC={state:'',text:''};
+function paintStale(){
+  const b=$('#staleBanner'); if(!b) return;
+  const {state,text}=SYNC;
+  b.hidden = state!=='off' && state!=='stale';
+  b.textContent = state==='off'
+    ? 'Sedang offline — angka di bawah berasal dari salinan terakhir ('+String(text).replace(/^Offline · /,'')+').'
+    : state==='stale' ? 'Data belum diperbarui — '+text+'.' : '';
+}
+function setSync(state,text){
+  SYNC={state,text}; paintStale();
+  [['#dot','#syncTx'],['#dot2','#syncTx2']].forEach(([d,t])=>{
+    const de=$(d), te=$(t); if(!de) return;
+    de.className='dot'+(state==='stale'?' stale':state==='off'?' off':'');
+    te.textContent=text;
+  });
+}
+function relTime(iso){
+  const d=new Date(iso); if(isNaN(d)) return '';
+  const m=Math.round((Date.now()-d.getTime())/60000);
+  if(m<1) return 'baru saja'; if(m<60) return m+' menit lalu';
+  const h=Math.round(m/60); return h<24 ? h+' jam lalu' : Math.round(h/24)+' hari lalu';
+}
+async function load(){
+  const c=readCache();
+  if(c && !DATA){ DATA=c.payload; FETCHED=c.when; render(); setSync('stale','Cached · '+relTime(c.when)); }
+  if(!CONFIG.API_URL){ DEMO=true; DATA=DEMO_DATA; FETCHED=new Date().toISOString(); render(); setSync('stale','Demo data'); return; }
+  setSync('','Loading…'); $$('.sync').forEach(b=>b.disabled=true);
+  try{
+    const res=await fetch(CONFIG.API_URL+(CONFIG.API_URL.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const j=await res.json();
+    if(j.ok===false) throw new Error(j.error||'Sheet menolak permintaan');
+    DATA=j; FETCHED=new Date().toISOString(); DEMO=false;
+    writeCache(j,FETCHED); render(); setSync('','Updated '+relTime(FETCHED));
+  }catch(err){
+    if(DATA) setSync('off','Offline · '+relTime(FETCHED));
+    else { setSync('off','Gagal memuat');
+      $('#v-home').innerHTML=`<div class="panel"><div class="empty"><b>Data belum bisa dimuat</b>
+        Periksa sambungan, lalu ketuk status di kanan atas untuk mencoba lagi.
+        <div style="margin-top:10px;font-size:11px;font-family:'IBM Plex Mono',monospace">${esc(err.message||err)}</div>
+      </div></div>`; }
+  }finally{ $$('.sync').forEach(b=>b.disabled=false); }
+}
+
+/* ============================================================
+   5. Render
+   ============================================================ */
+/* Every viewX() rebuilds its own .filters markup, so a background sync used to
+   wipe whatever the user had typed or selected. Snapshot before, restore after,
+   then redraw — none of the filter predicates change. */
+function filterControls(){ return $$('.filters select, .filters input'); }
+function snapFilters(){
+  const s={}; filterControls().forEach(el=>{ if(el.id) s[el.id]=el.value; }); return s;
+}
+function applyFilters(snap){
+  let restored=false;
+  filterControls().forEach(el=>{
+    const v=snap[el.id];
+    if(v===undefined||v==='') return;
+    el.value=v;
+    if(el.value===v) restored=true;   // a select drops the value if the option is gone
+  });
+  return restored;
+}
+function redrawAll(){
+  [drawChk,drawRun,drawTamu,drawAkm,drawLO].forEach(fn=>{ try{ fn(); }catch(e){ console.warn(e); } });
+}
+function render(){
+  const snap=snapFilters();
+  viewHome(); viewChk(); viewRun(); viewTamu(); viewAkm(); viewKns(); viewKdr(); viewLO(); viewIsu(); navBadges();
+  const restored=applyFilters(snap);
+  enhanceFilters();
+  paintStale();
+  if(restored) redrawAll();
+}
+
+/* ---------- Filter bar affordances ---------- */
+const clearable=el=>el.tagName==='INPUT'||[...el.options].some(o=>o.value==='');
+function markFilters(box){
+  let any=false;
+  $$('select,input',box).forEach(el=>{
+    const on=!!el.value && clearable(el);
+    el.classList.toggle('set',on);
+    if(on) any=true;
+  });
+  const btn=box.querySelector('.f-reset');
+  if(btn) btn.hidden=!any;
+}
+function enhanceFilters(){
+  // Pull each view's result count into its filter bar instead of leaving it
+  // floating underneath.
+  $$('.count').forEach(c=>{
+    const prev=c.previousElementSibling;
+    if(prev&&prev.classList.contains('filters')) prev.appendChild(c);
+  });
+  $$('.filters').forEach(box=>{
+    if(!box.querySelector('.f-reset')){
+      const b=document.createElement('button');
+      b.type='button'; b.className='f-reset'; b.textContent='Reset';
+      box.appendChild(b);
+    }
+    markFilters(box);
+  });
+}
+function initFilterBar(){
+  ['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
+    const box=e.target.closest?.('.filters'); if(box) markFilters(box);
+  }));
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest?.('.f-reset'); if(!btn) return;
+    const box=btn.closest('.filters');
+    let last=null;
+    $$('select,input',box).forEach(el=>{ if(clearable(el)&&el.value){ el.value=''; last=el; } });
+    markFilters(box);
+    if(last) last.dispatchEvent(new Event(last.tagName==='INPUT'?'input':'change'));
+  });
+  // The sticky filter bar has to clear the sticky mobile header.
+  const setH=()=>{
+    const h=$('header.mob');
+    const px=(h&&h.offsetParent!==null)?h.getBoundingClientRect().height:0;
+    document.documentElement.style.setProperty('--hdr-h',px+'px');
+  };
+  setH(); window.addEventListener('resize',setH); window.addEventListener('orientationchange',setH);
+}
+const demoNote = () => DEMO ? `<div class="note"><b>Demo data</b>
+  Isi CONFIG.API_URL di index.html dengan URL Apps Script agar aplikasi membaca Google Sheet yang sebenarnya.</div>` : '';
+function ph(t,s){ return `<div class="ph"><h2>${t}</h2>${s?`<p>${s}</p>`:''}</div>`; }
+
+/* Konsumsi and Kendaraan each have their own tab now, but Beranda still shows a
+   headline number from each — so the maths lives here and both callers read it. */
+function consData(){
+  const cons=rows('KONSUMSI').filter(r=>has(f(r,'ID')));
+  const total=cons.reduce((a,r)=>a+num(f(r,'Jumlah Final')),0);
+  const types=['Snack','Sarapan','Makan Siang','Makan Malam']
+    .map(t=>[t,cons.filter(r=>f(r,'Jenis Konsumsi')===t).reduce((a,r)=>a+num(f(r,'Jumlah Final')),0)]).filter(x=>x[1]);
+  const open=cons.filter(r=>!['done','n/a'].includes(f(r,'Status').toLowerCase())).length;
+  const byDay=new Map();
+  [...cons].sort((a,b)=>{const da=f(a,'Tanggal'),db=f(b,'Tanggal');if(da!==db)return da.localeCompare(db);
+    return(hmMinutes(f(a,'Waktu Konsumsi'))??9999)-(hmMinutes(f(b,'Waktu Konsumsi'))??9999);})
+    .forEach(r=>{const key=f(r,'Tanggal')||'Tanpa tanggal';if(!byDay.has(key))byDay.set(key,[]);byDay.get(key).push(r);});
+  const days=[...byDay.entries()];
+  const dailyTotals=days.map(([date,list])=>[date==='Tanpa tanggal'?date:fmtDayDate(date),list.reduce((a,r)=>a+num(f(r,'Jumlah Final')),0)]);
+  const maxActivity=Math.max(...cons.map(r=>num(f(r,'Jumlah Final'))),1);
+  return {cons,total,types,open,days,dailyTotals,maxActivity};
+}
+function vehData(){
+  const veh=rows('KENDARAAN').filter(r=>has(f(r,'No'))||has(f(r,'Nama'))||has(f(r,'ID Tamu')));
+  const unitsOf=r=>{const total=num(f(r,'Jumlah Unit'));if(total>0)return total;
+    const calc=num(f(r,'Jumlah Minimum PI'))+num(f(r,'Tambahan PIM'));return calc>0?calc:0;};
+  const need=veh.filter(r=>f(r,'Perlu Mobil?').toLowerCase()==='ya'&&unitsOf(r)>0);
+  const validType=r=>{const j=f(r,'Jenis Mobil');return has(j)&&!/belum terdata|tbc|belum diisi/i.test(j);};
+  const assigned=need.filter(validType),unassignedRows=need.filter(r=>!validType(r));
+  const units=need.reduce((a,r)=>a+unitsOf(r),0);
+  const assignedUnits=assigned.reduce((a,r)=>a+unitsOf(r),0);
+  const unassignedUnits=unassignedRows.reduce((a,r)=>a+unitsOf(r),0);
+  const minimumPI=need.reduce((a,r)=>a+num(f(r,'Jumlah Minimum PI')),0);
+  const tambahanPIM=need.reduce((a,r)=>a+num(f(r,'Tambahan PIM')),0);
+  const agg=key=>{const m=new Map();need.forEach(r=>{const label=f(r,key)||'Belum ditentukan';m.set(label,(m.get(label)||0)+unitsOf(r));});
+    return[...m.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));};
+  const types=agg('Jenis Mobil').filter(([t])=>!/belum terdata|tbc|belum diisi/i.test(t));
+  const companies=agg('Perusahaan');
+  return {veh,need,units,assigned,assignedUnits,unassignedRows,unassignedUnits,minimumPI,tambahanPIM,types,companies};
+}
+
+/* ---------- Beranda ---------- */
+const VENUES=[
+  ['Ruang Keupula','Rakor Dirut'],
+  ['Tenda samping Gedung Pertemuan','Raker RKAP 2027'],
+  ['Ruang Teuku Umar','Rapat Konsultasi & Pengawasan'],
+  ['Gedung Pertemuan','Plenary & Olimpiade']
+];
+function viewHome(){
+  const items=CH(), acara=AC();
+  const c=s=>items.filter(r=>f(r,'Status').toLowerCase()===s).length;
+  const done=c('done'), na=c('n/a'), prog=c('in progress'), blocked=c('blocked');
+  const denom=Math.max(1,items.length-na), pct=Math.round(done/denom*100);
+  const over=items.filter(r=>isOver(f(r,'Deadline'),f(r,'Status'))).length;
+  const tbc=items.filter(r=>f(r,'Owner').toUpperCase().includes('TBC')).length;
+  const iss=rows('ISSUES').filter(r=>f(r,'Status').toLowerCase()!=='closed');
+  const hi=iss.filter(r=>f(r,'Prioritas').toLowerCase()==='tinggi');
+  const d=daysTo();
+  const cdN=d>0?d:d===0?'HARI':(d>=-2?'H+'+Math.abs(d):'✓');
+  const cdL=d>0?'hari menuju<br>Day 0':d===0?'hari ini<br>Day 0':d>=-3?'acara<br>berlangsung':'rangkaian<br>selesai';
+  const w=v=>items.length?(v/items.length*100):0;
+
+  const soon=items.filter(r=>{const dl=parseD(f(r,'Deadline')),st=f(r,'Status').toLowerCase();if(!dl||st==='done'||st==='n/a')return false;const diff=(dl-today())/86400000;return diff>=0&&diff<=7;}).sort((a,b)=>f(a,'Deadline').localeCompare(f(b,'Deadline')));
+  const crit=[...items.filter(r=>isOver(f(r,'Deadline'),f(r,'Status'))),...items.filter(r=>f(r,'Status').toLowerCase()==='blocked')].slice(0,8);
+
+  const board=acara.map(nm=>{
+    const mine=items.filter(r=>f(r,'Acara')===nm),cc=s=>mine.filter(r=>f(r,'Status').toLowerCase()===s).length;
+    const dd=cc('done'),pp=cc('in progress'),bb=cc('blocked'),nn=cc('n/a'),tot=mine.length,dn=tot-nn,q=dn>0?Math.round(dd/dn*100):0,ww=v=>tot?(v/tot*100):0;
+    return `<button class="bd" data-acara="${esc(nm)}"><div class="top"><span class="nm">${esc(nm)}</span><span class="pc">${q}%</span></div><div class="bar2"><i style="width:${ww(dd)}%;background:var(--st-done)"></i><i style="width:${ww(pp)}%;background:var(--st-prog)"></i><i style="width:${ww(bb)}%;background:var(--st-block)"></i></div><div class="meta">${dd}/${dn} selesai${pp?' · '+pp+' in progress':''}${bb?' · '+bb+' blocked':''}</div></button>`;
+  }).join('')||'<div class="empty">Belum ada kategori acara.</div>';
+
+  const tamu=rows('TAMU'),total=tamu.length,p1=tamu.filter(r=>f(r,'Prioritas')==='P1').length,vip=tamu.filter(isVIP).length,raker=tamu.filter(isRaker).length,overlap=tamu.filter(isVIPRaker).length;
+  const rakerOfficial=officialHeadcount(/headcount resmi raker rkap/i,raker);
+  const plenaryOfficial=officialHeadcount(/headcount resmi plenary session/i,0);
+  const vipOnly=Math.max(0,vip-overlap),rakerOnly=Math.max(0,raker-overlap);
+  const akmAll=rows('AKOMODASI'),akm=akmAll.filter(isMess),akmTbc=akmAll.filter(isAccommodationTBC).length,mess=akm.filter(r=>accommodationKind(r)==='Mess'),houses=akm.filter(r=>accommodationKind(r)==='Rumah Kompleks');
+  const akmFilled=akm.filter(roomFilled).length,akmReady=akm.filter(roomReady).length,akmFree=Math.max(0,akm.length-akmFilled);
+  const messFilled=mess.filter(roomFilled).length,houseFilled=houses.filter(roomFilled).length;
+
+  const C=consData(), V=vehData();
+
+  const deadlineHtml=soon.length?soon.map((r,i)=>`<div class="item deadline-extra" ${i>=3?'hidden':''}><div class="l1"><span class="id">${fmtD(f(r,'Deadline'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div>${f(r,'Owner').toUpperCase().includes('TBC')?'<div class="l2"><i class="tag tbc">TBC</i></div>':''}<div class="rowmeta">${[esc(f(r,'Acara')),f(r,'Owner').toUpperCase().includes('TBC')?'':esc(f(r,'Owner'))].filter(Boolean).join(' · ')}</div></div>`).join(''):'<div class="empty">Tidak ada deadline dalam 7 hari.</div>';
+
+  $('#v-home').innerHTML=demoNote()+`
+  <div class="stale-banner" id="staleBanner" role="status" hidden></div>
+  <div class="hero"><div class="row"><div class="cd"><b>${cdN}</b><i>${cdL}</i></div><div class="meta"><b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>PT Pupuk Iskandar Muda, Lhokseumawe</div></div><div class="ring"><div class="bar"><i style="width:${w(done)}%;background:var(--st-done)"></i><i style="width:${w(prog)}%;background:var(--amber)"></i><i style="width:${w(blocked)}%;background:var(--st-block)"></i></div><b>${pct}%</b></div></div>
+
+  <div class="panel"><div class="metric-grid">
+    <div class="metric-card"><b>${total}</b><span>Total Peserta</span><small>${vip} VIP terdaftar · ${raker} peserta Raker terdaftar · ${rakerOfficial} headcount resmi</small></div>
+    <div class="metric-card good"><b>${akmFilled}/${akm.length}</b><span>Akomodasi Terisi</span><small>${messFilled}/${mess.length} mess · ${houseFilled}/${houses.length} rumah · ${akmTbc} TBC</small></div>
+    <div class="metric-card warn"><b>${C.total.toLocaleString('id-ID')}</b><span>Total Porsi</span><small>${C.cons.length} item konsumsi</small></div>
+    <div class="metric-card ${V.unassignedUnits?'bad':'good'}"><b>${V.units}</b><span>Kebutuhan Kendaraan</span><small>${V.minimumPI} minimum PI · ${V.tambahanPIM} tambahan PIM</small></div>
+  </div></div>
+
+  <div class="panel"><div class="section-head"><h3>Ringkasan Rundown</h3><small>kegiatan utama · 06:00–24:00</small></div>${rundownChart()}</div>
+
+  <div class="quick-grid">
+    <div>
+      <div class="panel"><h3>Readiness Board</h3>${board}</div>
+      <details class="panel fold" open><summary>Deadline 7 Hari ke Depan <span>${soon.length} item</span></summary>${deadlineHtml}${soon.length>3?`<button class="show-more" id="deadlineMore" type="button">Tampilkan ${soon.length-3} lainnya</button>`:''}</details>
+    </div>
+    <div>
+      <div class="panel"><h3>Perlu Perhatian</h3>${crit.length?crit.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div><div class="l2">${stTag(f(r,'Status'))}${isOver(f(r,'Deadline'),f(r,'Status'))?`<i class="tag over">Lewat ${fmtD(f(r,'Deadline'))}</i>`:''}</div><div class="rowmeta">${esc(f(r,'Acara'))}</div></div>`).join(''):'<div class="empty">Tidak ada item lewat deadline atau blocked.</div>'}</div>
+      <div class="panel"><h3>Peserta</h3><div class="visual-bar"><i style="width:${pctWidth(vipOnly,total)}%;background:var(--lane-vip)"></i><i style="width:${pctWidth(overlap,total)}%;background:var(--lane-gabungan)"></i><i style="width:${pctWidth(rakerOnly,total)}%;background:var(--lane-raker)"></i></div><div class="visual-legend"><span><i style="background:var(--lane-vip)"></i>VIP saja ${vipOnly}</span><span><i style="background:var(--lane-gabungan)"></i>VIP + Raker ${overlap}</span><span><i style="background:var(--lane-raker)"></i>Raker saja ${rakerOnly}</span></div><div class="kv"><span>Headcount resmi Raker</span><b>${rakerOfficial} peserta</b></div><div class="kv"><span>Headcount resmi Plenary</span><b>${plenaryOfficial||'—'} peserta</b></div><div class="kv"><span>Prioritas P1</span><b>${p1} peserta</b></div><div class="kv"><span>LO</span><b>${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='confirmed').length} confirmed · ${rows('LO').filter(r=>f(r,'Status').toLowerCase()==='pending').length} pending</b></div></div>
+      <div class="panel"><h3>Akomodasi Mess &amp; Rumah Kompleks</h3><div class="metric-grid"><div class="metric-card good"><b>${akmFilled}</b><span>Terisi</span><small>${messFilled} mess · ${houseFilled} rumah</small></div><div class="metric-card"><b>${akmFree}</b><span>Tersedia</span></div><div class="metric-card ${akmReady<akm.length?'warn':'good'}"><b>${akmReady}</b><span>Siap</span><small>${akm.length-akmReady} perlu perhatian</small></div><div class="metric-card"><b>${akm.length}</b><span>Total Kamar/Slot</span><small>${mess.length} mess · ${houses.length} rumah</small></div><div class="metric-card ${akmTbc?'warn':'good'}"><b>${akmTbc}</b><span>Belum Teralokasi</span><small>tamu dengan status TBC</small></div></div></div>
+    </div>
+  </div>
+
+
+  <div class="panel" style="margin-top:14px"><h3>Status Operasional</h3><div class="metric-grid"><div class="metric-card"><b>${items.length}</b><span>Total Items</span></div><div class="metric-card ${over?'bad':''}"><b>${over}</b><span>Overdue</span></div><div class="metric-card ${blocked?'bad':''}"><b>${blocked}</b><span>Blocked</span></div><div class="metric-card ${hi.length?'warn':''}"><b>${hi.length}</b><span>Isu Prioritas</span></div></div><div class="kv"><span>Menunggu EO</span><b>${tbc} item bertanda TBC</b></div><div class="kv"><span>Isu terbuka</span><b>${iss.length} isu · ${hi.length} prioritas tinggi</b></div></div>`;
+
+  $$('#v-home [data-acara]').forEach(b=>b.addEventListener('click',()=>{go('chk');const sel=$('#fAcara');if(sel){sel.value=b.dataset.acara;drawChk();}}));
+  const more=$('#deadlineMore');if(more){let open=false;more.addEventListener('click',()=>{open=!open;$$('#v-home .deadline-extra').forEach((el,i)=>{if(i>=3)el.hidden=!open;});more.textContent=open?'Tampilkan lebih sedikit':`Tampilkan ${Math.max(0,soon.length-3)} lainnya`;});}
+}
+
+/* ---------- Checklist ---------- */
+function viewChk(){
+  const items=CH();
+  const uq=a=>[...new Set(a.filter(has))].sort();
+  const orderedEvents=AC();
+  const opt=(a,l)=>`<option value="">${l}</option>`+a.map(v=>`<option>${esc(v)}</option>`).join('');
+  $('#v-chk').innerHTML = ph('Checklist','Daftar kesiapan dikelompokkan per acara dan ditangani langsung oleh PIC. Item lewat deadline dan blocked tampil di atas.') + demoNote() + `
+    <div class="filters">
+      <input id="fCari" type="search" placeholder="Cari item, PIC, venue…" autocomplete="off">
+      <select id="fAcara">${opt(orderedEvents,'Semua acara')}</select>
+      <select id="fPIC">${opt(uq(items.map(r=>f(r,'PIC'))),'Semua PIC')}</select>
+      <select id="fStatus">${opt(['Not Started','In Progress','Done','Blocked','N/A'],'Semua status')}</select>
+      <select id="fOwner">${opt(uq(items.map(r=>f(r,'Owner'))),'Semua owner')}</select>
+    </div>
+    <div class="count" id="cChk"></div><div class="panel" id="listChk"></div>`;
+  ['fCari','fAcara','fPIC','fStatus','fOwner'].forEach(id=>
+    $('#'+id).addEventListener(id==='fCari'?'input':'change',drawChk));
+  drawChk();
+}
+function drawChk(){
+  const q=($('#fCari')?.value||'').toLowerCase().trim();
+  const fa=$('#fAcara')?.value||'',fp=$('#fPIC')?.value||'';
+  const fs=$('#fStatus')?.value||'',fo=$('#fOwner')?.value||'';
+  let list=CH().filter(r=>{
+    if(fa&&f(r,'Acara')!==fa) return false;
+    if(fp&&f(r,'PIC')!==fp) return false;
+    if(fs&&f(r,'Status')!==fs) return false;
+    if(fo&&f(r,'Owner')!==fo) return false;
+    if(q){ const h=[f(r,'Item'),f(r,'PIC'),f(r,'Venue'),f(r,'Acara'),f(r,'Owner'),f(r,'ID'),f(r,'Catatan')].join(' ').toLowerCase();
+      if(!h.includes(q)) return false; }
+    return true;
+  });
+  const rank=r=>isOver(f(r,'Deadline'),f(r,'Status'))?0:(f(r,'Status').toLowerCase()==='blocked'?1:2);
+  const eventRank=r=>{const i=EVENT_ORDER.indexOf(f(r,'Acara'));return i<0?999:i;};
+  list.sort((a,b)=>eventRank(a)-eventRank(b)||rank(a)-rank(b)||f(a,'ID').localeCompare(f(b,'ID')));
+  $('#cChk').textContent=list.length+' dari '+CH().length+' item';
+  if(!list.length){ $('#listChk').innerHTML='<div class="empty"><b>Tidak ada item yang cocok</b>Ubah kata kunci atau kosongkan filter.</div>'; return; }
+  let h='',g='';
+  for(const r of list){
+    const acara=f(r,'Acara')||'Tanpa kategori'; if(acara!==g){g=acara;h+=`<div class="grp">${esc(acara)}</div>`;}
+    const dl=f(r,'Deadline'),st=f(r,'Status'),ov=isOver(dl,st),own=f(r,'Owner'),pic=f(r,'PIC'),cat=f(r,'Catatan'),venue=f(r,'Venue');
+    const ownTbc=own.toUpperCase().includes('TBC');
+    const meta=[!ownTbc&&own?esc(own):'',pic?'PIC: '+esc(pic):'',venue?esc(venue):''].filter(Boolean);
+    h+=`<div class="item">
+      <div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Item'))}</span></div>
+      <div class="l2">${stTag(st)}
+        ${dl?`<i class="tag ${ov?'over':'due'}">${ov?'Lewat ':''}${fmtD(dl)}</i>`:''}
+        ${ownTbc?`<i class="tag tbc">${esc(own)}</i>`:''}</div>
+      ${meta.length?`<div class="rowmeta">${meta.join(' · ')}</div>`:''}
+      ${cat?`<div class="sub">${esc(cat)}</div>`:''}</div>`;
+  }
+  $('#listChk').innerHTML=h;
+}
+
+/* ---------- Rundown ---------- */
+function viewRun(){
+  const rd=RD();
+  const days=[...new Set(rd.map(r=>f(r,'Tanggal')).filter(has))].sort();
+  const lanes=[...new Set(rd.map(r=>f(r,'Jalur')).filter(has))];
+  const tISO=eventClock().date;
+  $('#v-run').innerHTML = ph('Rundown','Jadwal per hari dan per jalur, lengkap dengan lokasi kegiatan.') + demoNote() + `
+    <div class="filters">
+      <select id="rDay">${days.map(d=>{const o=rd.find(r=>f(r,'Tanggal')===d);
+        return `<option value="${esc(d)}">${esc(f(o||{},'Hari'))} ${fmtD(d)}</option>`;}).join('')||'<option>—</option>'}</select>
+      <select id="rLane"><option value="">Semua jalur</option>${lanes.map(l=>`<option>${esc(l)}</option>`).join('')}</select>
+    </div>
+    <div class="panel" id="listRun"></div>`;
+  if(days.includes(tISO)) $('#rDay').value=tISO;
+  $('#rDay').addEventListener('change',drawRun); $('#rLane').addEventListener('change',drawRun);
+  drawRun();
+}
+function drawRun(){
+  const d=$('#rDay')?.value||'',ln=$('#rLane')?.value||'';
+  let list=RD().filter(r=>(!d||f(r,'Tanggal')===d)&&(!ln||f(r,'Jalur')===ln));
+  list.sort((a,b)=>f(a,'Mulai').localeCompare(f(b,'Mulai'))||f(a,'Jalur').localeCompare(f(b,'Jalur'))||f(a,'ID').localeCompare(f(b,'ID')));
+  if(!list.length){ $('#listRun').innerHTML='<div class="empty"><b>Belum ada kegiatan</b>Pilih hari lain.</div>'; return; }
+  const clock=eventClock(), nISO=clock.date, nowHM=clock.hm;
+  let h=ln?`<div class="grp">${esc(ln)}</div>`:'';
+  for(const r of list){
+    const lj=f(r,'Jalur');
+    const fmtHM=t=>String(t||'').slice(0,5);
+    const s=fmtHM(f(r,'Mulai')),e=fmtHM(f(r,'Selesai')),v=f(r,'Venue');
+    const live=f(r,'Tanggal')===nISO && s<=nowHM && (!e||nowHM<e);
+    h+=`<div class="rd${live?' now':''}">
+      <div class="tm">${esc(s)}<small>${esc(e)}</small></div>
+      <div style="flex:1;min-width:0">
+        <div class="kg">${esc(f(r,'Kegiatan'))}</div>
+        <div class="l2">
+          ${!ln?`<i class="tag lane-tag">${esc(lj)}</i>`:''}
+          ${v?`<i class="tag">${esc(v)}</i>`:'<i class="tag over">Lokasi belum diisi</i>'}
+          ${has(f(r,'Durasi'))?`<i class="tag">Durasi ${esc(fmtHM(f(r,'Durasi')))}</i>`:''}
+          ${has(f(r,'PIC'))?`<i class="tag">${esc(f(r,'PIC'))}</i>`:''}
+        </div>
+      </div></div>`;
+  }
+  $('#listRun').innerHTML=h;
+}
+
+/* ---------- Tamu ---------- */
+const PRI={P1:['p1','Prioritas utama'],P2:['p2','Prioritas tinggi'],
+  P3:['p3','Prioritas menengah'],P4:['p4','Peserta umum / pendamping']};
+function guestType(r){const explicit=f(r,'Tipe Record');if(explicit)return explicit;const text=[f(r,'Nama'),f(r,'Jabatan'),f(r,'Catatan')].join(' ').toLowerCase();if(/nama\s+menyusul|belum\s+dikonfirmasi|nama\s+belum|\btbc\b/.test(text))return'Placeholder';if(/^(perangkat|protokol|pendamping|staf|staff|sekretariat|ajudan|driver|pengemudi|tim|rombongan|delegasi)\b|\bperangkat\b|\bprotokol\b/.test(text.trim()))return'Generic';return'Named';}
+function normalizeGenericName(name){return String(name||'Nama menyusul').replace(/[\s_-]*(?:no\.?\s*)?\d{1,3}\s*$/i,'').replace(/\s+/g,' ').trim()||'Nama menyusul';}
+function guestOperationalSignature(r){return [f(r,'Perusahaan'),f(r,'Flight Manifest Datang')||f(r,'Tiba di Lhokseumawe'),f(r,'Flight Manifest Pulang')||f(r,'Berangkat dari Lhokseumawe'),f(r,'Akomodasi'),f(r,'No Kamar'),f(r,'LO'),f(r,'Status Flight')].join('|');}
+function updateGuestSummary(list,all){const total=list.length,vip=list.filter(isVIP).length,raker=list.filter(isRaker).length,both=list.filter(isVIPRaker).length,p1=list.filter(r=>f(r,'Prioritas')==='P1').length;const vipOnly=Math.max(0,vip-both),rakerOnly=Math.max(0,raker-both);$('#gsTotal').textContent=total;$('#gsVip').textContent=vip;$('#gsRaker').textContent=raker;$('#gsBoth').textContent=both;$('#gsP1').textContent=p1;$('#gsVipBar').style.width=pctWidth(vipOnly,total)+'%';$('#gsBothBar').style.width=pctWidth(both,total)+'%';$('#gsRakerBar').style.width=pctWidth(rakerOnly,total)+'%';const active=list.length!==all.length;$('#guestSummaryLabel').textContent=active?`Ringkasan hasil filter · ${list.length} dari ${all.length} peserta`:`Ringkasan seluruh roster · ${all.length} peserta`;}
+function viewTamu(){
+  const tm=rows('TAMU'),comp=[...new Set(tm.map(r=>f(r,'Perusahaan')).filter(has))].sort(),romb=[...new Set(tm.map(r=>f(r,'Rombongan')).filter(has))];
+  const rakerOfficial=officialHeadcount(/headcount resmi raker rkap/i,tm.filter(isRaker).length),plenaryOfficial=officialHeadcount(/headcount resmi plenary session/i,0);
+  $('#v-tamu').innerHTML=ph('Tamu','Tamu bernama ditampilkan sebagai card; record generic dan placeholder diringkas berdasarkan nama dasar dan penugasan operasional.')+demoNote()+`
+    <div class="panel"><div class="section-head"><h3>Ringkasan Tamu</h3><small id="guestSummaryLabel">Ringkasan seluruh roster</small></div><div class="metric-grid"><div class="metric-card"><b id="gsTotal">0</b><span>Total Peserta</span></div><div class="metric-card bad"><b id="gsVip">0</b><span>VIP di Roster</span></div><div class="metric-card"><b id="gsRaker">0</b><span>Raker di Roster</span><small>${rakerOfficial} headcount resmi</small></div><div class="metric-card warn"><b id="gsBoth">0</b><span>VIP + Raker</span><small><span id="gsP1">0</span> P1 · Plenary resmi ${plenaryOfficial||'—'}</small></div></div><div class="visual-bar"><i id="gsVipBar" style="background:#9A3B35"></i><i id="gsBothBar" style="background:#F0A500"></i><i id="gsRakerBar" style="background:#2F6D89"></i></div><div class="visual-legend"><span><i style="background:#9A3B35"></i>VIP saja</span><span><i style="background:#F0A500"></i>Overlap</span><span><i style="background:#2F6D89"></i>Raker saja</span></div></div>
+    <div class="filters"><input id="tCari" type="search" placeholder="Cari nama, jabatan, perusahaan, atau kategori…" autocomplete="off"><select id="tJoin"><option value="">Semua keikutsertaan</option><option value="VIP">VIP</option><option value="RAKER">Raker</option><option value="BOTH">VIP &amp; Raker</option></select><select id="tPri"><option value="">Semua prioritas</option><option value="P1">P1 — Prioritas utama</option><option value="P2">P2 — Prioritas tinggi</option><option value="P3">P3 — Prioritas menengah</option><option value="P4">P4 — Peserta umum</option></select><select id="tRomb"><option value="">Semua rombongan</option>${romb.map(r=>`<option>${esc(r)}</option>`).join('')}</select><select id="tComp"><option value="">Semua perusahaan</option>${comp.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div>
+    <div class="count" id="cTamu"></div><div class="guest-grid" id="listTamu"></div><div class="generic-list" id="listGeneric"></div>`;
+  ['tCari','tJoin','tPri','tRomb','tComp'].forEach(id=>$('#'+id).addEventListener(id==='tCari'?'input':'change',drawTamu));drawTamu();
+}
+function filteredGuestRows(){const q=($('#tCari')?.value||'').toLowerCase().trim(),join=$('#tJoin')?.value||'',pr=$('#tPri')?.value||'',rb=$('#tRomb')?.value||'',cp=$('#tComp')?.value||'',all=rows('TAMU');return all.filter(r=>{if(join==='VIP'&&!isVIP(r))return false;if(join==='RAKER'&&!isRaker(r))return false;if(join==='BOTH'&&!isVIPRaker(r))return false;if(pr&&f(r,'Prioritas')!==pr)return false;if(rb&&f(r,'Rombongan')!==rb)return false;if(cp&&f(r,'Perusahaan')!==cp)return false;if(q){const h=[f(r,'Nama'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Akomodasi'),f(r,'LO'),f(r,'Rombongan'),f(r,'Keikutsertaan'),guestType(r)].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});}
+function drawTamu(){
+  const all=rows('TAMU'),list=filteredGuestRows();updateGuestSummary(list,all);
+  const pr=$('#tPri')?.value||'',named=list.filter(r=>guestType(r)==='Named'),generic=list.filter(r=>guestType(r)!=='Named');
+  const ord={P1:0,P2:1,P3:2,P4:3};named.sort((a,b)=>(ord[f(a,'Prioritas')]??9)-(ord[f(b,'Prioritas')]??9)||f(a,'Perusahaan').localeCompare(f(b,'Perusahaan'))||f(a,'Nama').localeCompare(f(b,'Nama')));
+  const vip=list.filter(isVIP).length,raker=list.filter(isRaker).length,both=list.filter(isVIPRaker).length;$('#cTamu').textContent=`${list.length} dari ${all.length} peserta · ${named.length} bernama · ${generic.length} generic/placeholder · VIP ${vip} · Raker ${raker}${both?` · overlap ${both}`:''}`;
+  let h='',g='';for(const r of named){const p=f(r,'Prioritas')||'P4';if(!pr&&p!==g){g=p;h+=`<div class="grp">${esc(p)} · ${esc((PRI[p]||['','Lainnya'])[1])}</div>`;}const nm=f(r,'Nama'),ak=f(r,'Akomodasi'),km=f(r,'No Kamar'),lo=f(r,'LO'),cat=f(r,'Catatan'),arrival=compactFlightMoment(f(r,'Flight Manifest Datang')||f(r,'Tiba di Lhokseumawe')),departure=compactFlightMoment(f(r,'Flight Manifest Pulang')||f(r,'Berangkat dari Lhokseumawe')),rmb=f(r,'Rombongan'),joinVal=f(r,'Keikutsertaan');
+    h+=`<article class="guest-card ${p.toLowerCase()}c"><div class="guest-head"><span class="pri ${(PRI[p]||['p4'])[0]}">${esc(p)}</span><span class="tx"><b>${esc(nm)}</b><span class="sub" style="margin-top:2px;display:block;color:var(--ink-2);font-size:12.5px">${esc(f(r,'Jabatan'))}</span></span><span class="id">${esc(f(r,'ID'))}</span></div><div class="l2">${joinVal?`<i class="tag lane-tag">${esc(joinVal)}</i>`:''}${ak?'':'<i class="tag over">Akomodasi belum diisi</i>'}${lo?'':'<i class="tag over">LO belum ditetapkan</i>'}</div><div class="rowmeta">${[has(f(r,'Perusahaan'))?esc(f(r,'Perusahaan')):'',rmb?esc(rmb):'',ak?esc(ak)+(km?' · kamar '+esc(km):''):'',lo?'LO: '+esc(lo):''].filter(Boolean).join(' · ')}</div>${(arrival||departure)?`<div class="l2">${arrival?`<i class="tag fly">↓ ${esc(arrival)}</i>`:''}${departure?`<i class="tag fly">↑ ${esc(departure)}</i>`:''}</div>`:''}${cat?`<div class="sub">${esc(cat)}</div>`:''}</article>`;
+  }$('#listTamu').innerHTML=h||'<div class="empty"><b>Tamu bernama tidak ditemukan</b>Coba filter lain.</div>';
+  const groups=new Map();generic.forEach(r=>{const base=normalizeGenericName(f(r,'Nama'));const key=[base,guestOperationalSignature(r),guestType(r)].join('||');if(!groups.has(key))groups.set(key,{base,rows:[]});groups.get(key).rows.push(r);});
+  const gh=[...groups.values()].sort((a,b)=>a.base.localeCompare(b.base)).map(({base,rows:rs})=>{const company=f(rs[0],'Perusahaan')||guestType(rs[0]);const arr=compactFlightMoment(f(rs[0],'Flight Manifest Datang')||f(rs[0],'Tiba di Lhokseumawe')),dep=compactFlightMoment(f(rs[0],'Flight Manifest Pulang')||f(rs[0],'Berangkat dari Lhokseumawe'));const ops=[arr?'↓ '+arr:'',dep?'↑ '+dep:'',f(rs[0],'Akomodasi'),f(rs[0],'LO')&&f(rs[0],'LO')!=='Tidak perlu LO'?'LO: '+f(rs[0],'LO'):''].filter(has).join(' · ');const detail=rs.map(r=>esc(f(r,'ID'))).join(', ');return `<details class="generic-table"><summary class="generic-row"><b>${esc(base)}</b><span>${esc(company)}</span><i>${rs.length} orang</i></summary><div class="generic-detail">${ops?esc(ops)+'<br>':''}<b>Record:</b> ${detail}</div></details>`}).join('');
+  $('#listGeneric').innerHTML=generic.length?`<div class="section-head" style="margin-top:18px"><h3>Generic & Placeholder</h3><small>${generic.length} record · ${groups.size} kelompok operasional</small></div>${gh}`:'';
+}
+
+/* ---------- Akomodasi ---------- */
+function viewAkm(){
+  const allAkm=rows('AKOMODASI'),ak=allAkm.filter(isMess),tbcRows=allAkm.filter(isAccommodationTBC),mess=ak.filter(r=>accommodationKind(r)==='Mess'),houses=ak.filter(r=>accommodationKind(r)==='Rumah Kompleks');
+  const loc=[...new Set(ak.map(r=>f(r,'Lokasi')).filter(has))].sort(),filled=ak.filter(roomFilled).length,ready=ak.filter(roomReady).length,free=Math.max(0,ak.length-filled);
+  const stats=list=>({total:list.length,filled:list.filter(roomFilled).length,ready:list.filter(roomReady).length});
+  const ms=stats(mess),hs=stats(houses);
+  const locData=loc.map(l=>[l,ak.filter(r=>f(r,'Lokasi')===l&&roomFilled(r)).length,ak.filter(r=>f(r,'Lokasi')===l).length]);
+  const messLoc=locData.filter(([l])=>!/^rumah\b/i.test(l)),houseLoc=locData.filter(([l])=>/^rumah\b/i.test(l));
+  const barBlock=(title,data,st)=>`<div class="panel"><div class="section-head"><h3>${esc(title)}</h3><small>${st.filled}/${st.total} terisi · ${st.total-st.filled} tersedia</small></div><div class="mini-bars">${data.map(([l,v,t])=>`<div class="mini-row"><span title="${esc(l)}">${esc(l)}</span><div class="mini-track"><i style="width:${pctWidth(v,t)}%"></i></div><b>${v}/${t}</b></div>`).join('')||'<div class="empty">Belum ada data lokasi.</div>'}</div></div>`;
+  $('#v-akm').innerHTML=ph('Akomodasi Mess & Rumah Kompleks','Perhitungan mencakup seluruh kamar/slot di mess dan rumah kompleks. Data hotel tidak dimasukkan.')+demoNote()+`
+    <div class="panel"><div class="metric-grid">
+      <div class="metric-card"><b>${ak.length}</b><span>Total Kamar/Slot</span><small>${ms.total} mess · ${hs.total} rumah kompleks</small></div>
+      <div class="metric-card good"><b>${filled}</b><span>Terisi</span><small>${ms.filled} mess · ${hs.filled} rumah kompleks</small></div>
+      <div class="metric-card"><b>${free}</b><span>Tersedia</span><small>${ms.total-ms.filled} mess · ${hs.total-hs.filled} rumah kompleks</small></div>
+      <div class="metric-card ${ready<ak.length?'warn':'good'}"><b>${ready}</b><span>Siap</span><small>${ak.length-ready} masih perlu perhatian</small></div>
+      <div class="metric-card ${tbcRows.length?'warn':'good'}"><b>${tbcRows.length}</b><span>Belum Teralokasi</span><small>status TBC, tidak masuk total kamar</small></div>
+    </div></div>
+    <div class="grid g2" style="margin-top:14px">${barBlock('Mess',messLoc,ms)}${barBlock('Rumah Kompleks',houseLoc,hs)}</div>
+    ${tbcRows.length?`<details class="panel fold"><summary>Tamu Belum Teralokasi <span>${tbcRows.length} orang</span></summary>${tbcRows.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Tamu'))}</span></div><div class="l2"><i class="tag tbc">TBC</i></div><div class="rowmeta">${esc(f(r,'Perusahaan'))}</div><div class="sub">${esc(f(r,'Jabatan'))}</div></div>`).join('')}</details>`:''}
+    <div class="filters"><input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan…" autocomplete="off"><select id="aJenis"><option value="">Mess &amp; rumah kompleks</option><option value="Mess">Hanya mess</option><option value="Rumah Kompleks">Hanya rumah kompleks</option></select><select id="aLok"><option value="">Semua lokasi</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select></div><div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
+  ['aCari','aJenis','aLok','aIsi'].forEach(id=>$('#'+id).addEventListener(id==='aCari'?'input':'change',drawAkm));drawAkm();
+}
+function drawAkm(){
+  const q=($('#aCari')?.value||'').toLowerCase().trim(),jenis=$('#aJenis')?.value||'',lk=$('#aLok')?.value||'',isi=$('#aIsi')?.value||'',all=rows('AKOMODASI').filter(isMess);
+  let list=all.filter(r=>{if(jenis&&accommodationKind(r)!==jenis)return false;if(lk&&f(r,'Lokasi')!==lk)return false;if(isi==='isi'&&!roomFilled(r))return false;if(isi==='kosong'&&roomFilled(r))return false;if(q){const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Lokasi'),f(r,'No Kamar'),f(r,'Tipe Rumah')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
+  const CAP=400, shown=Math.min(list.length,CAP);
+  $('#cAkm').textContent=`${list.length>CAP?`${shown} dari ${list.length} ditampilkan · `:''}${list.length} dari ${all.length} kamar/slot mess & rumah kompleks`;if(!list.length){$('#listAkm').innerHTML='<div class="empty"><b>Akomodasi tidak ditemukan</b>Coba nama, jenis, atau lokasi lain.</div>';return;}
+  let h='',loc='';for(const r of list.slice(0,CAP)){const l=f(r,'Lokasi');if(l!==loc){loc=l;h+=`<div class="grp">${esc(l)} · ${esc(accommodationKind(r))}</div>`;}const filled=roomFilled(r),kes=f(r,'Kesiapan'),ready=roomReady(r);h+=`<article class="room-card ${filled?'':'empty-room'}"><div class="l1"><span class="room-no">${esc(f(r,'No Kamar')||f(r,'ID'))}</span><span style="margin-left:auto" class="status-pill ${ready?'ok':'wait'}">${ready?'Siap':esc(kes||'Belum siap')}</span></div><div class="room-name">${filled?esc(f(r,'Tamu')):'Kamar/slot tersedia'}</div><div class="sub">${filled?esc(f(r,'Jabatan')):'Belum ditempati'}</div>${(()=>{const m=[has(f(r,'Perusahaan'))&&filled?esc(f(r,'Perusahaan')):'',has(f(r,'Tipe Kasur'))?esc(f(r,'Tipe Kasur')):'',has(f(r,'Tipe Rumah'))?esc(f(r,'Tipe Rumah')):''].filter(Boolean);return m.length?`<div class="rowmeta">${m.join(' · ')}</div>`:'';})()}</article>`;}$('#listAkm').innerHTML=h;
+}
+
+/* ---------- Konsumsi ---------- */
+function viewKns(){
+  const C=consData();
+  const consActivity=C.days.map(([date,list],dayIndex)=>{
+    const dayTotal=list.reduce((a,r)=>a+num(f(r,'Jumlah Final')),0);
+    return `<details class="cons-day" ${dayIndex===0?'open':''}><summary class="cons-day-head"><b>${date==='Tanpa tanggal'?date:fmtDayDate(date)}</b><span>${list.length} kegiatan · ${dayTotal.toLocaleString('id-ID')} porsi</span></summary><div class="cons-day-body">${list.map(r=>{const qty=num(f(r,'Jumlah Final')),serve=fmtClock(f(r,'Waktu Konsumsi')),ready=fmtClock(f(r,'Harus Tersedia')),activity=f(r,'Acara / Rujukan','Acara')||f(r,'ID'),type=f(r,'Jenis Konsumsi'),venue=f(r,'Venue');return `<div class="cons-activity"><div class="cons-clock"><b>${serve||ready||'—'}</b>${ready&&ready!==serve?`<span>siap ${ready}</span>`:'<span>waktu konsumsi</span>'}</div><div class="cons-desc"><b>${esc(activity)}</b><small>${esc(type)}${venue?` · ${esc(venue)}`:''}</small></div><div class="cons-track"><i style="width:${pctWidth(qty,C.maxActivity)}%"></i></div><div class="cons-qty"><b>${qty.toLocaleString('id-ID')}</b><span>porsi</span></div></div>`;}).join('')}</div></details>`;
+  }).join('');
+  $('#v-kns').innerHTML = ph('Konsumsi','Rencana porsi per hari dan per kegiatan, termasuk buffer di atas headcount resmi.') + demoNote() + `
+  <div class="panel"><div class="section-head"><h3>Konsumsi per Hari &amp; Kegiatan</h3><small>${C.days.length} hari · ${C.cons.length} kegiatan</small></div><div class="metric-grid"><div class="metric-card warn"><b>${C.total.toLocaleString('id-ID')}</b><span>Total Porsi Final</span><small>sudah termasuk buffer</small></div><div class="metric-card"><b>${C.days.length}</b><span>Hari Pelayanan</span><small>${C.dailyTotals.map(x=>x[0].replace(/^\w+, /,'')).join(' · ')}</small></div><div class="metric-card"><b>${C.cons.length}</b><span>Kegiatan Konsumsi</span><small>setiap acara dihitung terpisah</small></div><div class="metric-card ${C.open?'warn':'good'}"><b>${C.open}</b><span>Belum Selesai</span><small>berdasarkan status sheet</small></div></div><div class="vehicle-summary-grid consumption-overview"><div class="vehicle-summary"><div class="vehicle-summary-head"><b>Total per Hari</b><span>${C.days.length} hari</span></div>${C.dailyTotals.length?`<div class="mini-bars">${miniRows(C.dailyTotals,Math.max(...C.dailyTotals.map(x=>x[1]),1))}</div>`:'<div class="empty">Belum ada data konsumsi.</div>'}</div><div class="vehicle-summary type"><div class="vehicle-summary-head"><b>Total per Jenis</b><span>${C.types.length} jenis</span></div>${C.types.length?`<div class="mini-bars">${miniRows(C.types,Math.max(...C.types.map(x=>x[1]),1))}</div>`:'<div class="empty">Belum ada jenis konsumsi.</div>'}</div></div>${consActivity?`<div class="consumption-days">${consActivity}</div>`:''}</div>`;
+}
+
+/* ---------- Kendaraan ---------- */
+function viewKdr(){
+  const V=vehData();
+  $('#v-kdr').innerHTML = ph('Kendaraan','Kebutuhan unit per tamu, tipe kendaraan, dan sebarannya per perusahaan.') + demoNote() + `
+  <div class="panel"><div class="section-head"><h3>Kendaraan</h3><small>${V.need.length} baris kebutuhan · ${V.units} unit</small></div><div class="metric-grid"><div class="metric-card ${V.unassignedUnits?'warn':'good'}"><b>${V.units}</b><span>Total Unit</span><small>${V.assignedUnits} unit sudah memiliki tipe</small></div><div class="metric-card"><b>${V.minimumPI}</b><span>Minimum PI</span><small>kebutuhan minimum dari PI</small></div><div class="metric-card"><b>${V.tambahanPIM}</b><span>Tambahan PIM</span><small>hasil perhitungan internal</small></div><div class="metric-card ${V.unassignedUnits?'bad':'good'}"><b>${V.unassignedUnits}</b><span>Belum Terdata</span><small>${V.unassignedRows.length} baris belum memiliki tipe</small></div></div><div class="vehicle-summary-grid"><div class="vehicle-summary type"><div class="vehicle-summary-head"><b>Per Tipe Kendaraan</b><span>${V.types.length} tipe</span></div>${V.types.length?`<div class="mini-bars">${miniRows(V.types,Math.max(...V.types.map(x=>x[1]),1))}</div>`:'<div class="empty"><b>Jenis kendaraan belum diisi</b>Isi kolom Jenis Mobil pada sheet KENDARAAN.</div>'}</div><div class="vehicle-summary company"><div class="vehicle-summary-head"><b>Per Perusahaan</b><span>${V.companies.length} perusahaan/instansi</span></div>${V.companies.length?`<div class="mini-bars">${miniRows(V.companies,Math.max(...V.companies.map(x=>x[1]),1))}</div>`:'<div class="empty">Belum ada data perusahaan.</div>'}</div></div></div>`;
+}
+
+/* ---------- LO ---------- */
+function viewLO(){
+  const all=rows('LO'),confirmed=all.filter(r=>f(r,'Status').toLowerCase()==='confirmed').length,pending=all.filter(r=>f(r,'Status').toLowerCase()==='pending').length;
+  $('#v-lo').innerHTML=ph('Liaison Officer','Penugasan resmi LO per delegasi dan status konfirmasinya.')+demoNote()+`<div class="panel"><div class="metric-grid"><div class="metric-card good"><b>${confirmed}</b><span>Confirmed</span></div><div class="metric-card warn"><b>${pending}</b><span>Pending</span></div></div></div><div class="filters"><input id="lCari" type="search" placeholder="Cari nama LO, VIP, atau perusahaan…" autocomplete="off"><select id="lPos"><option value="">Semua pos</option><option>Lhokseumawe</option><option>Medan</option></select><select id="lStatus"><option value="">Semua status</option><option>Confirmed</option><option>Pending</option></select></div><div class="count" id="cLo"></div><div class="panel" id="listLo"></div>`;
+  ['lCari','lPos','lStatus'].forEach(id=>$('#'+id).addEventListener(id==='lCari'?'input':'change',drawLO));drawLO();
+}
+function drawLO(){
+  const q=($('#lCari')?.value||'').toLowerCase().trim(),p=$('#lPos')?.value||'',st=$('#lStatus')?.value||'';let list=rows('LO').filter(r=>{if(p&&f(r,'Pos')!==p)return false;if(st&&f(r,'Status')!==st)return false;if(q){const h=[f(r,'Nama LO'),f(r,'Nama VIP'),f(r,'Delegasi / Perusahaan','Delegasi'),f(r,'Kategori VIP'),f(r,'No Badge')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
+  $('#cLo').textContent=list.length+' dari '+rows('LO').length+' penugasan';if(!list.length){$('#listLo').innerHTML='<div class="empty"><b>Penugasan tidak ditemukan</b>Coba nama lain.</div>';return;}
+  let h='',c='';for(const r of list){const cc=f(r,'Delegasi / Perusahaan','Delegasi');if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}const status=f(r,'Status')||'Pending',vip=esc(f(r,'Nama VIP')).replace(/\n/g,'<br>');h+=`<div class="item"><div class="l1"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx"><b>${esc(f(r,'Nama LO'))}</b></span><span class="status-pill ${status.toLowerCase()==='confirmed'?'ok':'wait'}">${esc(status)}</span></div><div class="rowmeta">${[esc(f(r,'Kategori VIP')),has(f(r,'Pos'))?esc(f(r,'Pos')):'',has(f(r,'Kontak'))?esc(f(r,'Kontak')):''].filter(Boolean).join(' · ')}</div>${vip?`<div class="sub"><b>Menangani:</b><br>${vip}</div>`:''}</div>`;}$('#listLo').innerHTML=h;
+}
+
+/* ---------- Issues ---------- */
+function viewIsu(){
+  const all=rows('ISSUES');
+  const open=all.filter(r=>f(r,'Status').toLowerCase()!=='closed');
+  const rank=r=>({tinggi:0,sedang:1,rendah:2}[f(r,'Prioritas').toLowerCase()]??3);
+  open.sort((a,b)=>rank(a)-rank(b));
+  const card=r=>{
+    const pri=f(r,'Prioritas'),hi=pri.toLowerCase()==='tinggi';
+    return `<div class="item">
+      <div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Isu / Keputusan yang dibutuhkan','Isu'))}</span></div>
+      <div class="l2"><i class="tag ${hi?'hi':''}">${esc(pri||'—')}</i>
+        ${has(f(r,'Target Tutup'))?`<i class="tag due">${fmtD(f(r,'Target Tutup'))}</i>`:''}</div>
+      <div class="rowmeta">${[esc(f(r,'Bidang')),has(f(r,'PIC'))?esc(f(r,'PIC')):''].filter(Boolean).join(' · ')}</div>
+      ${has(f(r,'Sumber'))?`<div class="sub">Sumber: ${esc(f(r,'Sumber'))}</div>`:''}</div>`;
+  };
+  $('#v-isu').innerHTML = ph('Issues','Keputusan yang masih tertunda, diurutkan dari prioritas tertinggi.') + demoNote() + `
+    <div class="count">${open.length} isu terbuka${all.length-open.length?` · ${all.length-open.length} selesai`:''}</div>
+    <div class="panel">${open.length?open.map(card).join(''):'<div class="empty"><b>Tidak ada isu terbuka</b>Semua keputusan sudah ditutup.</div>'}</div>`;
+}
+
+/* ============================================================
+   6. Demo data + boot
+   ============================================================ */
+
+/* ---------- Reports ---------- */
+const REPORT_SECTIONS=[['TAMU','Tamu'],['KONSUMSI','Konsumsi'],['AKOMODASI','Akomodasi'],['KENDARAAN','Kendaraan'],['RUNDOWN','Rundown'],['CHECKLIST','Checklist'],['LO','Liaison Officer'],['ISSUES','Issues']];
+let REPORT_OPENER=null;
+function openReport(e){REPORT_OPENER=e?.currentTarget||null;const box=$('#reportOptions');box.innerHTML=REPORT_SECTIONS.map(([k,l],i)=>`<div class="report-option"><label><input type="checkbox" data-report="${k}" ${i<3?'checked':''}> ${l}</label></div>`).join('');$('#reportMeta').textContent=`Data ${DEMO?'demo':FETCHED?'sinkron '+relTime(FETCHED):'belum dimuat'} · Excel berisi detail operasional. PDF tersedia sebagai Ringkas Direksi atau Lengkap Internal.`;$('#reportModal').classList.add('on');$('#reportModal').setAttribute('aria-hidden','false');$('#reportClose')?.focus();}
+function closeReport(){$('#reportModal').classList.remove('on');$('#reportModal').setAttribute('aria-hidden','true');REPORT_OPENER?.focus();REPORT_OPENER=null;}
+function selectedReports(){return [...document.querySelectorAll('[data-report]:checked')].map(x=>x.dataset.report);}
+function cleanRows(tab){return rows(tab).filter(r=>r&&typeof r==='object'&&Object.values(r).some(has));}
+function selectedPdfType(){return document.querySelector('input[name="pdfType"]:checked')?.value||'director';}
+function reportTimestamp(){return new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Jakarta'}).format(new Date());}
+function exportExcel(){
+  const btn=$('#reportExcel'),oldText=btn?.textContent||'Export Excel';
+  try{
+    const sel=selectedReports();
+    if(!sel.length)throw new Error('Pilih minimal satu data.');
+    if(!window.XLSX)throw new Error('Library Excel belum termuat. Periksa koneksi internet lalu muat ulang halaman.');
+    if(btn){btn.disabled=true;btn.textContent='Menyiapkan Excel…';}
+    const wb=XLSX.utils.book_new();
+    const meta=[['PIM EVENT CONTROL 2026'],['A Global Player in the Making'],['Transform · Integrate · Accelerate'],['Periode','9–12 Agustus 2026'],['Dibuat',reportTimestamp()],['Sumber',DEMO?'Demo data':FETCHED?'Google Sheets · '+relTime(FETCHED):'Data PWA']];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(meta),'Report Info');
+    sel.forEach(k=>{
+      const data=k==='TAMU'&&$('#v-tamu')?.classList.contains('on')?filteredGuestRows():cleanRows(k);
+      const ws=XLSX.utils.json_to_sheet(data.length?data:[{Informasi:'Tidak ada data'}]);
+      ws['!freeze']={xSplit:0,ySplit:1};
+      ws['!autofilter']={ref:ws['!ref']||'A1:A1'};
+      XLSX.utils.book_append_sheet(wb,ws,(REPORT_SECTIONS.find(x=>x[0]===k)||[k,k])[1].slice(0,31));
+    });
+    XLSX.writeFile(wb,`PIM_Event_Control_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
+    closeReport();
+  }catch(err){
+    console.error('Export Excel gagal',err);
+    alert('Excel gagal dibuat: '+(err?.message||'error tidak diketahui'));
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=oldText;}
+  }
+}
+function countBy(data,key,limit=8){const m=new Map();data.forEach(r=>{const v=f(r,key)||'Belum ditetapkan';m.set(v,(m.get(v)||0)+1)});return [...m].sort((a,b)=>b[1]-a[1]).slice(0,limit);}
+function pdfKpis(items){return `<div class="kpis">${items.map(([v,l,s])=>`<div class="kpi"><b>${esc(String(v))}</b><span>${esc(l)}</span>${s?`<small>${esc(s)}</small>`:''}</div>`).join('')}</div>`;}
+function pdfBars(title,items){const max=Math.max(1,...items.map(x=>x[1]));return `<div class="viz"><h3>${esc(title)}</h3>${items.map(([l,v])=>`<div class="bar-row"><span>${esc(l)}</span><i><b style="width:${Math.max(4,v/max*100)}%"></b></i><strong>${v}</strong></div>`).join('')}</div>`;}
+function maskContact(v){const t=String(v||'');return t.replace(/\b(\d{3,4})[-\s]?(\d{3,4})[-\s]?(\d{3,5})\b/g,(m,a,b,c)=>a+'••••'+c.slice(-2)).replace(/\b08\d{8,11}\b/g,m=>m.slice(0,4)+'••••'+m.slice(-2));}
+function reportPage(n,title,sub,body){return `<section class="page"><div class="page-head"><span>${String(n).padStart(2,'0')}</span><div><h2>${title}</h2><p>${sub}</p></div></div>${body}</section>`;}
+function pdfRundown(n=3){const data=RD(),days=[...new Set(data.map(r=>f(r,'Tanggal')).filter(has))].sort();return reportPage(n,'Master Rundown','Agenda utama per hari, kelompok peserta, venue, dan mobilisasi',days.map(d=>{const list=summaryTimelineItems(data.filter(r=>f(r,'Tanggal')===d));return `<div class="report-day"><h3>${fmtDayDate(d)}</h3>${list.map(r=>`<div class="agenda-line ${timelineClass(r.lane)}"><time>${esc(String(r.start||'').slice(0,5))}${r.end?'–'+esc(String(r.end).slice(0,5)):''}</time><div><b>${esc(r.label)}</b><span>${esc(r.lane)} · ${esc(placeTag(r.venue,r.label))}${r.venue?' · '+esc(r.venue):''}</span></div></div>`).join('')}</div>`}).join(''));}
+function pdfLo(n){const data=cleanRows('LO'),items=data.slice(0,60).map(r=>`<tr><td>${esc(f(r,'Nama LO'))}</td><td>${esc(f(r,'Delegasi / Perusahaan','Tamu yang Ditangani','Menangani'))}</td><td>${esc(f(r,'Pos'))}</td><td>${esc(f(r,'Status'))}</td></tr>`).join('');return reportPage(n,'Liaison Officer','Penugasan LO dan kelompok tamu yang ditangani',`${pdfKpis([[data.length,'LO terdaftar'],[data.filter(r=>/confirm/i.test(f(r,'Status'))).length,'Confirmed'],[data.filter(r=>/pending/i.test(f(r,'Status'))).length,'Pending'],[new Set(data.map(r=>f(r,'Pos')).filter(has)).size,'Pos operasional']])}<table class="report-table"><thead><tr><th>Nama LO</th><th>Menangani</th><th>Pos</th><th>Status</th></tr></thead><tbody>${items}</tbody></table><p class="note-report">Nomor kontak tidak ditampilkan penuh dalam PDF. Detail kontak tersedia pada sistem operasional.</p>`);}
+function pdfIssues(n){const data=cleanRows('ISSUES').filter(r=>!['Closed','Done'].includes(f(r,'Status')));return reportPage(n,'Isu & Keputusan Terbuka','Hal yang belum diputuskan, PIC, dampak, dan target tanggal keputusan',`<div class="issue-list">${data.map(r=>{const target=f(r,'Target Tanggal','Deadline','Target Keputusan')||'Belum ditetapkan';return `<article><b>${esc(f(r,'Isu / Keputusan yang dibutuhkan','Isu'))}</b><p>${esc(f(r,'Dampak','Catatan','Sumber'))}</p><span>PIC: ${esc(f(r,'PIC','Owner','Penanggung Jawab')||'Belum ditetapkan')} · Target: ${esc(target)} · Status: ${esc(f(r,'Status'))}</span></article>`}).join('')||'<p>Tidak ada isu terbuka.</p>'}</div>`);}
+function pdfPlantTour(n){const rd=RD().filter(r=>/plant tour/i.test(f(r,'Kegiatan'))),chk=rows('CHECKLIST').filter(r=>/plant tour/i.test(f(r,'Acara')+' '+f(r,'Item')));return reportPage(n,'Plant Tour — Tentative','Rute dan kesiapan operasional masih berstatus tentative',`${pdfKpis([[rd.length,'Agenda rundown'],[chk.length,'Item kesiapan'],[chk.filter(r=>f(r,'Status')==='Done').length,'Selesai'],[chk.filter(r=>f(r,'Status')==='Blocked').length,'Blocked']])}<div class="callout"><b>Rute tentative</b><p>Gedung Pertemuan → Plant Gate → Drop Point #1 NPK Plant → Plant Gate → Gedung Pertemuan. Estimasi antar titik mengikuti bahan referensi Plant Tour dan harus dikonfirmasi sebelum pelaksanaan.</p></div><div class="two-col">${pdfBars('Status kesiapan',countBy(chk,'Status',6))}<div class="viz"><h3>Kebutuhan utama</h3><ul>${chk.slice(0,10).map(r=>`<li><b>${esc(f(r,'Item'))}</b> — ${esc(f(r,'PIC'))} · ${esc(f(r,'Status'))}</li>`).join('')}</ul></div></div>`);}
+function pdfOperations(n){const ak=cleanRows('AKOMODASI'),veh=cleanRows('KENDARAAN'),cons=cleanRows('KONSUMSI'),totalCons=cons.reduce((a,r)=>a+num(f(r,'Jumlah Final')),0);return reportPage(n,'Pelaksanaan Operasional','Akomodasi, kendaraan, dan konsumsi yang mendukung seluruh rangkaian',`${pdfKpis([[ak.filter(r=>f(r,'Tipe')==='Rumah Komplek').length,'Slot rumah/mess'],[ak.filter(r=>f(r,'Tipe')==='TBC').length,'Akomodasi TBC'],[veh.reduce((a,r)=>a+num(f(r,'Jumlah Unit')),0),'Unit kendaraan'],[totalCons.toLocaleString('id-ID'),'Porsi final']])}<div class="two-col">${pdfBars('Konsumsi per jenis',countBy(cons,'Jenis Konsumsi',6))}${pdfBars('Kendaraan per perusahaan',countBy(veh,'Perusahaan',8))}</div>`);}
+function pdfGuests(n){const data=cleanRows('TAMU'),named=data.filter(r=>guestType(r)==='Named'),generic=data.length-named.length;return reportPage(n,'Peserta & Manifest','Komposisi peserta terdaftar serta kepastian perjalanan',`${pdfKpis([[data.length,'Total terdaftar'],[named.length,'Tamu bernama'],[generic,'Generic / placeholder'],[data.filter(r=>f(r,'Status Flight')==='Confirmed').length,'Flight confirmed']])}<div class="two-col">${pdfBars('Perusahaan terbanyak',countBy(data,'Perusahaan',8))}${pdfBars('Status penerbangan',countBy(data,'Status Flight',6))}</div>`);}
+function pdfReadiness(n){const chk=rows('CHECKLIST');return reportPage(n,'Readiness & PIC','Kesiapan per acara dan item yang memerlukan perhatian',`${pdfKpis([[chk.length,'Checklist'],[chk.filter(r=>f(r,'Status')==='Done').length,'Selesai'],[chk.filter(r=>f(r,'Status')==='In Progress').length,'In progress'],[chk.filter(r=>f(r,'Status')==='Blocked').length,'Blocked']])}<div class="two-col">${pdfBars('Checklist per acara',countBy(chk,'Acara',10))}<div class="viz"><h3>Perlu perhatian</h3><ul>${chk.filter(r=>['Blocked','Not Started'].includes(f(r,'Status'))).slice(0,12).map(r=>`<li><b>${esc(f(r,'Item'))}</b><br><span>${esc(f(r,'Acara'))} · PIC ${esc(f(r,'PIC'))} · ${esc(f(r,'Deadline'))}</span></li>`).join('')}</ul></div></div>`);}
+function pdfContacts(n){const lo=cleanRows('LO');return reportPage(n,'Kontak Operasional','Nama koordinator dan PIC; nomor kontak disamarkan',`<table class="report-table"><thead><tr><th>Fungsi</th><th>Nama/PIC</th><th>Kontak</th></tr></thead><tbody>${lo.slice(0,25).map(r=>`<tr><td>${esc(f(r,'Delegasi / Perusahaan','Pos'))}</td><td>${esc(f(r,'Nama LO'))}</td><td>${esc(maskContact(f(r,'Kontak','No HP','No Badge'))||'Tersedia di sistem')}</td></tr>`).join('')}</tbody></table>`);}
+function buildAndExportPdf(){const type=selectedPdfType(),tm=rows('TAMU'),chk=rows('CHECKLIST'),issues=rows('ISSUES').filter(r=>!['Closed','Done'].includes(f(r,'Status'))),rakerOfficial=236,plenaryOfficial=500;let n=1;const sections=[];sections.push(reportPage(n++,'Executive Overview','Gambaran ringkas rangkaian acara dan kesiapan pelaksanaan',`${pdfKpis([[tm.length,'Peserta terdaftar'],[rakerOfficial,'Raker resmi'],[plenaryOfficial,'Plenary resmi'],[issues.length,'Isu terbuka']])}<div class="two-col">${pdfBars('Readiness per acara',countBy(chk,'Acara',10))}${pdfBars('Status checklist',countBy(chk,'Status',6))}</div><div class="callout"><b>Rangkaian utama</b><p>Rakor Dirut, Raker RKAP 2027, Plenary Session, Rapat Konsultasi & Pengawasan, Olimpiade PI Group, serta Plant Tour. Day 0 dimulai 9 Agustus 2026.</p></div>`));sections.push(pdfRundown(n++));sections.push(pdfGuests(n++));sections.push(pdfLo(n++));sections.push(pdfOperations(n++));sections.push(pdfReadiness(n++));sections.push(pdfIssues(n++));sections.push(pdfPlantTour(n++));if(type==='internal')sections.push(pdfContacts(n++));const title=type==='director'?'Ringkas Direksi':'Laporan Lengkap Internal';const reportHtml=`<!doctype html><html><head><meta charset="utf-8"><title>PIM Event Control — ${title}</title><style>@page{size:A4 landscape;margin:9mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#14243a;margin:0;background:#fff}.cover,.page{min-height:190mm;page-break-after:always;padding:13mm 15mm;position:relative}.cover{display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(135deg,#0d2747 0%,#164f73 58%,#0b7894 100%);color:#fff;overflow:hidden}.cover:before{content:'';position:absolute;width:150mm;height:150mm;border:25mm solid rgba(255,255,255,.055);border-radius:50%;right:-45mm;top:-55mm}.cover h1{font-size:35pt;line-height:1;margin:5mm 0 3mm}.cover h2{font-size:18pt;margin:0 0 13mm;color:#bfe8f3}.eyebrow{font-size:9pt;letter-spacing:.2em;text-transform:uppercase;opacity:.75}.theme{font-size:16pt;font-weight:bold}.theme span{display:block;font-size:10pt;font-weight:normal;letter-spacing:.18em;margin-top:3mm}.meta{margin-top:14mm;font-size:9pt;opacity:.82}.page-head{display:flex;align-items:center;gap:6mm;border-bottom:1px solid #c7d3df;padding-bottom:4mm;margin-bottom:7mm}.page-head>span{font-size:23pt;font-weight:bold;color:#0b7894}.page-head h2{font-size:22pt;margin:0}.page-head p{margin:1mm 0 0;color:#657489;font-size:9pt}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin-bottom:7mm}.kpi{border:1px solid #d8e0e8;border-radius:4mm;padding:4mm;background:#f8fafc;border-left:2mm solid #0b7894}.kpi b{display:block;font-size:22pt}.kpi span{font-size:8pt;text-transform:uppercase;letter-spacing:.07em;color:#657489}.kpi small{display:block;margin-top:2mm;color:#657489}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:6mm}.viz{border:1px solid #d8e0e8;border-radius:4mm;padding:5mm}.viz h3{margin:0 0 4mm;font-size:12pt}.bar-row{display:grid;grid-template-columns:43mm 1fr 10mm;gap:3mm;align-items:center;margin:3mm 0;font-size:8pt}.bar-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-row i{height:3mm;background:#e7edf3;border-radius:99px;overflow:hidden}.bar-row i b{display:block;height:100%;background:linear-gradient(90deg,#0b7894,#2f9ab0)}.bar-row strong{text-align:right}.report-day{margin-bottom:5mm}.report-day h3{font-size:11pt;margin:0 0 2mm;color:#0d4f70}.agenda-line{--c:#2878B5;display:grid;grid-template-columns:28mm 1fr;gap:4mm;border-left:2mm solid var(--c);padding:2.4mm 4mm;margin:1.6mm 0;background:#f8fafc}.agenda-line.vip{--c:#A67C00}.agenda-line.undangan{--c:#2878B5}.agenda-line.gabungan{--c:#6B4FA1}.agenda-line.dirut{--c:#17365D}.agenda-line.raker{--c:#23836B}.agenda-line.konsultasi{--c:#9A3B35}.agenda-line.olimpiade{--c:#D97916}.agenda-line time{font-weight:bold;color:var(--c)}.agenda-line b{display:block}.agenda-line span{font-size:8pt;color:#657489}.issue-list{display:grid;grid-template-columns:1fr 1fr;gap:4mm}.issue-list article{border:1px solid #d8e0e8;border-radius:3mm;padding:4mm;background:#f8fafc}.issue-list b{font-size:9pt}.issue-list p{font-size:8pt;margin:2mm 0;color:#657489}.issue-list span{display:block;font-size:8pt;color:#9a3b35}.report-table{width:100%;border-collapse:collapse;font-size:8pt}.report-table th{background:#17365d;color:#fff;text-align:left;padding:2.5mm}.report-table td{border-bottom:1px solid #d8e0e8;padding:2.3mm;vertical-align:top}.callout{margin-top:6mm;border-left:2mm solid #f0a400;background:#fff8e8;padding:4mm 5mm}.callout b{font-size:10pt}.callout p{font-size:8.5pt;line-height:1.45;margin:2mm 0 0}.note-report{font-size:8pt;color:#657489}.viz ul{padding-left:5mm;margin:0}.viz li{font-size:8pt;margin:2.2mm 0}.footer{position:fixed;bottom:2.5mm;left:0;right:0;text-align:center;font-size:7pt;color:#708095}</style></head><body><section class="cover"><div class="eyebrow">PT Pupuk Iskandar Muda · PI Group</div><h1>PIM EVENT CONTROL 2026</h1><h2>${title}</h2><div class="theme">A Global Player in the Making<span>TRANSFORM · INTEGRATE · ACCELERATE</span></div><div class="meta">9–12 Agustus 2026 · Dibuat ${reportTimestamp()}<br>Sumber operasional: Google Sheets/PWA · Referensi: materi PI Group, akomodasi, dan rute Plant Tour</div></section>${sections.join('')}<div class="footer">PIM Event Control 2026 · A Global Player in the Making · Transform, Integrate, Accelerate</div></body></html>`;const btn=$('#reportPdf');const oldText=btn?.textContent||'Generate PDF';try{if(btn){btn.disabled=true;btn.textContent='Menyiapkan PDF…';}let frame=document.getElementById('pdfPrintFrame');if(frame)frame.remove();frame=document.createElement('iframe');frame.id='pdfPrintFrame';frame.setAttribute('aria-hidden','true');frame.style.position='fixed';frame.style.right='0';frame.style.bottom='0';frame.style.width='1px';frame.style.height='1px';frame.style.border='0';frame.style.opacity='0';frame.style.pointerEvents='none';document.body.appendChild(frame);const doc=frame.contentDocument||frame.contentWindow?.document;if(!doc)throw new Error('Dokumen print tidak dapat dibuat.');doc.open();doc.write(reportHtml);doc.close();const triggerPrint=()=>{try{frame.contentWindow.focus();frame.contentWindow.print();closeReport();}catch(err){console.error('Print PDF gagal',err);alert('Preview PDF gagal dibuka. Coba gunakan Chrome desktop dan pastikan halaman sudah selesai dimuat.');}finally{if(btn){btn.disabled=false;btn.textContent=oldText;}setTimeout(()=>frame.remove(),30000);}};if(doc.readyState==='complete')setTimeout(triggerPrint,600);else frame.onload=()=>setTimeout(triggerPrint,600);}catch(err){console.error('Generate PDF gagal',err);alert('PDF gagal dibuat: '+(err?.message||'error tidak diketahui'));if(btn){btn.disabled=false;btn.textContent=oldText;}}}
+function exportPdf(){
+  try{
+    buildAndExportPdf();
+  }catch(err){
+    console.error('Generate PDF gagal',err);
+    alert('PDF gagal dibuat: '+(err?.message||'error tidak diketahui'));
+    const btn=$('#reportPdf');
+    if(btn){btn.disabled=false;btn.textContent='Generate PDF';}
+  }
+}
+function initReports(){$('#reportBtnSide')?.addEventListener('click',openReport);$('#reportBtnDrawer')?.addEventListener('click',openReport);$('#reportClose')?.addEventListener('click',closeReport);$('#reportExcel')?.addEventListener('click',exportExcel);$('#reportPdf')?.addEventListener('click',exportPdf);$('#reportModal')?.addEventListener('click',e=>{if(e.target.id==='reportModal')closeReport();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#reportModal')?.classList.contains('on'))closeReport();});}
+
+const DEMO_DATA={tabs:{
+ ACARA:[
+  {'Acara':'Plenary'},{'Acara':'Olimpiade'},{'Acara':'Raker RKAP'},{'Acara':'Rakor Dirut'},
+  {'Acara':'Rapat Konsultasi'},{'Acara':'Akomodasi'},{'Acara':'Transportasi'},{'Acara':'Konsumsi'},
+  {'Acara':'Plant Tour'},{'Acara':'Umum/Panitia'}],
+ CHECKLIST:[
+  {'ID':'ACR-002','Acara':'Rakor Dirut','Item':'Layout & seating plan Rakor Dirut','Venue':'Ruang Keupula','Owner':'PIM','PIC':'Teuku Alfianda','Deadline':'2026-08-04','Status':'In Progress'},
+  {'ID':'AKM-001','Acara':'Akomodasi','Item':'Penyelesaian pengisian furnitur kamar','Venue':'Rumah Komplek dan Mess','Owner':'PIM','PIC':'Fakhrul Aman','Deadline':'2026-08-04','Status':'Not Started'},
+  {'ID':'KNS-001','Acara':'Konsumsi','Item':'Konfirmasi menu dan jumlah makanan','Venue':'Seluruh venue konsumsi','Owner':'PIM','PIC':'Dita Roswita','Deadline':'2026-07-29','Status':'Blocked','Catatan':'Menunggu konfirmasi final'},
+  {'ID':'KAM-004B','Acara':'Plant Tour','Item':'APD Plant Tour','Venue':'Area Pabrik','Owner':'PIM','PIC':'Hasanuddin','Deadline':'2026-08-07','Status':'Not Started'}],
+ RUNDOWN:[
+  {'ID':'RD-029','Hari':'Minggu','Tanggal':'2026-08-09','Mulai':'08:45','Selesai':'09:55','Durasi':'01:10','Jalur':'TAMU UNDANGAN','Kegiatan':'Flight KNO–LSW — Batch 1 Tamu Undangan','Venue':'Bandara Kualanamu (KNO) → Malikussaleh (LSW)'},
+  {'ID':'RD-030B','Hari':'Minggu','Tanggal':'2026-08-09','Mulai':'19:30','Selesai':'20:30','Durasi':'01:00','Jalur':'TAMU UNDANGAN','Kegiatan':'Makan malam Batch 1 Tamu Undangan','Venue':'TBC'},
+  {'ID':'RD-001','Hari':'Senin','Tanggal':'2026-08-10','Mulai':'16:30','Selesai':'18:55','Durasi':'02:25','Jalur':'TAMU VIP','Kegiatan':'Flight CGK-KNO — Garuda Indonesia GA-190','Venue':'Bandara Soekarno-Hatta (CGK) → Kualanamu (KNO)'},
+  {'ID':'RD-034','Hari':'Senin','Tanggal':'2026-08-10','Mulai':'13:30','Selesai':'17:00','Durasi':'03:30','Jalur':'TAMU UNDANGAN','Kegiatan':'Rakor Direktur Utama PI Grup','Venue':'Ruang Keupula'}],
+ AKOMODASI:[
+  {'ID':'AK-001','Tipe':'Rumah Komplek','Lokasi':'Rumah Seulawah 46','No Kamar':'1','Tamu':'','Kesiapan':'Pengisian tempat tidur, sofa'},
+  {'ID':'AK-002','Tipe':'Hotel','Lokasi':'Hotel Rajawali','No Kamar':'12','Tamu':'NA','Jabatan':'Sekper','Perusahaan':'Pupuk Kaltim','Kesiapan':'Ready'},
+  {'ID':'AK-206','Tipe':'TBC','Lokasi':'TBC','Tamu':'Mukhtasor','Jabatan':'Komisaris','Perusahaan':'PT Pupuk Kujang Cikampek','Kesiapan':'Not Started'}],
+ LO:[{'ID':'LO-001','Delegasi / Perusahaan':'Panitia LO Inti','Kategori VIP':'Koordinator LO','Nama LO':'Yusrizal','No Badge':'5122009','Pos':'Lhokseumawe','Catatan':'PENUGASAN GANDA'}],
+ TAMU:[
+  {'ID':'TM-001','Nama':'Setyanto Hantoro','Jabatan':'MD Business II, Danantara Asset Management','Perusahaan':'Danantara','Prioritas':'P1','Rombongan':'Tamu VIP','Flight Manifest Datang':'Selasa, 11 Agustus 2026 — Charter KNO–LSW, 07:45–08:30','Flight Manifest Pulang':'Selasa, 11 Agustus 2026 — Charter LSW–KNO, 13:45–14:30','LO':'Safwat Ardy (5121980)'},
+  {'ID':'TM-002','Nama':'Rahmad Pribadi','Jabatan':'Direktur Utama','Perusahaan':'Pupuk Indonesia','Prioritas':'P1','Akomodasi':'Mess Utama Raja Lanang 11','No Kamar':'1','Rombongan':'Tamu VIP','Tiba di Lhokseumawe':'Sel 11 Agu · 08:30 · Charter KNO–LSW','LO':'Fahirul Muhar (5180056)','Tipe Record':'Named'}],
+ KONSUMSI:[
+  {'ID':'KM-001','Tanggal':'2026-08-10','Waktu Konsumsi':'12:30','Jenis Konsumsi':'Makan Siang','Acara / Rujukan':'Makan siang peserta Raker lainnya','Dasar Headcount':'Headcount resmi Raker RKAP dikurangi peserta makan siang Rakor Dirut','Jumlah Dasar':'211','Jumlah Final':'233','Status':'Not Started'},
+  {'ID':'KM-002','Tanggal':'2026-08-10','Waktu Konsumsi':'19:30','Jenis Konsumsi':'Makan Malam','Acara / Rujukan':'Welcoming Dinner Lhokseumawe','Dasar Headcount':'Headcount resmi Raker RKAP','Jumlah Dasar':'236','Jumlah Final':'260','Status':'Not Started'},
+  {'ID':'KS-002','Tanggal':'2026-08-11','Waktu Konsumsi':'09:00','Jenis Konsumsi':'Snack','Acara / Rujukan':'Plenary Session','Dasar Headcount':'Headcount resmi Plenary Session','Jumlah Dasar':'500','Jumlah Final':'550','Status':'Not Started'}],
+ KENDARAAN:[
+  {'No':'1','Nama':'Andi Amran Sulaiman','Perusahaan':'Kementerian Pertanian RI','Perlu Mobil?':'Ya','Jenis Mobil':'Alphard Hybrid','Jumlah Minimum PI':'1','Tambahan PIM':'0','Jumlah Unit':'1'}],
+ ISSUES:[{'ID':'ISS-001','Isu / Keputusan yang dibutuhkan':'Jadwal penerbangan komersil masih TBC','Bidang':'Transportasi','Prioritas':'Tinggi','Sumber':'Rundown','Status':'Open'}]
+}};
+
+buildNav();
+initDrawer();
+initFilterBar();
+initReports();
+initRouter();
+load();
+setInterval(()=>{ if(FETCHED&&!DEMO) setSync(navigator.onLine?'':'off',(navigator.onLine?'Updated ':'Offline · ')+relTime(FETCHED)); },60000);
+window.addEventListener('online',load);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      reg.addEventListener('updatefound',()=>{ const w=reg.installing;
+        w&&w.addEventListener('statechange',()=>{
+          if(w.state==='installed'&&navigator.serviceWorker.controller) w.postMessage('SKIP_WAITING'); }); });
+    }).catch(()=>{});
+  });
+  let done=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(!done){done=true;location.reload();} });
+}
+</script>
+</body>
+</html>
