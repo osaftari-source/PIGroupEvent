@@ -74,6 +74,7 @@ aside{display:none}
   .snav button:hover{background:#1E3050;color:#fff}
   .snav button[aria-selected="true"]{background:#24395E;color:#fff}
   .snav button svg{flex:none;opacity:.9}
+  .snav .nav-group{margin:15px 11px 5px}
   .snav .badge{
     margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:var(--fs-2);
     background:#2C4A6C;color:#C9D8EC;border-radius:20px;padding:1px 7px;
@@ -146,6 +147,13 @@ nav.drawer.on{
 .dnav button[aria-selected="true"]{background:#24395E;color:#fff}
 .dnav button[aria-selected="true"] svg{stroke:var(--amber)}
 .dnav button svg{flex:none;opacity:.9}
+.dnav .nav-group{margin:14px 11px 5px}
+/* Section labels for both navs — display only, not focusable. */
+.nav-group{
+  font-size:var(--fs-1);font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:#6C82A3;
+}
+.nav-group:first-child{margin-top:2px}
 .dnav .ndot{
   position:static;transform:none;margin-left:auto;flex:none;
   width:8px;height:8px;border-radius:50%;background:var(--st-block);
@@ -214,10 +222,15 @@ main{padding:16px 14px calc(26px + env(safe-area-inset-bottom))}
 .hero .cd i{font-style:normal;font-size:var(--fs-3);letter-spacing:.13em;text-transform:uppercase;color:#93A6C4;line-height:1.35}
 .hero .meta{margin-left:auto;text-align:right;font-size:var(--fs-4);color:#A9BAD4;line-height:1.7}
 .hero .meta b{color:#fff;font-weight:600}
-.ring{display:flex;gap:10px;align-items:center;margin-top:16px;padding-top:15px;border-top:1px solid #2C4A6C}
-.ring .bar{flex:1;height:9px;border-radius:5px;background:#2C4A6C;overflow:hidden;display:flex}
+.ring{margin-top:16px;padding-top:15px;border-top:1px solid #2C4A6C}
+.ring-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:7px}
+.ring-head span{font-size:var(--fs-2);letter-spacing:.13em;text-transform:uppercase;color:#93A6C4}
+.ring .bar{height:9px;border-radius:5px;background:#2C4A6C;overflow:hidden;display:flex}
 .ring .bar i{display:block;height:100%}
 .ring b{font-family:'IBM Plex Mono',monospace;font-size:var(--fs-5);font-weight:600;color:#fff}
+.ring-key{display:flex;flex-wrap:wrap;gap:5px 16px;margin-top:9px;font-size:var(--fs-3);color:#A9BAD4}
+.ring-key span{display:flex;align-items:center;gap:6px}
+.ring-key i{width:8px;height:8px;border-radius:2px;flex:none}
 /* The "is anything on fire" numbers used to sit at the very bottom of Beranda.
    They belong in the hero, which is already the state-of-the-event block. */
 .hero-stats{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:15px;padding-top:14px;border-top:1px solid #2C4A6C}
@@ -454,7 +467,7 @@ footer{text-align:center;font-size:var(--fs-3);color:var(--ink-3);padding:22px 1
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.10
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.11
   </footer>
 </div></main>
 
@@ -675,18 +688,33 @@ const IC={
   kns:'<path d="M3.5 11h17a8.5 8.5 0 0 1-8.5 7.5A8.5 8.5 0 0 1 3.5 11z"/><path d="M3 21h18"/><path d="M9 7.5C9 6.4 10 6 10 4.8M14 7.5C14 6.4 15 6 15 4.8"/>',
   kdr:'<path d="M3.2 13.2 5 8.4A2 2 0 0 1 6.9 7h10.2a2 2 0 0 1 1.9 1.4l1.8 4.8"/><rect x="3" y="13.2" width="18" height="4.6" rx="1.5"/><circle cx="7.4" cy="17.8" r="1.3"/><circle cx="16.6" cy="17.8" r="1.3"/>'
 };
+// [key, short label, full label, section]. Nine items is enough that grouping
+// earns its place; the sections are display only — routing is unchanged.
 const PAGES=[
-  ['home','Beranda','Beranda'],['chk','Checklist','Checklist'],['run','Rundown','Rundown'],
-  ['tamu','Tamu','Tamu'],['akm','Kamar','Akomodasi'],['kns','Konsumsi','Konsumsi'],
-  ['kdr','Kendaraan','Kendaraan'],['lo','LO','Liaison Officer'],['isu','Issues','Issues']
+  ['home','Beranda','Beranda','Overview'],
+  ['chk','Checklist','Checklist','Overview'],
+  ['run','Rundown','Rundown','Overview'],
+  ['tamu','Tamu','Tamu','Operasional'],
+  ['akm','Kamar','Akomodasi','Operasional'],
+  ['lo','LO','Liaison Officer','Operasional'],
+  ['kdr','Kendaraan','Kendaraan','Operasional'],
+  ['kns','Konsumsi','Konsumsi','Operasional'],
+  ['isu','Issues','Issues','Control']
 ];
 function svg(k){ return `<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
   stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`; }
+function navHtml(withBadge){
+  let out='',group='';
+  PAGES.forEach(([k,,long,g])=>{
+    if(g!==group){ group=g; out+=`<p class="nav-group">${g}</p>`; }
+    out+=`<button role="tab" data-v="${k}" aria-selected="${k===PAGE}">${svg(k)}<span>${long}</span>`
+       + (withBadge?`<i class="badge" data-b="${k}" hidden></i>`:'')+`</button>`;
+  });
+  return out;
+}
 function buildNav(){
-  $('#bnav').innerHTML = PAGES.map(([k,,long])=>
-    `<button role="tab" data-v="${k}" aria-selected="${k===PAGE}">${svg(k)}<span>${long}</span></button>`).join('');
-  $('#snav').innerHTML = PAGES.map(([k,,long])=>
-    `<button role="tab" data-v="${k}" aria-selected="${k===PAGE}">${svg(k)}<span>${long}</span><i class="badge" data-b="${k}" hidden></i></button>`).join('');
+  $('#bnav').innerHTML = navHtml(false);
+  $('#snav').innerHTML = navHtml(true);
   $$('#bnav button, #snav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.v)));
 }
 function go(v,opts){
@@ -985,7 +1013,16 @@ function viewHome(){
 
   $('#v-home').innerHTML=demoNote()+`
   <div class="stale-banner" id="staleBanner" role="status" hidden></div>
-  <div class="hero"><div class="row"><div class="cd"><b>${cdN}</b><i>${cdL}</i></div><div class="meta"><b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>PT Pupuk Iskandar Muda, Lhokseumawe</div></div><div class="ring"><div class="bar"><i style="width:${w(done)}%;background:var(--st-done)"></i><i style="width:${w(prog)}%;background:var(--amber)"></i><i style="width:${w(blocked)}%;background:var(--st-block)"></i></div><b>${pct}%</b></div>
+  <div class="hero"><div class="row"><div class="cd"><b>${cdN}</b><i>${cdL}</i></div><div class="meta"><b>Rakor Dirut · Raker RKAP 2027 · Plenary</b><br>Rapat Konsultasi &amp; Pengawasan · Olimpiade PI Group<br>PT Pupuk Iskandar Muda, Lhokseumawe</div></div><div class="ring">
+      <div class="ring-head"><span>Overall Readiness</span><b>${pct}%</b></div>
+      <div class="bar"><i style="width:${w(done)}%;background:var(--st-done)"></i><i style="width:${w(prog)}%;background:var(--amber)"></i><i style="width:${w(blocked)}%;background:var(--st-block)"></i></div>
+      <div class="ring-key">
+        <span><i style="background:var(--st-done)"></i>${done} selesai</span>
+        <span><i style="background:var(--amber)"></i>${prog} berjalan</span>
+        <span><i style="background:var(--st-block)"></i>${blocked} blocked</span>
+        <span><i style="background:#2C4A6C"></i>${items.length-done-prog-blocked} belum mulai${na?` · ${na} N/A`:''}</span>
+      </div>
+    </div>
     <div class="hero-stats">
       <div class="hs ${over?'bad':'zero'}"><b>${over}</b><span>Overdue</span></div>
       <div class="hs ${blocked?'bad':'zero'}"><b>${blocked}</b><span>Blocked</span></div>
