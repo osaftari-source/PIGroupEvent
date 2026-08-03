@@ -540,7 +540,7 @@ footer{text-align:center;font-size:var(--fs-3);color:var(--ink-3);padding:22px 1
   <section class="view" id="v-isu"></section>
   <footer>
     Panitia Rakor Dirut &amp; Raker RKAP 2027 &middot; PT Pupuk Iskandar Muda<br>
-    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.18
+    Data dikelola oleh Sekretariat Panitia. Tampilan ini hanya untuk dibaca.<br>A Global Player in the Making · Transform, Integrate, Accelerate<br>Frontend v9.19
   </footer>
 </div></main>
 
@@ -567,15 +567,18 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-09',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v9-18',
+  CACHE_KEY: 'pim-event-cache-v9-19',
   CACHE_STABLE_KEY: 'pim-event-cache-latest',
-  FETCH_TIMEOUT_MS: 120000
+  FETCH_ATTEMPT_TIMEOUT_MS: 30000,
+  FETCH_TOTAL_TIMEOUT_MS: 120000,
+  FETCH_MAX_ATTEMPTS: 4,
+  FETCH_RETRY_DELAYS_MS: [2000, 5000, 10000]
 };
 
 /* ============================================================
    2. Helpers
    ============================================================ */
-let DATA=null, FETCHED=null, DEMO=false, PAGE='home', LOADING=false, LOAD_TIMER=null;
+let DATA=null, FETCHED=null, DEMO=false, PAGE='home', LOADING=false, LOAD_TIMER=null, LOAD_DETAIL='Menghubungkan ke Google Sheets.';
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -928,15 +931,19 @@ function relTime(iso){
   if(m<1) return 'baru saja'; if(m<60) return m+' menit lalu';
   const h=Math.round(m/60); return h<24 ? h+' jam lalu' : Math.round(h/24)+' hari lalu';
 }
+function setColdLoadingDetail(text){
+  LOAD_DETAIL=text||'Menghubungkan ke Google Sheets.';
+  const sub=$('#loadingSub'); if(sub) sub.textContent=LOAD_DETAIL;
+}
 function showColdLoading(){
   const el=$('#appLoading'); if(!el) return;
   el.hidden=false; $('#loadingRetry').hidden=true;
   $('#loadingText').textContent='Mengambil data acara terbaru…';
-  $('#loadingSub').textContent='Menghubungkan ke Google Sheets.';
+  setColdLoadingDetail('Menghubungkan ke Google Sheets.');
   const started=Date.now(); clearInterval(LOAD_TIMER);
   LOAD_TIMER=setInterval(()=>{
     const sec=Math.floor((Date.now()-started)/1000);
-    if(sec>=8) $('#loadingSub').textContent=`Memuat lebih lama dari biasanya (${sec} detik). Mohon tunggu.`;
+    if(sec>=8) $('#loadingSub').textContent=`${LOAD_DETAIL} · ${sec} detik`;
   },1000);
 }
 function hideColdLoading(){ clearInterval(LOAD_TIMER); LOAD_TIMER=null; const el=$('#appLoading'); if(el) el.hidden=true; }
@@ -963,17 +970,72 @@ function validatePayload(j){
   if(missing.length) throw new Error('Sheet tidak tersedia: '+missing.join(', '));
   return j;
 }
-async function fetchLatest(){
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function fetchError(message,{name='FetchError',status=null,retryable=false}={}){
+  const err=new Error(message); err.name=name; err.status=status; err.retryable=retryable; return err;
+}
+function retryableStatus(status){
+  return status===404 || status===408 || status===429 || (status>=500 && status<=599);
+}
+function isRetryableFetchError(err){
+  return !!err?.retryable || err?.name==='TypeError' || err?.name==='AttemptTimeoutError' || err?.name==='InvalidJsonError' || err?.name==='PayloadError' || err?.name==='EmptyResponseError';
+}
+async function fetchAttempt(timeoutMs){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),CONFIG.FETCH_TIMEOUT_MS);
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
   try{
-    const res=await fetch(CONFIG.API_URL+(CONFIG.API_URL.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store',signal:controller.signal});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    return validatePayload(await res.json());
+    const url=CONFIG.API_URL+(CONFIG.API_URL.includes('?')?'&':'?')+'t='+Date.now();
+    const res=await fetch(url,{cache:'no-store',signal:controller.signal});
+    if(!res.ok) throw fetchError('HTTP '+res.status,{name:'HttpError',status:res.status,retryable:retryableStatus(res.status)});
+    const text=await res.text();
+    if(!text.trim()) throw fetchError('Respons backend kosong.',{name:'EmptyResponseError',retryable:true});
+    let json;
+    try{ json=JSON.parse(text); }
+    catch(e){ throw fetchError('Respons backend bukan JSON yang valid.',{name:'InvalidJsonError',retryable:true}); }
+    try{ return validatePayload(json); }
+    catch(e){ throw fetchError(e?.message||'Struktur data backend tidak lengkap.',{name:'PayloadError',retryable:true}); }
   }catch(err){
-    if(err?.name==='AbortError') throw new Error('Koneksi melewati batas '+Math.round(CONFIG.FETCH_TIMEOUT_MS/1000)+' detik.');
+    if(err?.name==='AbortError') throw fetchError('Percobaan melewati batas '+Math.ceil(timeoutMs/1000)+' detik.',{name:'AttemptTimeoutError',retryable:true});
     throw err;
-  }finally{clearTimeout(timer);}
+  }finally{ clearTimeout(timer); }
+}
+async function fetchLatest({onAttempt,onRetry}={}){
+  const started=Date.now();
+  const deadline=started+CONFIG.FETCH_TOTAL_TIMEOUT_MS;
+  const max=CONFIG.FETCH_MAX_ATTEMPTS;
+  let lastError=null, completed=0;
+  for(let attempt=1;attempt<=max;attempt++){
+    const remaining=deadline-Date.now();
+    if(remaining<=0){
+      const suffix=lastError?' Kesalahan terakhir: '+lastError.message:'';
+      throw fetchError('Batas keseluruhan '+Math.round(CONFIG.FETCH_TOTAL_TIMEOUT_MS/1000)+' detik tercapai setelah '+completed+' percobaan.'+suffix,{name:'TotalTimeoutError'});
+    }
+    const attemptTimeout=Math.max(1,Math.min(CONFIG.FETCH_ATTEMPT_TIMEOUT_MS,remaining));
+    onAttempt?.({attempt,max,attemptTimeout,remaining});
+    console.info(`[PIM Event] Fetch attempt ${attempt}/${max} started (timeout ${Math.ceil(attemptTimeout/1000)}s)`);
+    try{
+      const payload=await fetchAttempt(attemptTimeout);
+      console.info(`[PIM Event] Fetch attempt ${attempt}/${max} succeeded`);
+      return payload;
+    }catch(err){
+      completed=attempt; lastError=err;
+      console.warn(`[PIM Event] Fetch attempt ${attempt}/${max} failed: ${err?.message||err}`);
+      const canRetry=isRetryableFetchError(err) && attempt<max;
+      if(!canRetry){
+        if(attempt>1) throw fetchError('Gagal setelah '+attempt+' percobaan. '+(err?.message||String(err)),{name:'FetchRetriesExhausted'});
+        throw err;
+      }
+      const delay=CONFIG.FETCH_RETRY_DELAYS_MS[attempt-1]??0;
+      const left=deadline-Date.now();
+      if(left<=delay){
+        throw fetchError('Batas keseluruhan '+Math.round(CONFIG.FETCH_TOTAL_TIMEOUT_MS/1000)+' detik tercapai. Kesalahan terakhir: '+(err?.message||String(err)),{name:'TotalTimeoutError'});
+      }
+      onRetry?.({attempt,nextAttempt:attempt+1,max,delay,error:err});
+      console.info(`[PIM Event] Retrying in ${Math.round(delay/1000)}s`);
+      await wait(delay);
+    }
+  }
+  throw lastError||fetchError('Data belum dapat diambil.');
 }
 async function load({manual=false}={}){
   if(LOADING) return;
@@ -995,7 +1057,19 @@ async function load({manual=false}={}){
   setSync('fetching',DATA?'Mengambil data terbaru…':'Menghubungkan…');
   $$('.sync').forEach(b=>b.disabled=true);
   try{
-    const fresh=await fetchLatest();
+    const fresh=await fetchLatest({
+      onAttempt:({attempt,max})=>{
+        const label=`Percobaan ${attempt} dari ${max}`;
+        setSync('fetching',DATA?`Mengambil data terbaru · ${label}`:`Menghubungkan · ${label}`);
+        if(!DATA) setColdLoadingDetail(`${label} · Menghubungkan ke Google Sheets.`);
+      },
+      onRetry:({nextAttempt,max,delay,error})=>{
+        const sec=Math.round(delay/1000);
+        const msg=`Mencoba lagi dalam ${sec} detik · percobaan ${nextAttempt} dari ${max}`;
+        setSync('fetching',msg);
+        if(!DATA) setColdLoadingDetail(`${error?.message||'Koneksi gagal sementara.'} ${msg}.`);
+      }
+    });
     DATA=fresh; FETCHED=new Date().toISOString(); DEMO=false;
     const errors=render();
     writeCache(fresh,FETCHED); hideColdLoading();
