@@ -567,18 +567,36 @@ const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyv6LbN0vmO5C--NIqQfKEMGzmBMLj8Zfv89JNOQT_lU0YdqodVe7ODrWN4-YoT4F6JPQ/exec',                       // Apps Script /exec URL. Blank = demo data.
   EVENT_START: '2026-08-09',
   EVENT_END: '2026-08-12',
-  CACHE_KEY: 'pim-event-cache-v9-19',
-  CACHE_STABLE_KEY: 'pim-event-cache-latest',
-  FETCH_ATTEMPT_TIMEOUT_MS: 30000,
+  // One stable key, never versioned. The schema number lives inside the value,
+  // so a frontend release can invalidate the cache without orphaning the old
+  // copy in localStorage. Versioned keys used to pile up until the 5 MB quota
+  // filled and every cache write failed silently.
+  CACHE_KEY: 'pim-event-cache',
+  CACHE_SCHEMA: 10,
+  // Must match every key this app has ever written on this origin, including
+  // pim-event-data-* blobs from older releases. github.io puts every project
+  // on ONE origin, so the tennis club app's pt13_* keys share this 5 MB budget
+  // and must never be touched.
+  CACHE_PREFIX: 'pim-event-',
+  FOREIGN_PREFIXES: ['pt13_'],
+  // Aborting a slow attempt only cancels the browser side — the Apps Script
+  // execution keeps running and keeps holding the spreadsheet. Four stacked
+  // attempts made a slow backend look permanently dead, so: fewer, longer.
+  // Measured: an uncached backend build takes ~32 s. 30 s was cutting it off
+  // mid-flight, which is why almost every cold open "failed to fetch".
+  // A warm backend cache answers in about a second, so this ceiling is only
+  // ever reached on a genuine cold start.
+  FETCH_ATTEMPT_TIMEOUT_MS: 55000,
   FETCH_TOTAL_TIMEOUT_MS: 120000,
-  FETCH_MAX_ATTEMPTS: 4,
-  FETCH_RETRY_DELAYS_MS: [2000, 5000, 10000]
+  FETCH_MAX_ATTEMPTS: 2,
+  FETCH_RETRY_DELAYS_MS: [4000]
 };
 
 /* ============================================================
    2. Helpers
    ============================================================ */
 let DATA=null, FETCHED=null, DEMO=false, PAGE='home', LOADING=false, LOAD_TIMER=null, LOAD_DETAIL='Menghubungkan ke Google Sheets.';
+let CACHE_WRITE_OK=true, SW_RELOAD_PENDING=false;
 const $ = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -877,37 +895,85 @@ function navBadges(){
 /* ============================================================
    4. Load
    ============================================================ */
-function readCache(){
+/* The cache is the only reason a refresh can paint instantly. Everything here
+   exists to make sure exactly ONE copy is stored and that a write failure is
+   loud rather than silent. */
+function cacheKeys(){
+  const out=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(ownsKey(k)) out.push(k);
+  }
+  return out;
+}
+function ownsKey(k){
+  if(!k || k.indexOf(CONFIG.CACHE_PREFIX)!==0) return false;
+  // Belt and braces: never delete a key another app on this origin owns.
+  return !CONFIG.FOREIGN_PREFIXES.some(p=>k.indexOf(p)===0);
+}
+/** Delete every key this app owns except the live one. Returns bytes reclaimed. */
+function pruneCache(){
+  let freed=0; const gone=[];
+  cacheKeys().forEach(k=>{
+    if(k===CONFIG.CACHE_KEY || !ownsKey(k)) return;
+    try{ freed+=(localStorage.getItem(k)||'').length; localStorage.removeItem(k); gone.push(k); }catch(e){}
+  });
+  if(freed) console.info(`[PIM Event] Pruned ${Math.round(freed/1024)} KB from ${gone.length} stale keys:`,gone);
+  return freed;
+}
+function parseCacheValue(raw){
   try{
-    const keys=[CONFIG.CACHE_KEY,CONFIG.CACHE_STABLE_KEY];
-    // Also accept the newest valid cache from an earlier frontend release.
-    // This prevents a service-worker/version update from forcing a cold loading screen.
-    for(let i=0;i<localStorage.length;i++){
-      const key=localStorage.key(i);
-      if(key && /^pim-event-cache-v\d+(?:[-.]\d+)+$/.test(key) && !keys.includes(key)) keys.push(key);
-    }
-    const candidates=keys.map(key=>{
-      try{
-        const value=JSON.parse(localStorage.getItem(key));
-        return value && value.payload && value.when ? {...value,key} : null;
-      }catch(e){ return null; }
-    }).filter(Boolean).sort((a,b)=>new Date(b.when)-new Date(a.when));
-    const newest=candidates[0]||null;
-    if(newest && newest.key!==CONFIG.CACHE_KEY){
-      const clean={payload:newest.payload,when:newest.when};
-      localStorage.setItem(CONFIG.CACHE_KEY,JSON.stringify(clean));
-      localStorage.setItem(CONFIG.CACHE_STABLE_KEY,JSON.stringify(clean));
-    }
-    return newest;
+    const v=JSON.parse(raw);
+    return v && v.payload && v.when ? v : null;
   }catch(e){ return null; }
 }
-function writeCache(p,w){
+function readCache(){
   try{
-    const value=JSON.stringify({payload:p,when:w});
-    localStorage.setItem(CONFIG.CACHE_KEY,value);
-    localStorage.setItem(CONFIG.CACHE_STABLE_KEY,value);
-  }catch(e){}
+    const live=parseCacheValue(localStorage.getItem(CONFIG.CACHE_KEY));
+    if(live && live.schema===CONFIG.CACHE_SCHEMA){ pruneCache(); return live; }
+    // Adopt the newest copy left behind by an earlier release, then clean up.
+    // Without this a version bump forces one avoidable cold loading screen.
+    const candidates=cacheKeys()
+      .map(k=>{ const v=parseCacheValue(localStorage.getItem(k)); return v?{...v,key:k}:null; })
+      .filter(Boolean)
+      .sort((a,b)=>new Date(b.when)-new Date(a.when));
+    const newest=candidates[0]||null;
+    if(!newest){ pruneCache(); return null; }
+    writeCache(newest.payload,newest.when);
+    return newest;
+  }catch(e){ console.warn('[PIM Event] readCache gagal',e); return null; }
 }
+function writeCache(p,w){
+  const value=JSON.stringify({schema:CONFIG.CACHE_SCHEMA,payload:p,when:w});
+  const attempt=()=>{ localStorage.setItem(CONFIG.CACHE_KEY,value); };
+  try{
+    attempt(); pruneCache(); CACHE_WRITE_OK=true; return true;
+  }catch(e){
+    // Almost always QuotaExceededError. Drop everything else we own and retry
+    // once before admitting defeat — a silent failure here is what turns every
+    // later refresh back into a cold start.
+    console.warn('[PIM Event] Cache write gagal, mencoba membersihkan',e);
+    try{
+      cacheKeys().forEach(k=>{ try{ localStorage.removeItem(k); }catch(_){} });
+      attempt(); CACHE_WRITE_OK=true; return true;
+    }catch(e2){
+      console.error('[PIM Event] Cache tidak dapat ditulis',e2, `${Math.round(value.length/1024)} KB`);
+      CACHE_WRITE_OK=false; return false;
+    }
+  }
+}
+/** Console helper: cacheReport() shows what is actually stored. */
+window.cacheReport=function(){
+  const rows=Object.keys(localStorage).map(k=>({
+    key:k,
+    kb:Math.round((localStorage.getItem(k)||'').length/1024),
+    owner: k===CONFIG.CACHE_KEY ? 'PIM Event (live)' : ownsKey(k) ? 'PIM Event (stale)' : 'other app'
+  })).sort((a,b)=>b.kb-a.kb);
+  const total=rows.reduce((a,r)=>a+r.kb,0);
+  console.table(rows);
+  console.info(`Total localStorage on this origin: ${total} KB of ~5000 KB · cache write ${CACHE_WRITE_OK?'OK':'GAGAL'}`);
+  return rows;
+};
 let SYNC={state:'',text:''};
 function paintStale(){
   const b=$('#staleBanner'); if(!b) return;
@@ -963,7 +1029,10 @@ function showNotice(kind,text,retry=false){
   $('#noticeRetry')?.addEventListener('click',()=>load({manual:true}));
 }
 function validatePayload(j){
-  if(!j || j.ok===false) throw new Error(j?.error||'Respons backend tidak valid.');
+  if(!j) throw new Error('Respons backend kosong.');
+  // doGet answers with HTTP 200 + {ok:false} for its own errors, so the real
+  // message only surfaces if we read it here rather than reporting "HTTP 200".
+  if(j.ok===false) throw new Error('Backend: '+(j.error||'kesalahan tidak dijelaskan'));
   if(!j.tabs || typeof j.tabs!=='object') throw new Error('Respons tidak berisi data sheet.');
   const required=['ACARA','CHECKLIST','RUNDOWN','TAMU','AKOMODASI','KONSUMSI','KENDARAAN','LO','ISSUES'];
   const missing=required.filter(k=>!Array.isArray(j.tabs[k]));
@@ -980,11 +1049,13 @@ function retryableStatus(status){
 function isRetryableFetchError(err){
   return !!err?.retryable || err?.name==='TypeError' || err?.name==='AttemptTimeoutError' || err?.name==='InvalidJsonError' || err?.name==='PayloadError' || err?.name==='EmptyResponseError';
 }
-async function fetchAttempt(timeoutMs){
+async function fetchAttempt(timeoutMs,{fresh=false}={}){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),timeoutMs);
   try{
-    const url=CONFIG.API_URL+(CONFIG.API_URL.includes('?')?'&':'?')+'t='+Date.now();
+    // The backend now serves a short-lived cached payload. A manual sync asks
+    // for fresh=1 so the "Sync" button always means what it says.
+    const url=CONFIG.API_URL+(CONFIG.API_URL.includes('?')?'&':'?')+'t='+Date.now()+(fresh?'&fresh=1':'');
     const res=await fetch(url,{cache:'no-store',signal:controller.signal});
     if(!res.ok) throw fetchError('HTTP '+res.status,{name:'HttpError',status:res.status,retryable:retryableStatus(res.status)});
     const text=await res.text();
@@ -999,7 +1070,7 @@ async function fetchAttempt(timeoutMs){
     throw err;
   }finally{ clearTimeout(timer); }
 }
-async function fetchLatest({onAttempt,onRetry}={}){
+async function fetchLatest({onAttempt,onRetry,fresh=false}={}){
   const started=Date.now();
   const deadline=started+CONFIG.FETCH_TOTAL_TIMEOUT_MS;
   const max=CONFIG.FETCH_MAX_ATTEMPTS;
@@ -1014,7 +1085,7 @@ async function fetchLatest({onAttempt,onRetry}={}){
     onAttempt?.({attempt,max,attemptTimeout,remaining});
     console.info(`[PIM Event] Fetch attempt ${attempt}/${max} started (timeout ${Math.ceil(attemptTimeout/1000)}s)`);
     try{
-      const payload=await fetchAttempt(attemptTimeout);
+      const payload=await fetchAttempt(attemptTimeout,{fresh});
       console.info(`[PIM Event] Fetch attempt ${attempt}/${max} succeeded`);
       return payload;
     }catch(err){
@@ -1058,6 +1129,7 @@ async function load({manual=false}={}){
   $$('.sync').forEach(b=>b.disabled=true);
   try{
     const fresh=await fetchLatest({
+      fresh:manual,
       onAttempt:({attempt,max})=>{
         const label=`Percobaan ${attempt} dari ${max}`;
         setSync('fetching',DATA?`Mengambil data terbaru · ${label}`:`Menghubungkan · ${label}`);
@@ -1070,12 +1142,15 @@ async function load({manual=false}={}){
         if(!DATA) setColdLoadingDetail(`${error?.message||'Koneksi gagal sementara.'} ${msg}.`);
       }
     });
-    DATA=fresh; FETCHED=new Date().toISOString(); DEMO=false;
+    DATA=fresh; FETCHED=fresh.generatedAt||new Date().toISOString(); DEMO=false;
     const errors=render();
-    writeCache(fresh,FETCHED); hideColdLoading();
+    const stored=writeCache(fresh,FETCHED); hideColdLoading();
     if(errors.length){
       setSync('stale','Updated · display warning');
       showNotice('warn',`${errors.length} halaman tidak dapat diperbarui. Halaman lain tetap tersedia.`,true);
+    }else if(!stored){
+      setSync('','Updated '+relTime(FETCHED));
+      showNotice('warn','Data tampil, tetapi penyimpanan offline penuh. Muat ulang akan memerlukan koneksi. Kosongkan penyimpanan situs di browser.',false);
     }else{
       setSync('','Updated '+relTime(FETCHED)); clearNotice();
     }
@@ -1089,6 +1164,9 @@ async function load({manual=false}={}){
     }
   }finally{
     LOADING=false; $$('.sync').forEach(b=>b.disabled=false);
+    // A service-worker update that landed mid-fetch waits here so the reload
+    // never throws away a request that was about to succeed.
+    if(SW_RELOAD_PENDING){ SW_RELOAD_PENDING=false; location.reload(); }
   }
 }
 
@@ -1613,37 +1691,6 @@ function pdfReadiness(n){const chk=rows('CHECKLIST');return reportPage(n,'Readin
 function pdfContacts(n){const lo=cleanRows('LO');return reportPage(n,'Kontak Operasional','Nama koordinator dan PIC; nomor kontak disamarkan',`<table class="report-table"><thead><tr><th>Fungsi</th><th>Nama/PIC</th><th>Kontak</th></tr></thead><tbody>${lo.slice(0,25).map(r=>`<tr><td>${esc(f(r,'Delegasi / Perusahaan','Pos'))}</td><td>${esc(f(r,'Nama LO'))}</td><td>${esc(maskContact(f(r,'Kontak','No HP','No Badge'))||'Tersedia di sistem')}</td></tr>`).join('')}</tbody></table>`);}
 function buildAndExportPdf(){const type=selectedPdfType(),tm=rows('TAMU'),chk=rows('CHECKLIST'),issues=rows('ISSUES').filter(r=>!['Closed','Done'].includes(f(r,'Status'))),rakerOfficial=236,plenaryOfficial=500;let n=1;const sections=[];sections.push(reportPage(n++,'Executive Overview','Gambaran ringkas rangkaian acara dan kesiapan pelaksanaan',`${pdfKpis([[tm.length,'Peserta terdaftar'],[rakerOfficial,'Raker resmi'],[plenaryOfficial,'Plenary resmi'],[issues.length,'Isu terbuka']])}<div class="two-col">${pdfBars('Readiness per acara',countBy(chk,'Acara',10))}${pdfBars('Status checklist',countBy(chk,'Status',6))}</div><div class="callout"><b>Rangkaian utama</b><p>Rakor Dirut, Raker RKAP 2027, Plenary Session, Rapat Konsultasi & Pengawasan, Olimpiade PI Group, serta Plant Tour. Day 0 dimulai 9 Agustus 2026.</p></div>`));sections.push(pdfRundown(n++));sections.push(pdfGuests(n++));sections.push(pdfLo(n++));sections.push(pdfOperations(n++));sections.push(pdfReadiness(n++));sections.push(pdfIssues(n++));sections.push(pdfPlantTour(n++));if(type==='internal')sections.push(pdfContacts(n++));const title=type==='director'?'Ringkas Direksi':'Laporan Lengkap Internal';const reportHtml=`<!doctype html><html><head><meta charset="utf-8"><title>PIM Event Control — ${title}</title><style>@page{size:A4 landscape;margin:9mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#14243a;margin:0;background:#fff}.cover,.page{min-height:190mm;page-break-after:always;padding:13mm 15mm;position:relative}.cover{display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(135deg,#0d2747 0%,#164f73 58%,#0b7894 100%);color:#fff;overflow:hidden}.cover:before{content:'';position:absolute;width:150mm;height:150mm;border:25mm solid rgba(255,255,255,.055);border-radius:50%;right:-45mm;top:-55mm}.cover h1{font-size:35pt;line-height:1;margin:5mm 0 3mm}.cover h2{font-size:18pt;margin:0 0 13mm;color:#bfe8f3}.eyebrow{font-size:9pt;letter-spacing:.2em;text-transform:uppercase;opacity:.75}.theme{font-size:16pt;font-weight:bold}.theme span{display:block;font-size:10pt;font-weight:normal;letter-spacing:.18em;margin-top:3mm}.meta{margin-top:14mm;font-size:9pt;opacity:.82}.page-head{display:flex;align-items:center;gap:6mm;border-bottom:1px solid #c7d3df;padding-bottom:4mm;margin-bottom:7mm}.page-head>span{font-size:23pt;font-weight:bold;color:#0b7894}.page-head h2{font-size:22pt;margin:0}.page-head p{margin:1mm 0 0;color:#657489;font-size:9pt}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin-bottom:7mm}.kpi{border:1px solid #d8e0e8;border-radius:4mm;padding:4mm;background:#f8fafc;border-left:2mm solid #0b7894}.kpi b{display:block;font-size:22pt}.kpi span{font-size:8pt;text-transform:uppercase;letter-spacing:.07em;color:#657489}.kpi small{display:block;margin-top:2mm;color:#657489}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:6mm}.viz{border:1px solid #d8e0e8;border-radius:4mm;padding:5mm}.viz h3{margin:0 0 4mm;font-size:12pt}.bar-row{display:grid;grid-template-columns:43mm 1fr 10mm;gap:3mm;align-items:center;margin:3mm 0;font-size:8pt}.bar-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar-row i{height:3mm;background:#e7edf3;border-radius:99px;overflow:hidden}.bar-row i b{display:block;height:100%;background:linear-gradient(90deg,#0b7894,#2f9ab0)}.bar-row strong{text-align:right}.report-day{margin-bottom:5mm}.report-day h3{font-size:11pt;margin:0 0 2mm;color:#0d4f70}.agenda-line{--c:#2878B5;display:grid;grid-template-columns:28mm 1fr;gap:4mm;border-left:2mm solid var(--c);padding:2.4mm 4mm;margin:1.6mm 0;background:#f8fafc}.agenda-line.vip{--c:#A67C00}.agenda-line.undangan{--c:#2878B5}.agenda-line.gabungan{--c:#6B4FA1}.agenda-line.dirut{--c:#17365D}.agenda-line.raker{--c:#23836B}.agenda-line.konsultasi{--c:#9A3B35}.agenda-line.olimpiade{--c:#D97916}.agenda-line time{font-weight:bold;color:var(--c)}.agenda-line b{display:block}.agenda-line span{font-size:8pt;color:#657489}.issue-list{display:grid;grid-template-columns:1fr 1fr;gap:4mm}.issue-list article{border:1px solid #d8e0e8;border-radius:3mm;padding:4mm;background:#f8fafc}.issue-list b{font-size:9pt}.issue-list p{font-size:8pt;margin:2mm 0;color:#657489}.issue-list span{display:block;font-size:8pt;color:#9a3b35}.report-table{width:100%;border-collapse:collapse;font-size:8pt}.report-table th{background:#17365d;color:#fff;text-align:left;padding:2.5mm}.report-table td{border-bottom:1px solid #d8e0e8;padding:2.3mm;vertical-align:top}.callout{margin-top:6mm;border-left:2mm solid #f0a400;background:#fff8e8;padding:4mm 5mm}.callout b{font-size:10pt}.callout p{font-size:8.5pt;line-height:1.45;margin:2mm 0 0}.note-report{font-size:8pt;color:#657489}.viz ul{padding-left:5mm;margin:0}.viz li{font-size:8pt;margin:2.2mm 0}.footer{position:fixed;bottom:2.5mm;left:0;right:0;text-align:center;font-size:7pt;color:#708095}
 
-/* ============ FINAL PRE-EVENT RESILIENCE + COMPACT CONTROL ============ */
-@keyframes spin{to{transform:rotate(360deg)}}
-.dot.fetching{background:transparent;border:2px solid rgba(147,166,196,.35);border-top-color:#46C6D6;width:10px;height:10px;animation:spin .8s linear infinite}
-.app-loading{position:fixed;inset:0;z-index:900;background:rgba(237,240,245,.97);display:grid;place-items:center;padding:24px}
-.app-loading[hidden]{display:none}
-.loading-card{width:min(420px,100%);text-align:center;background:#fff;border:1px solid var(--rule);border-radius:20px;box-shadow:0 22px 70px rgba(22,35,58,.18);padding:30px 26px}
-.loading-card img{display:block;margin:0 auto 14px;border-radius:18px}.loading-card h2{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-d2);text-transform:uppercase;margin:8px 0 4px}.loading-card p{font-weight:600;margin:0}.loading-card small{display:block;color:var(--ink-3);margin-top:5px}.loading-spinner{width:30px;height:30px;margin:0 auto;border:3px solid #D8E2EC;border-top-color:var(--signal);border-radius:50%;animation:spin .8s linear infinite}.loading-card button,.app-notice button,.render-warning button{border:0;background:var(--signal);color:#fff;border-radius:9px;padding:8px 13px;font-weight:700;cursor:pointer;margin-top:14px}
-.app-notice{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;border:1px solid #E6C77A;background:#FFF7E6;color:#6B4E00;border-radius:10px;padding:9px 12px;font-size:var(--fs-4)}.app-notice[hidden]{display:none}.app-notice button{margin:0;flex:none;padding:6px 10px;background:#8A6500}
-.render-warning{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;border:1px solid #E5A49F;background:#FFF1F0;color:#8F211A;border-radius:10px;padding:9px 11px;font-size:var(--fs-4)}.render-warning span{flex:1;color:#6F3A36}.render-warning button{margin:0;background:#A72D25;padding:5px 9px}
-.hs.jump{font:inherit;text-align:left;cursor:pointer;background:transparent;border:0;color:inherit;padding:0}.hs.jump:hover{filter:brightness(1.18)}
-
-@media(min-width:860px){
-  .app-loading{left:var(--side)}
-  aside{padding:14px 10px 10px;overflow:hidden}
-  .brand{padding:0 7px 11px;margin-bottom:7px;flex:none}
-  .brand h1{font-size:22px}.brand span{margin-top:4px}.brand em{margin-top:7px;font-size:12px}.brand small{font-size:9px;margin-top:2px}
-  .snav{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#395779 transparent;padding-right:2px}
-  .snav::-webkit-scrollbar{width:5px}.snav::-webkit-scrollbar-thumb{background:#395779;border-radius:99px}
-  .snav button{padding:7px 9px;min-height:36px;gap:9px;font-size:13px}
-  .snav button svg{width:19px;height:19px}.snav .nav-group{margin:8px 9px 3px}
-  aside>.report-launch{flex:none;margin:7px 4px 0;min-height:36px;padding:6px 9px}
-  .sfoot{flex:none;padding:7px 4px 0;margin-top:7px}.sfoot .sync{min-height:32px}
-}
-
-.check-summary{display:grid;grid-template-columns:repeat(7,minmax(88px,1fr));gap:8px;margin-bottom:12px}.check-summary>div{background:#fff;border:1px solid var(--rule);border-radius:10px;padding:9px 11px;box-shadow:0 1px 2px rgba(22,35,58,.04)}.check-summary b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:25px;line-height:1}.check-summary span{display:block;margin-top:3px;color:var(--ink-3);font-size:var(--fs-2);letter-spacing:.08em;text-transform:uppercase}.check-summary .good{border-left:4px solid var(--st-done)}.check-summary .warn{border-left:4px solid var(--amber)}.check-summary .bad{border-left:4px solid var(--st-block)}.check-summary .percent{background:var(--ink);color:#fff;border-color:var(--ink)}.check-summary .percent span{color:#AFC0D7}
-.control-grid{display:grid;gap:12px;margin-bottom:12px}.compact-panel{margin-bottom:0}.readiness-list{padding:4px 12px}.ready-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(90px,1.4fr) 42px 38px;align-items:center;gap:9px;width:100%;border:0;border-bottom:1px solid var(--rule-2);background:none;color:inherit;padding:8px 2px;cursor:pointer;text-align:left}.ready-row:last-child{border-bottom:0}.ready-row>span{font-weight:600;font-size:var(--fs-4)}.ready-row>i{height:6px;background:#E6EBF2;border-radius:99px;overflow:hidden}.ready-row>i b{display:block;height:100%;background:var(--st-done)}.ready-row strong,.ready-row small{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:var(--fs-2)}.ready-row small{color:var(--ink-3)}.ready-row:hover{color:var(--signal)}
-.attention-list{padding:4px 12px}.attention-card{padding:9px 2px;border-bottom:1px solid var(--rule-2)}.attention-card:last-child{border-bottom:0}.attention-card[hidden]{display:none}.deadline-list{padding:4px 14px}.deadline-line{display:grid;grid-template-columns:58px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--rule-2)}.deadline-line:last-child{border-bottom:0}.deadline-line[hidden]{display:none}.deadline-line time{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--signal);font-size:var(--fs-3)}.deadline-line span b{display:block;font-size:var(--fs-4)}.deadline-line span small{display:block;color:var(--ink-3);font-size:var(--fs-2);margin-top:2px}
-@media(min-width:1050px){.control-grid{grid-template-columns:1fr 1fr}.check-summary{grid-template-columns:repeat(7,1fr)}}
-@media(max-width:1049px){.check-summary{grid-template-columns:repeat(4,1fr)}.check-summary .percent{grid-column:span 2}}
-@media(max-width:600px){.app-loading{top:61px}.loading-card{padding:24px 18px}.check-summary{grid-template-columns:repeat(2,1fr)}.check-summary .percent{grid-column:span 2}.ready-row{grid-template-columns:minmax(105px,1fr) 1fr 36px}.ready-row small{display:none}.deadline-line{grid-template-columns:52px 1fr}.deadline-line>.tag{grid-column:2}.control-grid{gap:10px}}
-
 </style></head><body><section class="cover"><div class="eyebrow">PT Pupuk Iskandar Muda · PI Group</div><h1>PIM EVENT CONTROL 2026</h1><h2>${title}</h2><div class="theme">A Global Player in the Making<span>TRANSFORM · INTEGRATE · ACCELERATE</span></div><div class="meta">9–12 Agustus 2026 · Dibuat ${reportTimestamp()}<br>Sumber operasional: Google Sheets/PWA · Referensi: materi PI Group, akomodasi, dan rute Plant Tour</div></section>${sections.join('')}<div class="footer">PIM Event Control 2026 · A Global Player in the Making · Transform, Integrate, Accelerate</div></body></html>`;const btn=$('#reportPdf');const oldText=btn?.textContent||'Generate PDF';try{if(btn){btn.disabled=true;btn.textContent='Menyiapkan PDF…';}let frame=document.getElementById('pdfPrintFrame');if(frame)frame.remove();frame=document.createElement('iframe');frame.id='pdfPrintFrame';frame.setAttribute('aria-hidden','true');frame.style.position='fixed';frame.style.right='0';frame.style.bottom='0';frame.style.width='1px';frame.style.height='1px';frame.style.border='0';frame.style.opacity='0';frame.style.pointerEvents='none';document.body.appendChild(frame);const doc=frame.contentDocument||frame.contentWindow?.document;if(!doc)throw new Error('Dokumen print tidak dapat dibuat.');doc.open();doc.write(reportHtml);doc.close();const triggerPrint=()=>{try{frame.contentWindow.focus();frame.contentWindow.print();closeReport();}catch(err){console.error('Print PDF gagal',err);alert('Preview PDF gagal dibuka. Coba gunakan Chrome desktop dan pastikan halaman sudah selesai dimuat.');}finally{if(btn){btn.disabled=false;btn.textContent=oldText;}setTimeout(()=>frame.remove(),30000);}};if(doc.readyState==='complete')setTimeout(triggerPrint,600);else frame.onload=()=>setTimeout(triggerPrint,600);}catch(err){console.error('Generate PDF gagal',err);alert('PDF gagal dibuat: '+(err?.message||'error tidak diketahui'));if(btn){btn.disabled=false;btn.textContent=oldText;}}}
 function exportPdf(){
   try{
@@ -1701,15 +1748,25 @@ setInterval(()=>{ if(FETCHED&&!DEMO&&!LOADING) setSync(navigator.onLine?'':'off'
 window.addEventListener('online',()=>load());
 
 if('serviceWorker' in navigator){
+  // Captured BEFORE registration. On a first-ever visit this is null, the
+  // worker claims the page, controllerchange fires, and the old code reloaded
+  // mid-fetch — which is why the very first open so often "failed to fetch".
+  // Only a genuine version swap on an already-controlled page deserves a reload.
+  const hadController=!!navigator.serviceWorker.controller;
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('sw.js').then(reg=>{
       reg.addEventListener('updatefound',()=>{ const w=reg.installing;
         w&&w.addEventListener('statechange',()=>{
           if(w.state==='installed'&&navigator.serviceWorker.controller) w.postMessage('SKIP_WAITING'); }); });
-    }).catch(()=>{});
+    }).catch(err=>console.warn('[PIM Event] SW register gagal',err));
   });
   let done=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(!done){done=true;location.reload();} });
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(done||!hadController) return;
+    done=true;
+    if(LOADING){ SW_RELOAD_PENDING=true; return; }
+    location.reload();
+  });
 }
 </script>
 </body>
