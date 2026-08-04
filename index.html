@@ -286,6 +286,12 @@ main{padding:16px 14px calc(26px + env(safe-area-inset-bottom))}
 /* Pills are for status and exceptions only. Plain attributes — owner, PIC,
    venue, company — sit on one quiet line so the pills mean something again. */
 .rowmeta{margin-top:6px;font-size:var(--fs-3);color:var(--ink-3);line-height:1.5}
+.lo-handled{margin-top:9px;font-size:var(--fs-4);color:var(--ink-3);line-height:1.45}
+.lo-handled-label{display:block;margin-bottom:5px;color:var(--ink-2)}
+.lo-guest{padding:6px 0 6px 10px;border-left:2px solid var(--rule-2)}
+.lo-guest+.lo-guest{margin-top:4px}
+.lo-guest-name{display:block;font-weight:700;color:var(--ink-1);overflow-wrap:anywhere}
+.lo-guest-role{display:block;margin-top:1px;color:var(--ink-3);overflow-wrap:anywhere}
 
 /* priority chips */
 .pri{flex:none;width:34px;height:34px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
@@ -1611,10 +1617,25 @@ function viewLO(){
   $('#v-lo').innerHTML=ph('Liaison Officer','Penugasan resmi LO per delegasi dan status konfirmasinya.')+demoNote()+`<div class="panel"><div class="metric-grid"><div class="metric-card good"><b>${confirmed}</b><span>Confirmed</span></div><div class="metric-card warn"><b>${pending}</b><span>Pending</span></div></div></div><div class="filters"><input id="lCari" type="search" placeholder="Cari nama LO, VIP, atau perusahaan…" autocomplete="off"><select id="lPos"><option value="">Semua pos</option><option>Lhokseumawe</option><option>Medan</option></select><select id="lStatus"><option value="">Semua status</option><option>Confirmed</option><option>Pending</option></select></div><div class="count" id="cLo"></div><div class="panel" id="listLo"></div>`;
   ['lCari','lPos','lStatus'].forEach(id=>$('#'+id).addEventListener(id==='lCari'?'input':'change',drawLO));drawLO();
 }
+function normalizePersonName(value){
+  return String(value||'').normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function loHandledGuests(r){
+  const raw=f(r,'Nama VIP','Tamu yang Ditangani','Menangani');
+  const names=raw.split(/\r?\n|;/).map(x=>x.trim()).filter(Boolean);
+  if(!names.length)return [];
+  const tamu=rows('TAMU');
+  const fallbackRole=f(r,'Jabatan VIP','Jabatan Tamu','Kategori VIP');
+  return names.map(name=>{
+    const key=normalizePersonName(name);
+    const guest=tamu.find(t=>normalizePersonName(f(t,'Nama'))===key);
+    return {name,jabatan:f(guest,'Jabatan')||(names.length===1?fallbackRole:'')};
+  });
+}
 function drawLO(){
-  const q=($('#lCari')?.value||'').toLowerCase().trim(),p=$('#lPos')?.value||'',st=$('#lStatus')?.value||'';let list=rows('LO').filter(r=>{if(p&&f(r,'Pos')!==p)return false;if(st&&f(r,'Status')!==st)return false;if(q){const h=[f(r,'Nama LO'),f(r,'Nama VIP'),f(r,'Delegasi / Perusahaan','Delegasi'),f(r,'Kategori VIP'),f(r,'No Badge')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
+  const q=($('#lCari')?.value||'').toLowerCase().trim(),p=$('#lPos')?.value||'',st=$('#lStatus')?.value||'';let list=rows('LO').filter(r=>{if(p&&f(r,'Pos')!==p)return false;if(st&&f(r,'Status')!==st)return false;if(q){const handled=loHandledGuests(r);const h=[f(r,'Nama LO'),f(r,'Nama VIP'),handled.map(g=>g.jabatan).join(' '),f(r,'Delegasi / Perusahaan','Delegasi'),f(r,'Kategori VIP'),f(r,'No Badge')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
   $('#cLo').textContent=list.length+' dari '+rows('LO').length+' penugasan';if(!list.length){$('#listLo').innerHTML='<div class="empty"><b>Penugasan tidak ditemukan</b>Coba nama lain.</div>';return;}
-  let h='',c='';for(const r of list){const cc=f(r,'Delegasi / Perusahaan','Delegasi');if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}const status=f(r,'Status')||'Pending',vip=esc(f(r,'Nama VIP')).replace(/\n/g,'<br>');h+=`<div class="item"><div class="l1"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx"><b>${esc(f(r,'Nama LO'))}</b></span><span class="status-pill ${status.toLowerCase()==='confirmed'?'ok':'wait'}">${esc(status)}</span></div><div class="rowmeta">${[esc(f(r,'Kategori VIP')),has(f(r,'Pos'))?esc(f(r,'Pos')):'',has(f(r,'Kontak'))?esc(f(r,'Kontak')):''].filter(Boolean).join(' · ')}</div>${vip?`<div class="sub"><b>Menangani:</b><br>${vip}</div>`:''}</div>`;}$('#listLo').innerHTML=h;
+  let h='',c='';for(const r of list){const cc=f(r,'Delegasi / Perusahaan','Delegasi');if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}const status=f(r,'Status')||'Pending',handled=loHandledGuests(r);const handledHtml=handled.length?`<div class="lo-handled"><b class="lo-handled-label">Menangani:</b>${handled.map(g=>`<div class="lo-guest"><span class="lo-guest-name">${esc(g.name)}</span>${g.jabatan?`<span class="lo-guest-role">${esc(g.jabatan)}</span>`:''}</div>`).join('')}</div>`:'';h+=`<div class="item"><div class="l1"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx"><b>${esc(f(r,'Nama LO'))}</b></span><span class="status-pill ${status.toLowerCase()==='confirmed'?'ok':'wait'}">${esc(status)}</span></div><div class="rowmeta">${[has(f(r,'Pos'))?esc(f(r,'Pos')):'',has(f(r,'Kontak'))?esc(f(r,'Kontak')):''].filter(Boolean).join(' · ')}</div>${handledHtml}</div>`;}$('#listLo').innerHTML=h;
 }
 
 /* ---------- Issues ---------- */
