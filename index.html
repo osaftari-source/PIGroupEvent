@@ -398,6 +398,14 @@ footer{text-align:center;font-size:var(--fs-3);color:var(--ink-3);padding:22px 1
 @media(min-width:760px){.guest-grid,.room-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(min-width:1250px){.guest-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .guest-grid .grp,.room-grid .grp{grid-column:1/-1;border:1px solid var(--rule);border-radius:9px;padding:8px 12px;margin-top:4px}
+.room-grid .grp.accommodation-group{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0}
+.accommodation-group-title{min-width:0;overflow-wrap:anywhere}
+.accommodation-contact{font-family:'Inter',sans-serif;font-size:var(--fs-3);font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-3);display:flex;align-items:center;justify-content:flex-end;gap:7px;text-align:right;line-height:1.35}
+.accommodation-contact b{color:var(--ink-2);font-weight:600}
+.accommodation-contact a{font-family:'IBM Plex Mono',monospace;color:var(--signal);text-decoration:none;white-space:nowrap}
+.accommodation-contact a:hover{text-decoration:underline}
+.accommodation-contact.missing{font-style:italic;font-weight:400;color:var(--ink-3)}
+@media(max-width:700px){.room-grid .grp.accommodation-group{align-items:flex-start;flex-direction:column;gap:4px}.accommodation-contact{justify-content:flex-start;text-align:left;flex-wrap:wrap}.accommodation-contact a{white-space:normal}}
 .guest-card,.room-card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:13px 14px;box-shadow:0 5px 18px rgba(22,35,58,.045)}
 .guest-card{border-left:4px solid var(--ink-3)}.guest-card.p1c{border-left-color:#B3271E}.guest-card.p2c{border-left-color:#B26A00}.guest-card.p3c{border-left-color:#1F3864}.guest-card.p4c{border-left-color:#7B8AA1}
 .guest-head{display:flex;gap:10px;align-items:flex-start}.guest-head .tx{font-size:var(--fs-5)}.guest-head .tx b{font-size:var(--fs-5)}.guest-head .id{margin-left:auto;padding-top:2px}
@@ -1564,6 +1572,25 @@ function drawTamu(){
 }
 
 /* ---------- Akomodasi ---------- */
+function accommodationContactMap(){
+  const map=new Map();
+  rows('PENJAGA_MESS').forEach(r=>{
+    const location=f(r,'Lokasi').trim();
+    if(!location)return;
+    map.set(location,{name:f(r,'Nama Penjaga'),phone:f(r,'Nomor Kontak')});
+  });
+  return map;
+}
+function contactPhoneDigits(value){return String(value||'').replace(/[^0-9+]/g,'');}
+function accommodationGroupHeader(location,kind,contacts){
+  const c=contacts.get(location)||{};
+  const name=String(c.name||'').trim(),phone=String(c.phone||'').trim(),digits=contactPhoneDigits(phone);
+  let contact='';
+  if(phone){contact=`<span class="accommodation-contact"><b>${esc(name||'Penjaga')}</b><span>·</span><a href="tel:${esc(digits)}" aria-label="Hubungi ${esc(name||'penjaga')} di ${esc(location)}">${esc(phone)}</a></span>`;}
+  else if(name && !/^kontak belum tersedia$/i.test(name)){contact=`<span class="accommodation-contact"><b>${esc(name)}</b></span>`;}
+  else{contact='<span class="accommodation-contact missing">Kontak penjaga belum tersedia</span>';}
+  return `<div class="grp accommodation-group"><span class="accommodation-group-title">${esc(location)} · ${esc(kind)}</span>${contact}</div>`;
+}
 function viewAkm(){
   const allAkm=rows('AKOMODASI'),ak=allAkm.filter(isMess),tbcRows=allAkm.filter(isAccommodationTBC),mess=ak.filter(r=>accommodationKind(r)==='Mess'),houses=ak.filter(r=>accommodationKind(r)==='Rumah Kompleks');
   const loc=[...new Set(ak.map(r=>f(r,'Lokasi')).filter(has))].sort(),filled=ak.filter(roomFilled).length,ready=ak.filter(roomReady).length,free=Math.max(0,ak.length-filled);
@@ -1572,7 +1599,7 @@ function viewAkm(){
   const locData=loc.map(l=>[l,ak.filter(r=>f(r,'Lokasi')===l&&roomFilled(r)).length,ak.filter(r=>f(r,'Lokasi')===l).length]);
   const messLoc=locData.filter(([l])=>!/^rumah\b/i.test(l)),houseLoc=locData.filter(([l])=>/^rumah\b/i.test(l));
   const barBlock=(title,data,st)=>`<div class="panel"><div class="section-head"><h3>${esc(title)}</h3><small>${st.filled}/${st.total} terisi · ${st.total-st.filled} tersedia</small></div><div class="mini-bars">${data.map(([l,v,t])=>`<div class="mini-row"><span title="${esc(l)}">${esc(l)}</span><div class="mini-track"><i style="width:${pctWidth(v,t)}%"></i></div><b>${v}/${t}</b></div>`).join('')||'<div class="empty">Belum ada data lokasi.</div>'}</div></div>`;
-  $('#v-akm').innerHTML=ph('Akomodasi Mess & Rumah Kompleks','Perhitungan mencakup seluruh kamar/slot di mess dan rumah kompleks. Data hotel tidak dimasukkan.')+demoNote()+`
+  $('#v-akm').innerHTML=ph('Akomodasi Mess & Rumah Kompleks','Perhitungan mencakup seluruh kamar/slot di mess dan rumah kompleks. Kontak penjaga ditampilkan pada setiap lokasi; data hotel tidak dimasukkan.')+demoNote()+`
     <div class="panel"><div class="metric-grid">
       <div class="metric-card"><b>${ak.length}</b><span>Total Kamar/Slot</span><small>${ms.total} mess · ${hs.total} rumah kompleks</small></div>
       <div class="metric-card good"><b>${filled}</b><span>Terisi</span><small>${ms.filled} mess · ${hs.filled} rumah kompleks</small></div>
@@ -1582,15 +1609,15 @@ function viewAkm(){
     </div></div>
     <div class="grid g2" style="margin-top:14px">${barBlock('Mess',messLoc,ms)}${barBlock('Rumah Kompleks',houseLoc,hs)}</div>
     ${tbcRows.length?`<details class="panel fold"><summary>Tamu Belum Teralokasi <span>${tbcRows.length} orang</span></summary>${tbcRows.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Tamu'))}</span></div><div class="l2"><i class="tag tbc">TBC</i></div><div class="rowmeta">${esc(f(r,'Perusahaan'))}</div><div class="sub">${esc(f(r,'Jabatan'))}</div></div>`).join('')}</details>`:''}
-    <div class="filters"><input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan…" autocomplete="off"><select id="aJenis"><option value="">Mess &amp; rumah kompleks</option><option value="Mess">Hanya mess</option><option value="Rumah Kompleks">Hanya rumah kompleks</option></select><select id="aLok"><option value="">Semua lokasi</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select></div><div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
+    <div class="filters"><input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan, lokasi, atau penjaga…" autocomplete="off"><select id="aJenis"><option value="">Mess &amp; rumah kompleks</option><option value="Mess">Hanya mess</option><option value="Rumah Kompleks">Hanya rumah kompleks</option></select><select id="aLok"><option value="">Semua lokasi</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select></div><div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
   ['aCari','aJenis','aLok','aIsi'].forEach(id=>$('#'+id).addEventListener(id==='aCari'?'input':'change',drawAkm));drawAkm();
 }
 function drawAkm(){
-  const q=($('#aCari')?.value||'').toLowerCase().trim(),jenis=$('#aJenis')?.value||'',lk=$('#aLok')?.value||'',isi=$('#aIsi')?.value||'',all=rows('AKOMODASI').filter(isMess);
-  let list=all.filter(r=>{if(jenis&&accommodationKind(r)!==jenis)return false;if(lk&&f(r,'Lokasi')!==lk)return false;if(isi==='isi'&&!roomFilled(r))return false;if(isi==='kosong'&&roomFilled(r))return false;if(q){const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),f(r,'Lokasi'),f(r,'No Kamar'),f(r,'Tipe Rumah')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
+  const q=($('#aCari')?.value||'').toLowerCase().trim(),jenis=$('#aJenis')?.value||'',lk=$('#aLok')?.value||'',isi=$('#aIsi')?.value||'',all=rows('AKOMODASI').filter(isMess),contacts=accommodationContactMap();
+  let list=all.filter(r=>{if(jenis&&accommodationKind(r)!==jenis)return false;if(lk&&f(r,'Lokasi')!==lk)return false;if(isi==='isi'&&!roomFilled(r))return false;if(isi==='kosong'&&roomFilled(r))return false;if(q){const location=f(r,'Lokasi'),contact=contacts.get(location)||{};const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),location,f(r,'No Kamar'),f(r,'Tipe Rumah'),contact.name,contact.phone].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
   const CAP=400, shown=Math.min(list.length,CAP);
   $('#cAkm').textContent=`${list.length>CAP?`${shown} dari ${list.length} ditampilkan · `:''}${list.length} dari ${all.length} kamar/slot mess & rumah kompleks`;if(!list.length){$('#listAkm').innerHTML='<div class="empty"><b>Akomodasi tidak ditemukan</b>Coba nama, jenis, atau lokasi lain.</div>';return;}
-  let h='',loc='';for(const r of list.slice(0,CAP)){const l=f(r,'Lokasi');if(l!==loc){loc=l;h+=`<div class="grp">${esc(l)} · ${esc(accommodationKind(r))}</div>`;}const filled=roomFilled(r),kes=f(r,'Kesiapan'),ready=roomReady(r);h+=`<article class="room-card ${filled?'':'empty-room'}"><div class="l1"><span class="room-no">${esc(f(r,'No Kamar')||f(r,'ID'))}</span><span style="margin-left:auto" class="status-pill ${ready?'ok':'wait'}">${ready?'Siap':esc(kes||'Belum siap')}</span></div><div class="room-name">${filled?esc(f(r,'Tamu')):'Kamar/slot tersedia'}</div><div class="sub">${filled?esc(f(r,'Jabatan')):'Belum ditempati'}</div>${(()=>{const m=[has(f(r,'Perusahaan'))&&filled?esc(f(r,'Perusahaan')):'',has(f(r,'Tipe Kasur'))?esc(f(r,'Tipe Kasur')):'',has(f(r,'Tipe Rumah'))?esc(f(r,'Tipe Rumah')):''].filter(Boolean);return m.length?`<div class="rowmeta">${m.join(' · ')}</div>`:'';})()}</article>`;}$('#listAkm').innerHTML=h;
+  let h='',loc='';for(const r of list.slice(0,CAP)){const l=f(r,'Lokasi');if(l!==loc){loc=l;h+=accommodationGroupHeader(l,accommodationKind(r),contacts);}const filled=roomFilled(r),kes=f(r,'Kesiapan'),ready=roomReady(r);h+=`<article class="room-card ${filled?'':'empty-room'}"><div class="l1"><span class="room-no">${esc(f(r,'No Kamar')||f(r,'ID'))}</span><span style="margin-left:auto" class="status-pill ${ready?'ok':'wait'}">${ready?'Siap':esc(kes||'Belum siap')}</span></div><div class="room-name">${filled?esc(f(r,'Tamu')):'Kamar/slot tersedia'}</div><div class="sub">${filled?esc(f(r,'Jabatan')):'Belum ditempati'}</div>${(()=>{const m=[has(f(r,'Perusahaan'))&&filled?esc(f(r,'Perusahaan')):'',has(f(r,'Tipe Kasur'))?esc(f(r,'Tipe Kasur')):'',has(f(r,'Tipe Rumah'))?esc(f(r,'Tipe Rumah')):''].filter(Boolean);return m.length?`<div class="rowmeta">${m.join(' · ')}</div>`:'';})()}</article>`;}$('#listAkm').innerHTML=h;
 }
 
 /* ---------- Konsumsi ---------- */
