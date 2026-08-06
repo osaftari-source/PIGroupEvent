@@ -1574,18 +1574,46 @@ function drawTamu(){
 }
 
 /* ---------- Akomodasi ---------- */
+function normalizeAccommodationLocation(value){
+  return String(value||'')
+    .normalize('NFKC')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function accommodationGroupKey(row){
+  const location=normalizeAccommodationLocation(f(row,'Lokasi'));
+  return `${accommodationKind(row).toLowerCase()}||${location}`;
+}
+function accommodationLocationGroups(list){
+  const groups=new Map();
+  list.forEach((r,index)=>{
+    const location=f(r,'Lokasi').trim()||'Lokasi belum diisi';
+    const key=accommodationGroupKey(r)||`row-${index}`;
+    if(!groups.has(key))groups.set(key,{key,location,kind:accommodationKind(r),rows:[],firstIndex:index});
+    groups.get(key).rows.push(r);
+  });
+  return [...groups.values()];
+}
+function accommodationRoomSort(a,b){
+  const roomA=f(a,'No Kamar')||f(a,'ID'),roomB=f(b,'No Kamar')||f(b,'ID');
+  return String(roomA).localeCompare(String(roomB),'id',{numeric:true,sensitivity:'base'})||f(a,'ID').localeCompare(f(b,'ID'),'id',{numeric:true,sensitivity:'base'});
+}
 function accommodationContactMap(){
   const map=new Map();
   rows('PENJAGA_MESS').forEach(r=>{
     const location=f(r,'Lokasi').trim();
-    if(!location)return;
-    map.set(location,{name:f(r,'Nama Penjaga'),phone:f(r,'Nomor Kontak')});
+    const key=normalizeAccommodationLocation(location);
+    if(!key)return;
+    map.set(key,{name:f(r,'Nama Penjaga'),phone:f(r,'Nomor Kontak')});
   });
   return map;
 }
 function contactPhoneDigits(value){return String(value||'').replace(/[^0-9+]/g,'');}
 function accommodationGroupHeader(location,kind,contacts){
-  const c=contacts.get(location)||{};
+  const c=contacts.get(normalizeAccommodationLocation(location))||{};
   const name=String(c.name||'').trim(),phone=String(c.phone||'').trim(),digits=contactPhoneDigits(phone);
   let contact='';
   if(phone){contact=`<span class="accommodation-contact"><b>${esc(name||'Penjaga')}</b><span>·</span><a href="tel:${esc(digits)}" aria-label="Hubungi ${esc(name||'penjaga')} di ${esc(location)}">${esc(phone)}</a></span>`;}
@@ -1595,11 +1623,12 @@ function accommodationGroupHeader(location,kind,contacts){
 }
 function viewAkm(){
   const allAkm=rows('AKOMODASI'),ak=allAkm.filter(isMess),tbcRows=allAkm.filter(isAccommodationTBC),mess=ak.filter(r=>accommodationKind(r)==='Mess'),houses=ak.filter(r=>accommodationKind(r)==='Rumah Kompleks');
-  const loc=[...new Set(ak.map(r=>f(r,'Lokasi')).filter(has))].sort(),filled=ak.filter(roomFilled).length,ready=ak.filter(roomReady).length,free=Math.max(0,ak.length-filled);
+  const locationGroups=accommodationLocationGroups(ak),locationOptions=[...locationGroups].sort((a,b)=>a.location.localeCompare(b.location,'id',{numeric:true,sensitivity:'base'}));
+  const filled=ak.filter(roomFilled).length,ready=ak.filter(roomReady).length,free=Math.max(0,ak.length-filled);
   const stats=list=>({total:list.length,filled:list.filter(roomFilled).length,ready:list.filter(roomReady).length});
   const ms=stats(mess),hs=stats(houses);
-  const locData=loc.map(l=>[l,ak.filter(r=>f(r,'Lokasi')===l&&roomFilled(r)).length,ak.filter(r=>f(r,'Lokasi')===l).length]);
-  const messLoc=locData.filter(([l])=>!/^rumah\b/i.test(l)),houseLoc=locData.filter(([l])=>/^rumah\b/i.test(l));
+  const locData=locationGroups.map(g=>[g.location,g.rows.filter(roomFilled).length,g.rows.length,g.kind]);
+  const messLoc=locData.filter(([, , ,kind])=>kind==='Mess'),houseLoc=locData.filter(([, , ,kind])=>kind==='Rumah Kompleks');
   const barBlock=(title,data,st)=>`<div class="panel"><div class="section-head"><h3>${esc(title)}</h3><small>${st.filled}/${st.total} terisi · ${st.total-st.filled} tersedia</small></div><div class="mini-bars">${data.map(([l,v,t])=>`<div class="mini-row"><span title="${esc(l)}">${esc(l)}</span><div class="mini-track"><i style="width:${pctWidth(v,t)}%"></i></div><b>${v}/${t}</b></div>`).join('')||'<div class="empty">Belum ada data lokasi.</div>'}</div></div>`;
   $('#v-akm').innerHTML=ph('Akomodasi Mess & Rumah Kompleks','Perhitungan mencakup seluruh kamar/slot di mess dan rumah kompleks. Kontak penjaga ditampilkan pada setiap lokasi; data hotel tidak dimasukkan.')+demoNote()+`
     <div class="panel"><div class="metric-grid">
@@ -1611,15 +1640,27 @@ function viewAkm(){
     </div></div>
     <div class="grid g2" style="margin-top:14px">${barBlock('Mess',messLoc,ms)}${barBlock('Rumah Kompleks',houseLoc,hs)}</div>
     ${tbcRows.length?`<details class="panel fold"><summary>Tamu Belum Teralokasi <span>${tbcRows.length} orang</span></summary>${tbcRows.map(r=>`<div class="item"><div class="l1"><span class="id">${esc(f(r,'ID'))}</span><span class="tx">${esc(f(r,'Tamu'))}</span></div><div class="l2"><i class="tag tbc">TBC</i></div><div class="rowmeta">${esc(f(r,'Perusahaan'))}</div><div class="sub">${esc(f(r,'Jabatan'))}</div></div>`).join('')}</details>`:''}
-    <div class="filters"><input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan, lokasi, atau penjaga…" autocomplete="off"><select id="aJenis"><option value="">Mess &amp; rumah kompleks</option><option value="Mess">Hanya mess</option><option value="Rumah Kompleks">Hanya rumah kompleks</option></select><select id="aLok"><option value="">Semua lokasi</option>${loc.map(l=>`<option>${esc(l)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select></div><div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
+    <div class="filters"><input id="aCari" type="search" placeholder="Cari nama tamu, jabatan, perusahaan, lokasi, atau penjaga…" autocomplete="off"><select id="aJenis"><option value="">Mess &amp; rumah kompleks</option><option value="Mess">Hanya mess</option><option value="Rumah Kompleks">Hanya rumah kompleks</option></select><select id="aLok"><option value="">Semua lokasi</option>${locationOptions.map(g=>`<option value="${esc(g.key)}">${esc(g.location)}</option>`).join('')}</select><select id="aIsi"><option value="">Terisi &amp; kosong</option><option value="isi">Hanya terisi</option><option value="kosong">Hanya kosong</option></select></div><div class="count" id="cAkm"></div><div class="room-grid" id="listAkm"></div>`;
   ['aCari','aJenis','aLok','aIsi'].forEach(id=>$('#'+id).addEventListener(id==='aCari'?'input':'change',drawAkm));drawAkm();
 }
 function drawAkm(){
   const q=($('#aCari')?.value||'').toLowerCase().trim(),jenis=$('#aJenis')?.value||'',lk=$('#aLok')?.value||'',isi=$('#aIsi')?.value||'',all=rows('AKOMODASI').filter(isMess),contacts=accommodationContactMap();
-  let list=all.filter(r=>{if(jenis&&accommodationKind(r)!==jenis)return false;if(lk&&f(r,'Lokasi')!==lk)return false;if(isi==='isi'&&!roomFilled(r))return false;if(isi==='kosong'&&roomFilled(r))return false;if(q){const location=f(r,'Lokasi'),contact=contacts.get(location)||{};const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),location,f(r,'No Kamar'),f(r,'Tipe Rumah'),contact.name,contact.phone].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
-  const CAP=400, shown=Math.min(list.length,CAP);
+  const list=all.filter(r=>{if(jenis&&accommodationKind(r)!==jenis)return false;if(lk&&accommodationGroupKey(r)!==lk)return false;if(isi==='isi'&&!roomFilled(r))return false;if(isi==='kosong'&&roomFilled(r))return false;if(q){const location=f(r,'Lokasi'),contact=contacts.get(normalizeAccommodationLocation(location))||{};const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),location,f(r,'No Kamar'),f(r,'Tipe Rumah'),contact.name,contact.phone].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
+  const CAP=400,shown=Math.min(list.length,CAP);
   $('#cAkm').textContent=`${list.length>CAP?`${shown} dari ${list.length} ditampilkan · `:''}${list.length} dari ${all.length} kamar/slot mess & rumah kompleks`;if(!list.length){$('#listAkm').innerHTML='<div class="empty"><b>Akomodasi tidak ditemukan</b>Coba nama, jenis, atau lokasi lain.</div>';return;}
-  let h='',loc='';for(const r of list.slice(0,CAP)){const l=f(r,'Lokasi');if(l!==loc){loc=l;h+=accommodationGroupHeader(l,accommodationKind(r),contacts);}const filled=roomFilled(r),kes=f(r,'Kesiapan'),ready=roomReady(r);h+=`<article class="room-card ${filled?'':'empty-room'}"><div class="l1"><span class="room-no">${esc(f(r,'No Kamar')||f(r,'ID'))}</span><span style="margin-left:auto" class="status-pill ${ready?'ok':'wait'}">${ready?'Siap':esc(kes||'Belum siap')}</span></div><div class="room-name">${filled?esc(f(r,'Tamu')):'Kamar/slot tersedia'}</div><div class="sub">${filled?esc(f(r,'Jabatan')):'Belum ditempati'}</div>${(()=>{const m=[has(f(r,'Perusahaan'))&&filled?esc(f(r,'Perusahaan')):'',has(f(r,'Tipe Kasur'))?esc(f(r,'Tipe Kasur')):'',has(f(r,'Tipe Rumah'))?esc(f(r,'Tipe Rumah')):''].filter(Boolean);return m.length?`<div class="rowmeta">${m.join(' · ')}</div>`:'';})()}</article>`;}$('#listAkm').innerHTML=h;
+  const groups=accommodationLocationGroups(list);let h='',rendered=0;
+  for(const group of groups){
+    if(rendered>=CAP)break;
+    h+=accommodationGroupHeader(group.location,group.kind,contacts);
+    const groupRows=[...group.rows].sort(accommodationRoomSort);
+    for(const r of groupRows){
+      if(rendered>=CAP)break;
+      const filled=roomFilled(r),kes=f(r,'Kesiapan'),ready=roomReady(r);
+      h+=`<article class="room-card ${filled?'':'empty-room'}"><div class="l1"><span class="room-no">${esc(f(r,'No Kamar')||f(r,'ID'))}</span><span style="margin-left:auto" class="status-pill ${ready?'ok':'wait'}">${ready?'Siap':esc(kes||'Belum siap')}</span></div><div class="room-name">${filled?esc(f(r,'Tamu')):'Kamar/slot tersedia'}</div><div class="sub">${filled?esc(f(r,'Jabatan')):'Belum ditempati'}</div>${(()=>{const m=[has(f(r,'Perusahaan'))&&filled?esc(f(r,'Perusahaan')):'',has(f(r,'Tipe Kasur'))?esc(f(r,'Tipe Kasur')):'',has(f(r,'Tipe Rumah'))?esc(f(r,'Tipe Rumah')):''].filter(Boolean);return m.length?`<div class="rowmeta">${m.join(' · ')}</div>`:'';})()}</article>`;
+      rendered++;
+    }
+  }
+  $('#listAkm').innerHTML=h;
 }
 
 /* ---------- Konsumsi ---------- */
