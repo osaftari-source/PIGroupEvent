@@ -411,7 +411,7 @@ footer{text-align:center;font-size:var(--fs-3);color:var(--ink-3);padding:22px 1
 .guest-card,.room-card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:13px 14px;box-shadow:0 5px 18px rgba(22,35,58,.045)}
 .guest-card{border-left:4px solid var(--ink-3)}.guest-card.p1c{border-left-color:#B3271E}.guest-card.p2c{border-left-color:#B26A00}.guest-card.p3c{border-left-color:#1F3864}.guest-card.p4c{border-left-color:#7B8AA1}
 .guest-head{display:flex;gap:10px;align-items:flex-start}.guest-head .tx{font-size:var(--fs-5)}.guest-head .tx b{font-size:var(--fs-5)}.guest-head .id{margin-left:auto;padding-top:2px}
-.room-card .room-top{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:12px}.room-card .room-no{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-d1);line-height:1;font-weight:700;white-space:nowrap}.room-card .room-name{font-size:var(--fs-d1);line-height:1.05;font-weight:600;min-width:0;overflow-wrap:anywhere}.room-card.empty-room{background:#fafbfd;border-style:dashed}
+.room-card .room-top{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:baseline;gap:10px}.room-card .room-no{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-5);line-height:1.25;font-weight:700;white-space:nowrap}.room-card .room-name{font-size:var(--fs-5);line-height:1.25;font-weight:600;min-width:0;overflow-wrap:anywhere}.room-card.empty-room{background:#fafbfd;border-style:dashed}
 .status-pill{font-size:var(--fs-2);font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:3px 8px;display:inline-block}.status-pill.ok{background:#E8F5EF;color:#0E6A4D}.status-pill.wait{background:#FFF3D8;color:#845200}.status-pill.bad{background:#FDECEA;color:#93211A}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-head small{font-family:'Inter',sans-serif;font-size:var(--fs-2);font-weight:400;letter-spacing:0;text-transform:none;color:var(--ink-3)}
 
@@ -1605,7 +1605,10 @@ function accommodationLocationGroups(list){
 }
 function accommodationRoomSort(a,b){
   const roomA=f(a,'No Kamar')||f(a,'ID'),roomB=f(b,'No Kamar')||f(b,'ID');
-  return String(roomA).localeCompare(String(roomB),'id',{numeric:true,sensitivity:'base'})||f(a,'ID').localeCompare(f(b,'ID'),'id',{numeric:true,sensitivity:'base'});
+  const roomCompare=String(roomA).localeCompare(String(roomB),'id',{numeric:true,sensitivity:'base'});
+  if(roomCompare)return roomCompare;
+  const guestCompare=f(a,'Tamu').localeCompare(f(b,'Tamu'),'id',{sensitivity:'base'});
+  return guestCompare||f(a,'ID').localeCompare(f(b,'ID'),'id',{numeric:true,sensitivity:'base'});
 }
 function normalizeAccommodationCompany(value){
   return String(value||'')
@@ -1631,19 +1634,43 @@ function accommodationCompanyPriority(value){
   if(/^pupuk indonesia(?: persero)?$/.test(company))return 0;
   return 9;
 }
+function normalizeAccommodationRole(value){
+  return String(value||'')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function accommodationRolePriority(value){
+  const role=normalizeAccommodationRole(value);
+  if(!role||/^(?:free|kosong|na|n a|-)$/.test(role))return 4;
+  if(/\bdirektur\b/.test(role))return 0;
+  if(/\bkomisaris\b/.test(role))return 1;
+  if(role.includes('sekretaris perusahaan'))return 2;
+  if(/\bstaf\s+sdu\b/.test(role))return 3;
+  return 4;
+}
 function accommodationGroupSortMeta(group){
   const occupied=group.rows.filter(roomFilled);
-  if(!occupied.length)return {empty:1,priority:999,company:'',location:group.displayLocation};
+  if(!occupied.length)return {empty:1,priority:999,company:'',role:999,location:group.displayLocation};
   const priority=Math.min(...occupied.map(r=>accommodationCompanyPriority(f(r,'Perusahaan'))));
-  const company=priority===9?occupied
-    .filter(r=>accommodationCompanyPriority(f(r,'Perusahaan'))===priority)
-    .map(r=>normalizeAccommodationCompany(f(r,'Perusahaan')))
-    .sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}))[0]||'':'';
-  return {empty:0,priority,company,location:group.displayLocation};
+  let priorityRows=occupied.filter(r=>accommodationCompanyPriority(f(r,'Perusahaan'))===priority);
+  let company='';
+  if(priority===9){
+    company=priorityRows
+      .map(r=>normalizeAccommodationCompany(f(r,'Perusahaan')))
+      .filter(Boolean)
+      .sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}))[0]||'';
+    priorityRows=priorityRows.filter(r=>normalizeAccommodationCompany(f(r,'Perusahaan'))===company);
+  }
+  const role=priorityRows.length?Math.min(...priorityRows.map(r=>accommodationRolePriority(f(r,'Jabatan')))):4;
+  return {empty:0,priority,company,role,location:group.displayLocation};
 }
 function accommodationGroupSort(a,b){
   const A=accommodationGroupSortMeta(a),B=accommodationGroupSortMeta(b);
-  return A.empty-B.empty||A.priority-B.priority||A.company.localeCompare(B.company,'id',{sensitivity:'base'})||A.location.localeCompare(B.location,'id',{numeric:true,sensitivity:'base'});
+  return A.empty-B.empty||A.priority-B.priority||A.company.localeCompare(B.company,'id',{sensitivity:'base'})||A.role-B.role||A.location.localeCompare(B.location,'id',{numeric:true,sensitivity:'base'});
 }
 function accommodationCardSort(a,b){
   const filledA=roomFilled(a),filledB=roomFilled(b);
@@ -1655,6 +1682,8 @@ function accommodationCardSort(a,b){
       const companyCompare=normalizeAccommodationCompany(f(a,'Perusahaan')).localeCompare(normalizeAccommodationCompany(f(b,'Perusahaan')),'id',{sensitivity:'base'});
       if(companyCompare)return companyCompare;
     }
+    const roleA=accommodationRolePriority(f(a,'Jabatan')),roleB=accommodationRolePriority(f(b,'Jabatan'));
+    if(roleA!==roleB)return roleA-roleB;
   }
   return accommodationRoomSort(a,b);
 }
