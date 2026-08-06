@@ -292,6 +292,8 @@ main{padding:16px 14px calc(26px + env(safe-area-inset-bottom))}
 .lo-guest+.lo-guest{margin-top:4px}
 .lo-guest-name{display:block;font-weight:700;color:var(--ink-1);overflow-wrap:anywhere}
 .lo-guest-role{display:block;margin-top:1px;color:var(--ink-3);overflow-wrap:anywhere}
+.lo-phone{font-family:'IBM Plex Mono',monospace;color:var(--signal);text-decoration:none;white-space:nowrap}
+.lo-phone:hover,.lo-phone:focus{text-decoration:underline}
 
 /* priority chips */
 .pri{flex:none;width:34px;height:34px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
@@ -1659,10 +1661,23 @@ function loHandledGuests(r){
     return {name,jabatan:f(guest,'Jabatan')||(names.length===1?fallbackRole:'')};
   });
 }
+function loPhoneLink(value,loName){
+  const display=String(value||'').trim();
+  if(!display)return'';
+  if(/^(?:tbc|n\/?a|none|belum(?:\s+tersedia)?|-+)$/i.test(display))return esc(display);
+  const digits=display.replace(/\D/g,'');
+  if(digits.length<8)return esc(display);
+  let target='';
+  if(digits.startsWith('0'))target='+62'+digits.slice(1);
+  else if(digits.startsWith('62'))target='+'+digits;
+  else if(display.startsWith('+'))target='+'+digits;
+  else target=digits;
+  return `<a class="lo-phone" href="tel:${esc(target)}" aria-label="Telepon ${esc(loName||'liaison officer')} di ${esc(display)}">${esc(display)}</a>`;
+}
 function drawLO(){
   const q=($('#lCari')?.value||'').toLowerCase().trim(),p=$('#lPos')?.value||'',st=$('#lStatus')?.value||'';let list=rows('LO').filter(r=>{if(p&&f(r,'Pos')!==p)return false;if(st&&f(r,'Status')!==st)return false;if(q){const handled=loHandledGuests(r);const h=[f(r,'Nama LO'),f(r,'Nama VIP'),handled.map(g=>g.jabatan).join(' '),f(r,'Delegasi / Perusahaan','Delegasi'),f(r,'Kategori VIP'),f(r,'No Badge')].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
   $('#cLo').textContent=list.length+' dari '+rows('LO').length+' penugasan';if(!list.length){$('#listLo').innerHTML='<div class="empty"><b>Penugasan tidak ditemukan</b>Coba nama lain.</div>';return;}
-  let h='',c='';for(const r of list){const cc=f(r,'Delegasi / Perusahaan','Delegasi');if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}const status=f(r,'Status')||'Pending',handled=loHandledGuests(r);const handledHtml=handled.length?`<div class="lo-handled"><b class="lo-handled-label">Menangani:</b>${handled.map(g=>`<div class="lo-guest"><span class="lo-guest-name">${esc(g.name)}</span>${g.jabatan?`<span class="lo-guest-role">${esc(g.jabatan)}</span>`:''}</div>`).join('')}</div>`:'';h+=`<div class="item"><div class="l1"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx"><b>${esc(f(r,'Nama LO'))}</b></span><span class="status-pill ${status.toLowerCase()==='confirmed'?'ok':'wait'}">${esc(status)}</span></div><div class="rowmeta">${[has(f(r,'Pos'))?esc(f(r,'Pos')):'',has(f(r,'Kontak'))?esc(f(r,'Kontak')):''].filter(Boolean).join(' · ')}</div>${handledHtml}</div>`;}$('#listLo').innerHTML=h;
+  let h='',c='';for(const r of list){const cc=f(r,'Delegasi / Perusahaan','Delegasi');if(cc!==c){c=cc;h+=`<div class="grp">${esc(cc)}</div>`;}const status=f(r,'Status')||'Pending',handled=loHandledGuests(r);const handledHtml=handled.length?`<div class="lo-handled"><b class="lo-handled-label">Menangani:</b>${handled.map(g=>`<div class="lo-guest"><span class="lo-guest-name">${esc(g.name)}</span>${g.jabatan?`<span class="lo-guest-role">${esc(g.jabatan)}</span>`:''}</div>`).join('')}</div>`:'';const loName=f(r,'Nama LO'),contact=loPhoneLink(f(r,'Kontak'),loName),meta=[has(f(r,'Pos'))?esc(f(r,'Pos')):'',contact].filter(Boolean).join(' · ');h+=`<div class="item"><div class="l1"><span class="id">${esc(f(r,'No Badge'))}</span><span class="tx"><b>${esc(loName)}</b></span><span class="status-pill ${status.toLowerCase()==='confirmed'?'ok':'wait'}">${esc(status)}</span></div>${meta?`<div class="rowmeta">${meta}</div>`:''}${handledHtml}</div>`;}$('#listLo').innerHTML=h;
 }
 
 /* ---------- Issues ---------- */
