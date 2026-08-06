@@ -1677,14 +1677,22 @@ function accommodationSpecialLocationKey(group){
     .replace(/^(?:rumah|mess|wisma)\s+/,'')
     .trim();
 }
+function accommodationGroupHasPanitia(group){
+  return (group?.rows||[]).some(r=>{
+    const guest=normalizeAccommodationRole(f(r,'Tamu'));
+    const role=normalizeAccommodationRole(f(r,'Jabatan'));
+    return /\bpanitia\b/.test(guest)||/\bpanitia\b/.test(role);
+  });
+}
 function accommodationSortGroups(groups){
   const sorted=[...groups].sort(accommodationGroupSort);
   const npkIndex=sorted.findIndex(group=>accommodationSpecialLocationKey(group)==='npk');
-  const panitiaIndex=sorted.findIndex(group=>accommodationSpecialLocationKey(group)==='panitia');
+  const panitiaIndex=sorted.findIndex(accommodationGroupHasPanitia);
   if(npkIndex<0||panitiaIndex<0)return sorted;
   const [npkGroup]=sorted.splice(npkIndex,1);
-  const targetIndex=sorted.findIndex(group=>accommodationSpecialLocationKey(group)==='panitia');
-  sorted.splice(Math.max(0,targetIndex),0,npkGroup);
+  const targetIndex=sorted.findIndex(accommodationGroupHasPanitia);
+  if(targetIndex<0)return sorted;
+  sorted.splice(targetIndex,0,npkGroup);
   return sorted;
 }
 function accommodationCardSort(a,b){
