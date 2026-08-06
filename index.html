@@ -1672,6 +1672,21 @@ function accommodationGroupSort(a,b){
   const A=accommodationGroupSortMeta(a),B=accommodationGroupSortMeta(b);
   return A.empty-B.empty||A.priority-B.priority||A.company.localeCompare(B.company,'id',{sensitivity:'base'})||A.role-B.role||A.location.localeCompare(B.location,'id',{numeric:true,sensitivity:'base'});
 }
+function accommodationSpecialLocationKey(group){
+  return normalizeAccommodationLocation(group?.location||group?.displayLocation||'')
+    .replace(/^(?:rumah|mess|wisma)\s+/,'')
+    .trim();
+}
+function accommodationSortGroups(groups){
+  const sorted=[...groups].sort(accommodationGroupSort);
+  const npkIndex=sorted.findIndex(group=>accommodationSpecialLocationKey(group)==='npk');
+  const panitiaIndex=sorted.findIndex(group=>accommodationSpecialLocationKey(group)==='panitia');
+  if(npkIndex<0||panitiaIndex<0)return sorted;
+  const [npkGroup]=sorted.splice(npkIndex,1);
+  const targetIndex=sorted.findIndex(group=>accommodationSpecialLocationKey(group)==='panitia');
+  sorted.splice(Math.max(0,targetIndex),0,npkGroup);
+  return sorted;
+}
 function accommodationCardSort(a,b){
   const filledA=roomFilled(a),filledB=roomFilled(b);
   if(filledA!==filledB)return filledA?-1:1;
@@ -1711,7 +1726,7 @@ function accommodationGroupHeader(location,contacts){
 }
 function viewAkm(){
   const allAkm=rows('AKOMODASI'),ak=allAkm.filter(isMess),tbcRows=allAkm.filter(isAccommodationTBC);
-  const locationGroups=accommodationLocationGroups(ak),orderedLocationGroups=[...locationGroups].sort(accommodationGroupSort),locationOptions=orderedLocationGroups;
+  const locationGroups=accommodationLocationGroups(ak),orderedLocationGroups=accommodationSortGroups(locationGroups),locationOptions=orderedLocationGroups;
   const filled=ak.filter(roomFilled).length,free=Math.max(0,ak.length-filled);
   const locData=orderedLocationGroups.map(g=>[g.displayLocation,g.rows.filter(roomFilled).length,g.rows.length]);
   const barRows=locData.map(([l,v,t])=>`<div class="mini-row"><span title="${esc(l)}">${esc(l)}</span><div class="mini-track"><i style="width:${pctWidth(v,t)}%"></i></div><b>${v}/${t}</b></div>`).join('')||'<div class="empty">Belum ada data lokasi.</div>';
@@ -1732,7 +1747,7 @@ function drawAkm(){
   const list=all.filter(r=>{if(lk&&accommodationGroupKey(r)!==lk)return false;if(isi==='isi'&&!roomFilled(r))return false;if(isi==='kosong'&&roomFilled(r))return false;if(q){const location=f(r,'Lokasi'),contact=contacts.get(normalizeAccommodationLocation(location))||contacts.get(normalizeAccommodationLocation(displayAccommodationLocation(location)))||{};const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),location,displayAccommodationLocation(location),f(r,'No Kamar'),f(r,'Tipe Rumah'),contact.name,contact.phone].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
   const CAP=400,shown=Math.min(list.length,CAP);
   $('#cAkm').textContent=`${list.length>CAP?`${shown} dari ${list.length} ditampilkan · `:''}${list.length} dari ${all.length} kamar/slot`;if(!list.length){$('#listAkm').innerHTML='<div class="empty"><b>Akomodasi tidak ditemukan</b>Coba nama tamu atau lokasi lain.</div>';return;}
-  const baseGroupOrder=new Map(accommodationLocationGroups(all).sort(accommodationGroupSort).map((g,index)=>[g.key,index]));
+  const baseGroupOrder=new Map(accommodationSortGroups(accommodationLocationGroups(all)).map((g,index)=>[g.key,index]));
   const groups=accommodationLocationGroups(list).sort((a,b)=>(baseGroupOrder.get(a.key)??9999)-(baseGroupOrder.get(b.key)??9999)||accommodationGroupSort(a,b));let h='',rendered=0;
   for(const group of groups){
     if(rendered>=CAP)break;
