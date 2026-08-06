@@ -411,7 +411,7 @@ footer{text-align:center;font-size:var(--fs-3);color:var(--ink-3);padding:22px 1
 .guest-card,.room-card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:13px 14px;box-shadow:0 5px 18px rgba(22,35,58,.045)}
 .guest-card{border-left:4px solid var(--ink-3)}.guest-card.p1c{border-left-color:#B3271E}.guest-card.p2c{border-left-color:#B26A00}.guest-card.p3c{border-left-color:#1F3864}.guest-card.p4c{border-left-color:#7B8AA1}
 .guest-head{display:flex;gap:10px;align-items:flex-start}.guest-head .tx{font-size:var(--fs-5)}.guest-head .tx b{font-size:var(--fs-5)}.guest-head .id{margin-left:auto;padding-top:2px}
-.room-card .room-top{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:baseline;gap:12px}.room-card .room-no{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-d1);line-height:1;font-weight:700;white-space:nowrap}.room-card .room-name{font-weight:600;min-width:0;overflow-wrap:anywhere}.room-card.empty-room{background:#fafbfd;border-style:dashed}
+.room-card .room-top{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:12px}.room-card .room-no{font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-d1);line-height:1;font-weight:700;white-space:nowrap}.room-card .room-name{font-size:var(--fs-d1);line-height:1.05;font-weight:600;min-width:0;overflow-wrap:anywhere}.room-card.empty-room{background:#fafbfd;border-style:dashed}
 .status-pill{font-size:var(--fs-2);font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:3px 8px;display:inline-block}.status-pill.ok{background:#E8F5EF;color:#0E6A4D}.status-pill.wait{background:#FFF3D8;color:#845200}.status-pill.bad{background:#FDECEA;color:#93211A}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.section-head small{font-family:'Inter',sans-serif;font-size:var(--fs-2);font-weight:400;letter-spacing:0;text-transform:none;color:var(--ink-3)}
 
@@ -1607,6 +1607,57 @@ function accommodationRoomSort(a,b){
   const roomA=f(a,'No Kamar')||f(a,'ID'),roomB=f(b,'No Kamar')||f(b,'ID');
   return String(roomA).localeCompare(String(roomB),'id',{numeric:true,sensitivity:'base'})||f(a,'ID').localeCompare(f(b,'ID'),'id',{numeric:true,sensitivity:'base'});
 }
+function normalizeAccommodationCompany(value){
+  return String(value||'')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim()
+    .replace(/^pt\s+/,'');
+}
+function accommodationCompanyPriority(value){
+  const company=normalizeAccommodationCompany(value);
+  if(!company||/^(?:free|kosong|na|n a|-)$/.test(company))return 99;
+  if(/^(?:pupuk kalimantan timur|pupuk kaltim|pkt)$/.test(company))return 1;
+  if(/^(?:petrokimia gresik|pkg)$/.test(company))return 2;
+  if(/^(?:pupuk sriwidjaja palembang|pupuk sriwijaya|pupuk sriwidjaja|psp|pusri)$/.test(company))return 3;
+  if(/^(?:pupuk kujang(?: cikampek)?|pkc)$/.test(company))return 4;
+  if(/^(?:pupuk indonesia logistik|pilog)$/.test(company))return 5;
+  if(/^(?:pupuk indonesia pangan|pip)$/.test(company))return 6;
+  if(/^(?:pupuk indonesia niaga|pin)$/.test(company))return 7;
+  if(/^(?:rekayasa industri|rekind)$/.test(company))return 8;
+  if(/^pupuk indonesia(?: persero)?$/.test(company))return 0;
+  return 9;
+}
+function accommodationGroupSortMeta(group){
+  const occupied=group.rows.filter(roomFilled);
+  if(!occupied.length)return {empty:1,priority:999,company:'',location:group.displayLocation};
+  const priority=Math.min(...occupied.map(r=>accommodationCompanyPriority(f(r,'Perusahaan'))));
+  const company=priority===9?occupied
+    .filter(r=>accommodationCompanyPriority(f(r,'Perusahaan'))===priority)
+    .map(r=>normalizeAccommodationCompany(f(r,'Perusahaan')))
+    .sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}))[0]||'':'';
+  return {empty:0,priority,company,location:group.displayLocation};
+}
+function accommodationGroupSort(a,b){
+  const A=accommodationGroupSortMeta(a),B=accommodationGroupSortMeta(b);
+  return A.empty-B.empty||A.priority-B.priority||A.company.localeCompare(B.company,'id',{sensitivity:'base'})||A.location.localeCompare(B.location,'id',{numeric:true,sensitivity:'base'});
+}
+function accommodationCardSort(a,b){
+  const filledA=roomFilled(a),filledB=roomFilled(b);
+  if(filledA!==filledB)return filledA?-1:1;
+  if(filledA&&filledB){
+    const priorityA=accommodationCompanyPriority(f(a,'Perusahaan')),priorityB=accommodationCompanyPriority(f(b,'Perusahaan'));
+    if(priorityA!==priorityB)return priorityA-priorityB;
+    if(priorityA===9){
+      const companyCompare=normalizeAccommodationCompany(f(a,'Perusahaan')).localeCompare(normalizeAccommodationCompany(f(b,'Perusahaan')),'id',{sensitivity:'base'});
+      if(companyCompare)return companyCompare;
+    }
+  }
+  return accommodationRoomSort(a,b);
+}
 function accommodationContactMap(){
   const map=new Map();
   rows('PENJAGA_MESS').forEach(r=>{
@@ -1631,11 +1682,9 @@ function accommodationGroupHeader(location,contacts){
 }
 function viewAkm(){
   const allAkm=rows('AKOMODASI'),ak=allAkm.filter(isMess),tbcRows=allAkm.filter(isAccommodationTBC);
-  const locationGroups=accommodationLocationGroups(ak),locationOptions=[...locationGroups].sort((a,b)=>a.displayLocation.localeCompare(b.displayLocation,'id',{numeric:true,sensitivity:'base'}));
+  const locationGroups=accommodationLocationGroups(ak),orderedLocationGroups=[...locationGroups].sort(accommodationGroupSort),locationOptions=orderedLocationGroups;
   const filled=ak.filter(roomFilled).length,free=Math.max(0,ak.length-filled);
-  const locData=locationGroups
-    .map(g=>[g.displayLocation,g.rows.filter(roomFilled).length,g.rows.length])
-    .sort((a,b)=>a[0].localeCompare(b[0],'id',{numeric:true,sensitivity:'base'}));
+  const locData=orderedLocationGroups.map(g=>[g.displayLocation,g.rows.filter(roomFilled).length,g.rows.length]);
   const barRows=locData.map(([l,v,t])=>`<div class="mini-row"><span title="${esc(l)}">${esc(l)}</span><div class="mini-track"><i style="width:${pctWidth(v,t)}%"></i></div><b>${v}/${t}</b></div>`).join('')||'<div class="empty">Belum ada data lokasi.</div>';
   $('#v-akm').innerHTML=ph('Akomodasi','Data kamar/slot, penempatan tamu, dan kontak penjaga pada seluruh lokasi.')+demoNote()+`
     <div class="panel"><div class="metric-grid">
@@ -1654,11 +1703,12 @@ function drawAkm(){
   const list=all.filter(r=>{if(lk&&accommodationGroupKey(r)!==lk)return false;if(isi==='isi'&&!roomFilled(r))return false;if(isi==='kosong'&&roomFilled(r))return false;if(q){const location=f(r,'Lokasi'),contact=contacts.get(normalizeAccommodationLocation(location))||contacts.get(normalizeAccommodationLocation(displayAccommodationLocation(location)))||{};const h=[f(r,'Tamu'),f(r,'Jabatan'),f(r,'Perusahaan'),location,displayAccommodationLocation(location),f(r,'No Kamar'),f(r,'Tipe Rumah'),contact.name,contact.phone].join(' ').toLowerCase();if(!h.includes(q))return false;}return true;});
   const CAP=400,shown=Math.min(list.length,CAP);
   $('#cAkm').textContent=`${list.length>CAP?`${shown} dari ${list.length} ditampilkan · `:''}${list.length} dari ${all.length} kamar/slot`;if(!list.length){$('#listAkm').innerHTML='<div class="empty"><b>Akomodasi tidak ditemukan</b>Coba nama tamu atau lokasi lain.</div>';return;}
-  const groups=accommodationLocationGroups(list).sort((a,b)=>a.displayLocation.localeCompare(b.displayLocation,'id',{numeric:true,sensitivity:'base'}));let h='',rendered=0;
+  const baseGroupOrder=new Map(accommodationLocationGroups(all).sort(accommodationGroupSort).map((g,index)=>[g.key,index]));
+  const groups=accommodationLocationGroups(list).sort((a,b)=>(baseGroupOrder.get(a.key)??9999)-(baseGroupOrder.get(b.key)??9999)||accommodationGroupSort(a,b));let h='',rendered=0;
   for(const group of groups){
     if(rendered>=CAP)break;
     h+=accommodationGroupHeader(group.location,contacts);
-    const groupRows=[...group.rows].sort(accommodationRoomSort);
+    const groupRows=[...group.rows].sort(accommodationCardSort);
     for(const r of groupRows){
       if(rendered>=CAP)break;
       const filled=roomFilled(r),guest=filled?f(r,'Tamu'):'Kamar/slot tersedia';
