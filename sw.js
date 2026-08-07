@@ -3,7 +3,7 @@
  * Bump CACHE_VERSION every time you change index.html, otherwise phones
  * that already installed the app keep serving the old file.
  */
-const CACHE_VERSION = 'pim-event-v10-0-transportasi-card-3';
+const CACHE_VERSION = 'pim-event-v10-0-transportasi-phone-style-1';
 
 // index.html is the only entry that MUST cache for the app to work offline.
 // Everything else is decoration.
